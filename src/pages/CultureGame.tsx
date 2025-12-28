@@ -50,7 +50,7 @@ const CultureGame = () => {
               ? "Browse matching candidates now." 
               : "Explore companies that match your preferences."}
           </p>
-          <Button variant="hero" size="xl" onClick={() => navigate(`/results?type=${userType}&role=${role}`)}>
+          <Button variant="hero" size="xl" onClick={() => navigate(userType === "employer" ? `/employer-results?type=${userType}&role=${role}` : `/results?type=${userType}&role=${role}`)}>
             View Matches
           </Button>
         </motion.div>
