@@ -10,6 +10,7 @@ const CultureGame = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const userType = (searchParams.get("type") as UserType) || "candidate";
+  const role = searchParams.get("role") || "";
   
   const questions = userType === "employer" ? EMPLOYER_CULTURE_QUESTIONS : CANDIDATE_CULTURE_QUESTIONS;
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -49,8 +50,8 @@ const CultureGame = () => {
               ? "Browse matching candidates now." 
               : "Explore companies that match your preferences."}
           </p>
-          <Button variant="hero" size="xl" onClick={() => navigate("/")}>
-            View Matches (Coming Soon)
+          <Button variant="hero" size="xl" onClick={() => navigate(`/results?type=${userType}&role=${role}`)}>
+            View Matches
           </Button>
         </motion.div>
       </div>
