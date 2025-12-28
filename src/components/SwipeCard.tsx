@@ -21,6 +21,10 @@ const SwipeCard = ({
   onBack,
   canGoBack = false,
 }: SwipeCardProps) => {
+  if (!question) {
+    return null;
+  }
+
   const handleOptionClick = (option: string) => {
     onAnswer(question.id, option);
   };
