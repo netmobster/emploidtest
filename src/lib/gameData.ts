@@ -95,6 +95,71 @@ export const ROLES: Role[] = [
 
 export type UserType = "employer" | "candidate";
 
+export interface SampleJob {
+  id: string;
+  roleId: string;
+  company: string;
+  title: string;
+  location: string;
+  salary: string;
+  type: "Full-time" | "Part-time" | "Contract";
+  remote: "Remote" | "Hybrid" | "Onsite";
+  description: string;
+  logo: string;
+}
+
+export const SAMPLE_JOBS: SampleJob[] = [
+  // Product Manager
+  { id: "pm-1", roleId: "product-manager", company: "TechFlow", title: "Senior Product Manager", location: "San Francisco, CA", salary: "$150K - $180K", type: "Full-time", remote: "Hybrid", description: "Lead product strategy for our AI-powered platform", logo: "🚀" },
+  { id: "pm-2", roleId: "product-manager", company: "FinanceHub", title: "Product Manager", location: "New York, NY", salary: "$130K - $160K", type: "Full-time", remote: "Remote", description: "Drive innovation in fintech products", logo: "💰" },
+  { id: "pm-3", roleId: "product-manager", company: "HealthTech Co", title: "Product Lead", location: "Boston, MA", salary: "$140K - $170K", type: "Full-time", remote: "Onsite", description: "Transform healthcare through product innovation", logo: "🏥" },
+  
+  // Software Engineer
+  { id: "se-1", roleId: "software-engineer", company: "CloudNine", title: "Full Stack Engineer", location: "Seattle, WA", salary: "$160K - $200K", type: "Full-time", remote: "Remote", description: "Build scalable cloud infrastructure", logo: "☁️" },
+  { id: "se-2", roleId: "software-engineer", company: "GameStudio", title: "Backend Engineer", location: "Austin, TX", salary: "$140K - $175K", type: "Full-time", remote: "Hybrid", description: "Create next-gen gaming experiences", logo: "🎮" },
+  { id: "se-3", roleId: "software-engineer", company: "DataFlow", title: "Senior Developer", location: "Denver, CO", salary: "$150K - $185K", type: "Full-time", remote: "Remote", description: "Build data pipelines at scale", logo: "📊" },
+  
+  // Marketing Manager
+  { id: "mm-1", roleId: "marketing-manager", company: "BrandBoost", title: "Growth Marketing Manager", location: "Los Angeles, CA", salary: "$100K - $130K", type: "Full-time", remote: "Hybrid", description: "Drive user acquisition and retention", logo: "📈" },
+  { id: "mm-2", roleId: "marketing-manager", company: "EcoGoods", title: "Marketing Director", location: "Portland, OR", salary: "$120K - $150K", type: "Full-time", remote: "Remote", description: "Lead sustainable brand marketing", logo: "🌿" },
+  { id: "mm-3", roleId: "marketing-manager", company: "StartupX", title: "Head of Marketing", location: "Miami, FL", salary: "$110K - $140K", type: "Full-time", remote: "Onsite", description: "Build marketing from the ground up", logo: "⚡" },
+  
+  // UX/UI Designer
+  { id: "ux-1", roleId: "ux-ui-designer", company: "DesignLab", title: "Senior UX Designer", location: "San Francisco, CA", salary: "$130K - $160K", type: "Full-time", remote: "Remote", description: "Create beautiful, intuitive experiences", logo: "🎨" },
+  { id: "ux-2", roleId: "ux-ui-designer", company: "AppWorks", title: "Product Designer", location: "New York, NY", salary: "$120K - $150K", type: "Full-time", remote: "Hybrid", description: "Design mobile-first experiences", logo: "📱" },
+  { id: "ux-3", roleId: "ux-ui-designer", company: "CreativeFlow", title: "UI/UX Lead", location: "Chicago, IL", salary: "$125K - $155K", type: "Full-time", remote: "Remote", description: "Lead design system evolution", logo: "✨" },
+  
+  // Content Strategist
+  { id: "cs-1", roleId: "content-strategist", company: "MediaPulse", title: "Content Strategy Lead", location: "New York, NY", salary: "$95K - $120K", type: "Full-time", remote: "Hybrid", description: "Shape content across all channels", logo: "📝" },
+  { id: "cs-2", roleId: "content-strategist", company: "TechBlog Inc", title: "Senior Content Strategist", location: "San Francisco, CA", salary: "$100K - $130K", type: "Full-time", remote: "Remote", description: "Create thought leadership content", logo: "💡" },
+  { id: "cs-3", roleId: "content-strategist", company: "BrandVoice", title: "Content Director", location: "Austin, TX", salary: "$110K - $140K", type: "Full-time", remote: "Remote", description: "Define brand voice and content strategy", logo: "🎯" },
+  
+  // Web Designer
+  { id: "wd-1", roleId: "web-designer", company: "PixelPerfect", title: "Senior Web Designer", location: "Los Angeles, CA", salary: "$90K - $115K", type: "Full-time", remote: "Remote", description: "Design stunning web experiences", logo: "🌐" },
+  { id: "wd-2", roleId: "web-designer", company: "AgencyOne", title: "Web Design Lead", location: "Seattle, WA", salary: "$95K - $120K", type: "Full-time", remote: "Hybrid", description: "Lead client web projects", logo: "🎪" },
+  { id: "wd-3", roleId: "web-designer", company: "StartupHub", title: "Webflow Designer", location: "Denver, CO", salary: "$85K - $110K", type: "Contract", remote: "Remote", description: "Build no-code marketing sites", logo: "⚙️" },
+  
+  // Copywriter
+  { id: "cw-1", roleId: "copywriter", company: "AdCraft", title: "Senior Copywriter", location: "New York, NY", salary: "$85K - $110K", type: "Full-time", remote: "Hybrid", description: "Write compelling ad campaigns", logo: "✍️" },
+  { id: "cw-2", roleId: "copywriter", company: "SaaSify", title: "Product Copywriter", location: "San Francisco, CA", salary: "$90K - $115K", type: "Full-time", remote: "Remote", description: "Craft SaaS product messaging", logo: "💻" },
+  { id: "cw-3", roleId: "copywriter", company: "BrandWords", title: "Creative Copywriter", location: "Chicago, IL", salary: "$80K - $100K", type: "Full-time", remote: "Remote", description: "Tell brand stories that convert", logo: "📖" },
+  
+  // Executive Assistant
+  { id: "ea-1", roleId: "executive-assistant", company: "VentureCapital Co", title: "Executive Assistant to CEO", location: "San Francisco, CA", salary: "$90K - $120K", type: "Full-time", remote: "Onsite", description: "Support high-growth startup CEO", logo: "👔" },
+  { id: "ea-2", roleId: "executive-assistant", company: "GlobalCorp", title: "Senior Executive Assistant", location: "New York, NY", salary: "$85K - $110K", type: "Full-time", remote: "Hybrid", description: "Support C-suite leadership team", logo: "🏢" },
+  { id: "ea-3", roleId: "executive-assistant", company: "TechGiant", title: "Executive Business Partner", location: "Seattle, WA", salary: "$95K - $125K", type: "Full-time", remote: "Hybrid", description: "Strategic support for VP Engineering", logo: "🔧" },
+  
+  // Data Analyst
+  { id: "da-1", roleId: "data-analyst", company: "InsightsCo", title: "Senior Data Analyst", location: "Boston, MA", salary: "$100K - $130K", type: "Full-time", remote: "Remote", description: "Turn data into business strategy", logo: "📉" },
+  { id: "da-2", roleId: "data-analyst", company: "RetailTech", title: "Business Intelligence Analyst", location: "Chicago, IL", salary: "$90K - $115K", type: "Full-time", remote: "Hybrid", description: "Analyze retail performance data", logo: "🛒" },
+  { id: "da-3", roleId: "data-analyst", company: "FinData", title: "Financial Data Analyst", location: "New York, NY", salary: "$110K - $140K", type: "Full-time", remote: "Onsite", description: "Model financial market trends", logo: "💹" },
+  
+  // Customer Support
+  { id: "sup-1", roleId: "customer-support", company: "HelpDesk Pro", title: "Customer Success Manager", location: "Austin, TX", salary: "$70K - $90K", type: "Full-time", remote: "Remote", description: "Ensure customer satisfaction and retention", logo: "🤝" },
+  { id: "sup-2", roleId: "customer-support", company: "SaaSSupport", title: "Senior Support Specialist", location: "Denver, CO", salary: "$60K - $80K", type: "Full-time", remote: "Remote", description: "Provide expert technical support", logo: "🎧" },
+  { id: "sup-3", roleId: "customer-support", company: "E-Commerce Plus", title: "Support Team Lead", location: "Phoenix, AZ", salary: "$75K - $95K", type: "Full-time", remote: "Hybrid", description: "Lead and mentor support team", logo: "⭐" },
+];
+
 export interface GameQuestion {
   id: string;
   question: string;
