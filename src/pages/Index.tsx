@@ -10,7 +10,7 @@ const Index = () => {
   const [hoveredType, setHoveredType] = useState<UserType | null>(null);
 
   const handleSelect = (type: UserType) => {
-    navigate(`/roles?type=${type}`);
+    navigate(`/city?type=${type}`);
   };
 
   return (
