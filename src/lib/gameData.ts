@@ -18,15 +18,19 @@ export interface Role {
   category: string;
   icon: LucideIcon;
   description: string;
+  cityId: string;
 }
 
+// New York Roles (original 10)
 export const ROLES: Role[] = [
+  // NEW YORK ROLES
   {
     id: "product-manager",
     title: "Product Manager",
     category: "Tech/Startup",
     icon: Briefcase,
     description: "Lead product strategy and roadmap development",
+    cityId: "new-york",
   },
   {
     id: "software-engineer",
@@ -34,6 +38,7 @@ export const ROLES: Role[] = [
     category: "Tech",
     icon: Code,
     description: "Build and maintain software applications",
+    cityId: "new-york",
   },
   {
     id: "marketing-manager",
@@ -41,6 +46,7 @@ export const ROLES: Role[] = [
     category: "All Industries",
     icon: Megaphone,
     description: "Drive brand awareness and growth campaigns",
+    cityId: "new-york",
   },
   {
     id: "ux-ui-designer",
@@ -48,6 +54,7 @@ export const ROLES: Role[] = [
     category: "Tech/Media",
     icon: Palette,
     description: "Design intuitive and beautiful user experiences",
+    cityId: "new-york",
   },
   {
     id: "content-strategist",
@@ -55,6 +62,7 @@ export const ROLES: Role[] = [
     category: "Media/Startup",
     icon: FileText,
     description: "Plan and oversee content creation and distribution",
+    cityId: "new-york",
   },
   {
     id: "web-designer",
@@ -62,6 +70,7 @@ export const ROLES: Role[] = [
     category: "Tech/Media",
     icon: Globe,
     description: "Create visually stunning and functional websites",
+    cityId: "new-york",
   },
   {
     id: "copywriter",
@@ -69,6 +78,7 @@ export const ROLES: Role[] = [
     category: "Content",
     icon: PenTool,
     description: "Craft compelling copy that converts",
+    cityId: "new-york",
   },
   {
     id: "executive-assistant",
@@ -76,6 +86,7 @@ export const ROLES: Role[] = [
     category: "All Industries",
     icon: Users,
     description: "Support executives with high-level administrative tasks",
+    cityId: "new-york",
   },
   {
     id: "data-analyst",
@@ -83,6 +94,7 @@ export const ROLES: Role[] = [
     category: "Tech/Startup",
     icon: BarChart3,
     description: "Transform data into actionable insights",
+    cityId: "new-york",
   },
   {
     id: "customer-support",
@@ -90,6 +102,89 @@ export const ROLES: Role[] = [
     category: "All Industries",
     icon: Headphones,
     description: "Deliver exceptional customer experiences",
+    cityId: "new-york",
+  },
+
+  // TORONTO ROLES
+  {
+    id: "product-manager-to",
+    title: "Product Manager",
+    category: "Tech/Fintech",
+    icon: Briefcase,
+    description: "Drive product innovation in Canada's tech hub",
+    cityId: "toronto",
+  },
+  {
+    id: "software-engineer-to",
+    title: "Software Developer",
+    category: "Tech",
+    icon: Code,
+    description: "Build cutting-edge applications for Canadian markets",
+    cityId: "toronto",
+  },
+  {
+    id: "marketing-manager-to",
+    title: "Marketing Manager",
+    category: "All Industries",
+    icon: Megaphone,
+    description: "Lead multi-channel marketing strategies",
+    cityId: "toronto",
+  },
+  {
+    id: "ux-ui-designer-to",
+    title: "UX/UI Designer",
+    category: "Tech/Media",
+    icon: Palette,
+    description: "Create user-centered digital experiences",
+    cityId: "toronto",
+  },
+  {
+    id: "content-strategist-to",
+    title: "Content Strategist",
+    category: "Media/Startup",
+    icon: FileText,
+    description: "Develop content strategies for diverse audiences",
+    cityId: "toronto",
+  },
+  {
+    id: "web-designer-to",
+    title: "Web Designer",
+    category: "Tech/Media",
+    icon: Globe,
+    description: "Design responsive, accessible web experiences",
+    cityId: "toronto",
+  },
+  {
+    id: "copywriter-to",
+    title: "Copywriter",
+    category: "Content",
+    icon: PenTool,
+    description: "Write persuasive copy for Canadian brands",
+    cityId: "toronto",
+  },
+  {
+    id: "executive-assistant-to",
+    title: "Executive Assistant",
+    category: "All Industries",
+    icon: Users,
+    description: "Provide strategic support to senior leadership",
+    cityId: "toronto",
+  },
+  {
+    id: "data-analyst-to",
+    title: "Data Analyst",
+    category: "Tech/Finance",
+    icon: BarChart3,
+    description: "Analyze data for business intelligence insights",
+    cityId: "toronto",
+  },
+  {
+    id: "customer-support-to",
+    title: "Customer Support",
+    category: "All Industries",
+    icon: Headphones,
+    description: "Provide bilingual customer service excellence",
+    cityId: "toronto",
   },
 ];
 
@@ -158,6 +253,57 @@ export const SAMPLE_JOBS: SampleJob[] = [
   { id: "sup-1", roleId: "customer-support", company: "HelpDesk Pro", title: "Customer Success Manager", location: "Austin, TX", salary: "$70K - $90K", type: "Full-time", remote: "Remote", description: "Ensure customer satisfaction and retention", logo: "🤝" },
   { id: "sup-2", roleId: "customer-support", company: "SaaSSupport", title: "Senior Support Specialist", location: "Denver, CO", salary: "$60K - $80K", type: "Full-time", remote: "Remote", description: "Provide expert technical support", logo: "🎧" },
   { id: "sup-3", roleId: "customer-support", company: "E-Commerce Plus", title: "Support Team Lead", location: "Phoenix, AZ", salary: "$75K - $95K", type: "Full-time", remote: "Hybrid", description: "Lead and mentor support team", logo: "⭐" },
+
+  // TORONTO JOBS
+  // Product Manager - Toronto
+  { id: "pm-to-1", roleId: "product-manager-to", company: "Shopify", title: "Senior Product Manager", location: "Toronto, ON", salary: "CAD $140K - $170K", type: "Full-time", remote: "Hybrid", description: "Lead product strategy for merchant tools", logo: "🛍️" },
+  { id: "pm-to-2", roleId: "product-manager-to", company: "Wealthsimple", title: "Product Manager", location: "Toronto, ON", salary: "CAD $120K - $150K", type: "Full-time", remote: "Remote", description: "Build the future of financial services", logo: "💎" },
+  { id: "pm-to-3", roleId: "product-manager-to", company: "RBC Ventures", title: "Product Lead", location: "Toronto, ON", salary: "CAD $130K - $160K", type: "Full-time", remote: "Hybrid", description: "Drive innovation in banking products", logo: "🏦" },
+
+  // Software Developer - Toronto
+  { id: "se-to-1", roleId: "software-engineer-to", company: "Constellation Software", title: "Full Stack Developer", location: "Toronto, ON", salary: "CAD $130K - $165K", type: "Full-time", remote: "Hybrid", description: "Build enterprise software solutions", logo: "⭐" },
+  { id: "se-to-2", roleId: "software-engineer-to", company: "Clio", title: "Backend Developer", location: "Toronto, ON", salary: "CAD $120K - $150K", type: "Full-time", remote: "Remote", description: "Scale legal tech platform infrastructure", logo: "⚖️" },
+  { id: "se-to-3", roleId: "software-engineer-to", company: "Hootsuite", title: "Senior Developer", location: "Toronto, ON", salary: "CAD $140K - $175K", type: "Full-time", remote: "Remote", description: "Build social media management tools", logo: "🦉" },
+
+  // Marketing Manager - Toronto
+  { id: "mm-to-1", roleId: "marketing-manager-to", company: "TouchBistro", title: "Growth Marketing Manager", location: "Toronto, ON", salary: "CAD $95K - $120K", type: "Full-time", remote: "Hybrid", description: "Drive restaurant tech adoption", logo: "🍽️" },
+  { id: "mm-to-2", roleId: "marketing-manager-to", company: "Ritual", title: "Marketing Director", location: "Toronto, ON", salary: "CAD $110K - $140K", type: "Full-time", remote: "Hybrid", description: "Lead consumer marketing strategy", logo: "📱" },
+  { id: "mm-to-3", roleId: "marketing-manager-to", company: "League", title: "Head of Marketing", location: "Toronto, ON", salary: "CAD $120K - $150K", type: "Full-time", remote: "Remote", description: "Build health benefits marketing", logo: "💚" },
+
+  // UX/UI Designer - Toronto
+  { id: "ux-to-1", roleId: "ux-ui-designer-to", company: "Koho", title: "Senior Product Designer", location: "Toronto, ON", salary: "CAD $120K - $150K", type: "Full-time", remote: "Remote", description: "Design fintech user experiences", logo: "💳" },
+  { id: "ux-to-2", roleId: "ux-ui-designer-to", company: "Tulip", title: "UX Designer", location: "Toronto, ON", salary: "CAD $95K - $120K", type: "Full-time", remote: "Hybrid", description: "Create retail technology interfaces", logo: "🌷" },
+  { id: "ux-to-3", roleId: "ux-ui-designer-to", company: "Ada", title: "UI/UX Lead", location: "Toronto, ON", salary: "CAD $130K - $160K", type: "Full-time", remote: "Remote", description: "Design AI chatbot experiences", logo: "🤖" },
+
+  // Content Strategist - Toronto
+  { id: "cs-to-1", roleId: "content-strategist-to", company: "Clearco", title: "Content Strategy Lead", location: "Toronto, ON", salary: "CAD $90K - $115K", type: "Full-time", remote: "Hybrid", description: "Shape fintech content narrative", logo: "📊" },
+  { id: "cs-to-2", roleId: "content-strategist-to", company: "Benevity", title: "Senior Content Strategist", location: "Toronto, ON", salary: "CAD $95K - $120K", type: "Full-time", remote: "Remote", description: "Create corporate giving content", logo: "🎁" },
+  { id: "cs-to-3", roleId: "content-strategist-to", company: "Points", title: "Content Director", location: "Toronto, ON", salary: "CAD $100K - $130K", type: "Full-time", remote: "Hybrid", description: "Lead loyalty program content", logo: "✈️" },
+
+  // Web Designer - Toronto
+  { id: "wd-to-1", roleId: "web-designer-to", company: "Unbounce", title: "Senior Web Designer", location: "Toronto, ON", salary: "CAD $90K - $115K", type: "Full-time", remote: "Remote", description: "Design landing page experiences", logo: "🎯" },
+  { id: "wd-to-2", roleId: "web-designer-to", company: "Freshbooks", title: "Web Design Lead", location: "Toronto, ON", salary: "CAD $95K - $120K", type: "Full-time", remote: "Hybrid", description: "Lead accounting software web design", logo: "📒" },
+  { id: "wd-to-3", roleId: "web-designer-to", company: "Vena Solutions", title: "Webflow Designer", location: "Toronto, ON", salary: "CAD $85K - $105K", type: "Contract", remote: "Remote", description: "Build financial planning web presence", logo: "📈" },
+
+  // Copywriter - Toronto
+  { id: "cw-to-1", roleId: "copywriter-to", company: "Faire", title: "Senior Copywriter", location: "Toronto, ON", salary: "CAD $85K - $110K", type: "Full-time", remote: "Hybrid", description: "Write B2B marketplace copy", logo: "🏪" },
+  { id: "cw-to-2", roleId: "copywriter-to", company: "Top Hat", title: "Product Copywriter", location: "Toronto, ON", salary: "CAD $80K - $100K", type: "Full-time", remote: "Remote", description: "Craft edtech product messaging", logo: "🎓" },
+  { id: "cw-to-3", roleId: "copywriter-to", company: "Nuvei", title: "Creative Copywriter", location: "Toronto, ON", salary: "CAD $75K - $95K", type: "Full-time", remote: "Hybrid", description: "Write payment solutions content", logo: "💰" },
+
+  // Executive Assistant - Toronto
+  { id: "ea-to-1", roleId: "executive-assistant-to", company: "OMERS", title: "Executive Assistant to CEO", location: "Toronto, ON", salary: "CAD $95K - $125K", type: "Full-time", remote: "Hybrid", description: "Support pension fund CEO", logo: "🏛️" },
+  { id: "ea-to-2", roleId: "executive-assistant-to", company: "TMX Group", title: "Senior Executive Assistant", location: "Toronto, ON", salary: "CAD $85K - $110K", type: "Full-time", remote: "Onsite", description: "Support stock exchange leadership", logo: "📈" },
+  { id: "ea-to-3", roleId: "executive-assistant-to", company: "Manulife", title: "Executive Business Partner", location: "Toronto, ON", salary: "CAD $90K - $120K", type: "Full-time", remote: "Hybrid", description: "Strategic support for insurance VP", logo: "🛡️" },
+
+  // Data Analyst - Toronto
+  { id: "da-to-1", roleId: "data-analyst-to", company: "TD Bank", title: "Senior Data Analyst", location: "Toronto, ON", salary: "CAD $100K - $130K", type: "Full-time", remote: "Hybrid", description: "Analyze banking customer insights", logo: "🏦" },
+  { id: "da-to-2", roleId: "data-analyst-to", company: "Loblaw Digital", title: "Business Intelligence Analyst", location: "Toronto, ON", salary: "CAD $90K - $115K", type: "Full-time", remote: "Hybrid", description: "Analyze retail performance data", logo: "🛒" },
+  { id: "da-to-3", roleId: "data-analyst-to", company: "Element Fleet", title: "Financial Data Analyst", location: "Toronto, ON", salary: "CAD $95K - $120K", type: "Full-time", remote: "Remote", description: "Model fleet management trends", logo: "🚗" },
+
+  // Customer Support - Toronto
+  { id: "sup-to-1", roleId: "customer-support-to", company: "1Password", title: "Customer Success Manager", location: "Toronto, ON", salary: "CAD $80K - $100K", type: "Full-time", remote: "Remote", description: "Ensure security product adoption", logo: "🔐" },
+  { id: "sup-to-2", roleId: "customer-support-to", company: "Loom", title: "Senior Support Specialist", location: "Toronto, ON", salary: "CAD $70K - $85K", type: "Full-time", remote: "Remote", description: "Provide video platform support", logo: "🎥" },
+  { id: "sup-to-3", roleId: "customer-support-to", company: "Clearbanc", title: "Support Team Lead", location: "Toronto, ON", salary: "CAD $85K - $105K", type: "Full-time", remote: "Hybrid", description: "Lead fintech support team", logo: "💸" },
 ];
 
 export interface Candidate {
@@ -226,6 +372,57 @@ export const SAMPLE_CANDIDATES: Candidate[] = [
   { id: "c-sup-1", roleId: "customer-support", name: "Jennifer Lopez", avatar: "👩‍🎧", title: "Customer Success Manager", location: "Austin, TX", experience: "5 years", salary: "$85K - $105K", bio: "Passionate about customer advocacy and retention. Reduced churn by 40% at previous company.", skills: ["Account Management", "Zendesk", "Salesforce", "Onboarding", "Upselling"], education: "BA Psychology, UT Austin", availability: "2 weeks", remote: "Remote" },
   { id: "c-sup-2", roleId: "customer-support", name: "Michael Scott", avatar: "👨‍🎧", title: "Technical Support Specialist", location: "Seattle, WA", experience: "3 years", salary: "$65K - $80K", bio: "Tech-savvy support professional who can troubleshoot complex issues and explain solutions simply.", skills: ["Technical Troubleshooting", "Intercom", "Documentation", "API Support", "Bug Reporting"], education: "AS Computer Science, Seattle Central", availability: "1 month", remote: "Hybrid" },
   { id: "c-sup-3", roleId: "customer-support", name: "Sarah Miller", avatar: "👩‍💻", title: "Support Representative", location: "Phoenix, AZ", experience: "1 year", salary: "$45K - $55K", bio: "Friendly and patient support rep with excellent written communication. Quick learner ready to grow.", skills: ["Live Chat", "Email Support", "CRM", "Problem Solving", "Multitasking"], education: "BA Communications, ASU", availability: "Immediately", remote: "Flexible" },
+
+  // TORONTO CANDIDATES
+  // Product Managers - Toronto
+  { id: "c-pm-to-1", roleId: "product-manager-to", name: "Aisha Patel", avatar: "👩‍💼", title: "Senior Product Manager", location: "Toronto, ON", experience: "8 years", salary: "CAD $150K - $180K", bio: "Led product teams at Shopify and Wealthsimple. Expert in fintech and e-commerce product development.", skills: ["Product Strategy", "Agile/Scrum", "Fintech", "E-commerce", "Stakeholder Management"], education: "MBA, Rotman School of Management", availability: "1 month", remote: "Hybrid" },
+  { id: "c-pm-to-2", roleId: "product-manager-to", name: "James Chen", avatar: "👨‍💼", title: "Product Manager", location: "Toronto, ON", experience: "5 years", salary: "CAD $120K - $145K", bio: "Former developer with strong technical background. Passionate about building products that scale.", skills: ["Technical PM", "SQL", "API Design", "User Research", "Data Analytics"], education: "BCS, University of Waterloo", availability: "2 weeks", remote: "Remote" },
+  { id: "c-pm-to-3", roleId: "product-manager-to", name: "Priya Sharma", avatar: "👩‍🦰", title: "Associate Product Manager", location: "Toronto, ON", experience: "2 years", salary: "CAD $85K - $105K", bio: "Rising PM with consulting background. Strong analytical skills and customer empathy.", skills: ["Market Research", "Competitive Analysis", "Jira", "Presentation Skills", "Customer Interviews"], education: "BComm, McGill University", availability: "Immediately", remote: "Flexible" },
+
+  // Software Developers - Toronto
+  { id: "c-se-to-1", roleId: "software-engineer-to", name: "Wei Zhang", avatar: "👨‍💻", title: "Senior Full Stack Developer", location: "Toronto, ON", experience: "9 years", salary: "CAD $160K - $195K", bio: "Full stack developer with expertise in React, Node.js, and cloud architecture. Active open source contributor.", skills: ["React", "TypeScript", "Node.js", "AWS", "MongoDB", "GraphQL"], education: "MASc Computer Engineering, University of Toronto", availability: "1 month", remote: "Remote" },
+  { id: "c-se-to-2", roleId: "software-engineer-to", name: "Fatima Hassan", avatar: "👩‍💻", title: "Backend Developer", location: "Toronto, ON", experience: "6 years", salary: "CAD $135K - $165K", bio: "Specialized in distributed systems and microservices. Previously scaled payment systems at Stripe.", skills: ["Python", "Go", "Kubernetes", "PostgreSQL", "gRPC", "System Design"], education: "BSc Computer Science, University of Waterloo", availability: "2 weeks", remote: "Hybrid" },
+  { id: "c-se-to-3", roleId: "software-engineer-to", name: "Liam O'Connor", avatar: "🧑‍💻", title: "Frontend Developer", location: "Toronto, ON", experience: "3 years", salary: "CAD $100K - $125K", bio: "Passionate about accessible, performant web experiences. Active in Toronto tech community.", skills: ["React", "Next.js", "CSS/Tailwind", "Accessibility", "Testing"], education: "Diploma, Lighthouse Labs", availability: "Immediately", remote: "Remote" },
+
+  // Marketing Managers - Toronto
+  { id: "c-mm-to-1", roleId: "marketing-manager-to", name: "Sophie Tremblay", avatar: "👩‍🎤", title: "Growth Marketing Lead", location: "Toronto, ON", experience: "7 years", salary: "CAD $110K - $140K", bio: "Bilingual marketer with experience scaling Canadian startups. Expert in CAC optimization.", skills: ["Paid Acquisition", "Analytics", "SEO/SEM", "Marketing Automation", "French/English"], education: "BCom Marketing, HEC Montreal", availability: "2 weeks", remote: "Hybrid" },
+  { id: "c-mm-to-2", roleId: "marketing-manager-to", name: "Marcus Williams", avatar: "👨‍🎨", title: "Brand Marketing Manager", location: "Toronto, ON", experience: "5 years", salary: "CAD $95K - $120K", bio: "Creative strategist with agency experience. Built brand campaigns for major Canadian retailers.", skills: ["Brand Strategy", "Content Marketing", "Social Media", "Campaign Management", "Creative Direction"], education: "BFA, OCAD University", availability: "1 month", remote: "Remote" },
+  { id: "c-mm-to-3", roleId: "marketing-manager-to", name: "Emma Thompson", avatar: "👩‍💼", title: "Digital Marketing Specialist", location: "Toronto, ON", experience: "3 years", salary: "CAD $75K - $95K", bio: "Data-driven marketer specializing in B2B SaaS. Certified in all major ad platforms.", skills: ["Google Ads", "LinkedIn Ads", "HubSpot", "Email Marketing", "Conversion Optimization"], education: "BA Communications, York University", availability: "Immediately", remote: "Flexible" },
+
+  // UX/UI Designers - Toronto
+  { id: "c-ux-to-1", roleId: "ux-ui-designer-to", name: "Olivia Kim", avatar: "👩‍🎨", title: "Senior Product Designer", location: "Toronto, ON", experience: "8 years", salary: "CAD $140K - $170K", bio: "End-to-end product designer with a passion for inclusive design. Led design at multiple Canadian unicorns.", skills: ["Figma", "Design Systems", "User Research", "Prototyping", "Accessibility"], education: "MDes, Emily Carr University", availability: "1 month", remote: "Remote" },
+  { id: "c-ux-to-2", roleId: "ux-ui-designer-to", name: "David Okafor", avatar: "👨‍🎨", title: "UX Designer", location: "Toronto, ON", experience: "4 years", salary: "CAD $100K - $125K", bio: "User advocate combining research with beautiful interfaces. Specializes in financial product design.", skills: ["User Testing", "Figma", "Sketch", "Fintech UX", "Interaction Design"], education: "HBSc, University of Toronto", availability: "2 weeks", remote: "Hybrid" },
+  { id: "c-ux-to-3", roleId: "ux-ui-designer-to", name: "Maya Rodriguez", avatar: "👩‍🦱", title: "UI Designer", location: "Toronto, ON", experience: "2 years", salary: "CAD $80K - $100K", bio: "Visual designer with a keen eye for motion design. Creates delightful micro-interactions.", skills: ["Visual Design", "Illustration", "Motion Design", "Figma", "After Effects"], education: "BDes, Sheridan College", availability: "Immediately", remote: "Flexible" },
+
+  // Content Strategists - Toronto
+  { id: "c-cs-to-1", roleId: "content-strategist-to", name: "Rachel Wong", avatar: "👩‍✈️", title: "Head of Content", location: "Toronto, ON", experience: "9 years", salary: "CAD $125K - $155K", bio: "Built content teams at Canadian tech companies. Expert in multilingual content strategy.", skills: ["Content Strategy", "SEO", "Editorial Management", "Bilingual Content", "Content Operations"], education: "MA Journalism, Ryerson University", availability: "1 month", remote: "Remote" },
+  { id: "c-cs-to-2", roleId: "content-strategist-to", name: "Nathan Lee", avatar: "👨‍🏫", title: "Content Strategist", location: "Toronto, ON", experience: "5 years", salary: "CAD $90K - $115K", bio: "Storyteller with data-driven approach. Specializes in fintech and healthcare content.", skills: ["Technical Writing", "Analytics", "WordPress", "Video Content", "Content Distribution"], education: "BA English, University of British Columbia", availability: "2 weeks", remote: "Hybrid" },
+  { id: "c-cs-to-3", roleId: "content-strategist-to", name: "Chloe Martin", avatar: "👩‍🎓", title: "Junior Content Strategist", location: "Toronto, ON", experience: "2 years", salary: "CAD $65K - $80K", bio: "Creative writer transitioning into strategy. Passionate about accessible communication.", skills: ["Copywriting", "Social Media", "Research", "Canva", "Newsletter Management"], education: "BA Communications, Carleton University", availability: "Immediately", remote: "Remote" },
+
+  // Web Designers - Toronto
+  { id: "c-wd-to-1", roleId: "web-designer-to", name: "Alex Morrison", avatar: "👨‍🎤", title: "Senior Web Designer", location: "Toronto, ON", experience: "7 years", salary: "CAD $105K - $130K", bio: "Webflow expert building stunning marketing sites for Canadian tech companies.", skills: ["Webflow", "Figma", "HTML/CSS", "Animation", "Responsive Design"], education: "BDes, George Brown College", availability: "2 weeks", remote: "Remote" },
+  { id: "c-wd-to-2", roleId: "web-designer-to", name: "Jessica Park", avatar: "👩‍🎨", title: "Web Designer", location: "Toronto, ON", experience: "4 years", salary: "CAD $85K - $105K", bio: "Combines creativity with conversion optimization. Experienced with Canadian e-commerce brands.", skills: ["Shopify", "WordPress", "Adobe Suite", "UI Design", "A/B Testing"], education: "BDes, OCAD University", availability: "1 month", remote: "Hybrid" },
+  { id: "c-wd-to-3", roleId: "web-designer-to", name: "Jordan Singh", avatar: "🧑‍🎨", title: "Junior Web Designer", location: "Toronto, ON", experience: "1 year", salary: "CAD $60K - $75K", bio: "Self-taught designer with strong Figma and Framer skills. Building portfolio with local startups.", skills: ["Figma", "Framer", "Tailwind CSS", "JavaScript Basics", "Brand Design"], education: "Self-taught / BrainStation", availability: "Immediately", remote: "Flexible" },
+
+  // Copywriters - Toronto
+  { id: "c-cw-to-1", roleId: "copywriter-to", name: "Lauren Bennett", avatar: "👩‍🦳", title: "Senior Copywriter", location: "Toronto, ON", experience: "8 years", salary: "CAD $95K - $120K", bio: "Award-winning copywriter with agency experience. Specializes in bilingual Canadian campaigns.", skills: ["Brand Copywriting", "Advertising", "Storytelling", "French/English", "Creative Concepts"], education: "BA Creative Writing, University of Victoria", availability: "1 month", remote: "Hybrid" },
+  { id: "c-cw-to-2", roleId: "copywriter-to", name: "Daniel Cho", avatar: "👨‍🦲", title: "Conversion Copywriter", location: "Toronto, ON", experience: "4 years", salary: "CAD $85K - $105K", bio: "Direct response copywriter for Canadian SaaS. Focused on landing pages and email funnels.", skills: ["Landing Pages", "Email Sequences", "A/B Testing", "UX Writing", "Sales Pages"], education: "BCom, Queen's University", availability: "2 weeks", remote: "Remote" },
+  { id: "c-cw-to-3", roleId: "copywriter-to", name: "Mia Taylor", avatar: "👩‍🎤", title: "Content Writer", location: "Toronto, ON", experience: "2 years", salary: "CAD $60K - $75K", bio: "Versatile writer comfortable with blogs, social, and long-form content for diverse Canadian audiences.", skills: ["Blog Writing", "Social Copy", "SEO Writing", "Research", "Editing"], education: "BA Journalism, Carleton University", availability: "Immediately", remote: "Remote" },
+
+  // Executive Assistants - Toronto
+  { id: "c-ea-to-1", roleId: "executive-assistant-to", name: "Victoria Chen", avatar: "👩‍💼", title: "Executive Business Partner", location: "Toronto, ON", experience: "11 years", salary: "CAD $105K - $135K", bio: "Supported C-suite at major Canadian banks and tech companies. Expert in complex stakeholder management.", skills: ["Calendar Management", "Travel Coordination", "Event Planning", "Confidentiality", "Project Management"], education: "BA Business, Western University", availability: "1 month", remote: "Hybrid" },
+  { id: "c-ea-to-2", roleId: "executive-assistant-to", name: "Robert Kim", avatar: "👨‍💼", title: "Executive Assistant", location: "Toronto, ON", experience: "5 years", salary: "CAD $75K - $95K", bio: "Detail-oriented EA with experience in finance and legal sectors. Bilingual English/Korean.", skills: ["Microsoft Office", "Expense Management", "Meeting Coordination", "Document Preparation", "Multilingual"], education: "BA Business, Ryerson University", availability: "2 weeks", remote: "Onsite" },
+  { id: "c-ea-to-3", roleId: "executive-assistant-to", name: "Ashley Nguyen", avatar: "👩‍🦰", title: "Administrative Assistant", location: "Toronto, ON", experience: "2 years", salary: "CAD $50K - $65K", bio: "Organized and proactive admin ready to grow. Tech-savvy with experience in startup environments.", skills: ["Google Workspace", "Scheduling", "Data Entry", "Customer Service", "Slack/Notion"], education: "BA Communications, York University", availability: "Immediately", remote: "Flexible" },
+
+  // Data Analysts - Toronto
+  { id: "c-da-to-1", roleId: "data-analyst-to", name: "Michael Zhang", avatar: "👨‍🔬", title: "Senior Data Analyst", location: "Toronto, ON", experience: "7 years", salary: "CAD $115K - $145K", bio: "Transform complex financial data into insights. Experience with Big Five banks and fintech.", skills: ["SQL", "Python", "Tableau", "Statistical Analysis", "Financial Modeling"], education: "MSc Statistics, University of Toronto", availability: "1 month", remote: "Remote" },
+  { id: "c-da-to-2", roleId: "data-analyst-to", name: "Sarah Ahmed", avatar: "👩‍🔬", title: "Business Analyst", location: "Toronto, ON", experience: "4 years", salary: "CAD $90K - $110K", bio: "Bridge between business and data teams. Strong communication for executive presentations.", skills: ["Excel", "Power BI", "SQL", "Business Intelligence", "Reporting"], education: "BCom, Schulich School of Business", availability: "2 weeks", remote: "Hybrid" },
+  { id: "c-da-to-3", roleId: "data-analyst-to", name: "Tyler Robinson", avatar: "🧑‍💻", title: "Junior Data Analyst", location: "Toronto, ON", experience: "1 year", salary: "CAD $65K - $80K", bio: "Recent graduate passionate about data storytelling. Strong foundation in Python and visualization.", skills: ["Python", "R", "Google Sheets", "Data Visualization", "Basic ML"], education: "BSc Data Science, McMaster University", availability: "Immediately", remote: "Remote" },
+
+  // Customer Support - Toronto
+  { id: "c-sup-to-1", roleId: "customer-support-to", name: "Amanda Lee", avatar: "👩‍🎧", title: "Customer Success Manager", location: "Toronto, ON", experience: "6 years", salary: "CAD $85K - $105K", bio: "Passionate about customer advocacy. Reduced churn by 35% at previous fintech company.", skills: ["Account Management", "Zendesk", "Salesforce", "Onboarding", "Bilingual"], education: "BA Psychology, McGill University", availability: "2 weeks", remote: "Remote" },
+  { id: "c-sup-to-2", roleId: "customer-support-to", name: "Chris Patel", avatar: "👨‍🎧", title: "Technical Support Specialist", location: "Toronto, ON", experience: "4 years", salary: "CAD $65K - $80K", bio: "Tech-savvy support professional with SaaS experience. Great at explaining complex issues simply.", skills: ["Technical Troubleshooting", "Intercom", "Documentation", "API Support", "JIRA"], education: "Diploma, Seneca College", availability: "1 month", remote: "Hybrid" },
+  { id: "c-sup-to-3", roleId: "customer-support-to", name: "Nicole Brown", avatar: "👩‍💻", title: "Support Representative", location: "Toronto, ON", experience: "1 year", salary: "CAD $45K - $55K", bio: "Friendly and patient support rep. Fluent in English and French for Canadian customer base.", skills: ["Live Chat", "Email Support", "CRM", "Problem Solving", "Bilingual"], education: "BA Communications, University of Ottawa", availability: "Immediately", remote: "Flexible" },
 ];
 
 export interface GameQuestion {
