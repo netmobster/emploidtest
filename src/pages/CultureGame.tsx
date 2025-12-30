@@ -1,28 +1,74 @@
 import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
-import { EMPLOYER_CULTURE_QUESTIONS, CANDIDATE_CULTURE_QUESTIONS, UserType } from "@/lib/gameData";
+import { EMPLOYER_CULTURE_QUESTIONS, CANDIDATE_CULTURE_QUESTIONS, UserType, ROLES } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, PartyPopper } from "lucide-react";
+import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const CultureGame = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const userType = (searchParams.get("type") as UserType) || "candidate";
-  const role = searchParams.get("role") || "";
+  const roleId = searchParams.get("role") || "";
+  const cityId = searchParams.get("city") || "new-york";
+  
+  const skillsAnswers = (location.state as { skillsAnswers?: Record<string, string> })?.skillsAnswers || {};
   
   const questions = userType === "employer" ? EMPLOYER_CULTURE_QUESTIONS : CANDIDATE_CULTURE_QUESTIONS;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleAnswer = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+  const role = ROLES.find(r => r.id === roleId);
+
+  const saveJobToDatabase = async (cultureAnswers: Record<string, string>) => {
+    if (userType !== "employer") return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from("jobs").insert({
+        title: role?.title || "Open Position",
+        company: "Your Company", // Could be collected in a future form
+        role_id: roleId,
+        city_id: cityId,
+        description: `Looking for a ${role?.title || "professional"} to join our team`,
+        salary: "Competitive",
+        type: "Full-time",
+        remote: false,
+        skills_preferences: skillsAnswers,
+        culture_preferences: cultureAnswers,
+      });
+
+      if (error) {
+        console.error("Error saving job:", error);
+        toast.error("Failed to save job posting");
+      } else {
+        toast.success("Job posted successfully!");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Something went wrong");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAnswer = async (questionId: string, answer: string) => {
+    const updatedAnswers = { ...answers, [questionId]: answer };
+    setAnswers(updatedAnswers);
     
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
+      // Save job for employers before completing
+      if (userType === "employer") {
+        await saveJobToDatabase(updatedAnswers);
+      }
       setIsComplete(true);
     }
   };
@@ -47,10 +93,19 @@ const CultureGame = () => {
           <h1 className="text-3xl font-bold text-foreground mb-4">You're all set!</h1>
           <p className="text-muted-foreground mb-8">
             Your profile is complete. {userType === "employer" 
-              ? "Browse matching candidates now." 
+              ? "Your job has been posted! Browse matching candidates now." 
               : "Explore companies that match your preferences."}
           </p>
-          <Button variant="hero" size="xl" onClick={() => navigate(userType === "employer" ? `/employer-results?type=${userType}&role=${role}` : `/results?type=${userType}&role=${role}`)}>
+          <Button 
+            variant="hero" 
+            size="xl" 
+            onClick={() => navigate(userType === "employer" 
+              ? `/employer-results?type=${userType}&role=${roleId}&city=${cityId}` 
+              : `/results?type=${userType}&role=${roleId}&city=${cityId}`
+            )}
+            disabled={isSaving}
+          >
+            {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
             View Matches
           </Button>
         </motion.div>
