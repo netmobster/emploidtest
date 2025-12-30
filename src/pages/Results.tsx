@@ -1,10 +1,12 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { SAMPLE_JOBS, ROLES, SampleJob } from "@/lib/gameData";
+import { SAMPLE_JOBS, ROLES } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
-import { MapPin, DollarSign, Briefcase, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
+import { MapPin, DollarSign, Briefcase, ArrowLeft, Sparkles, Loader2, Heart, HeartOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface DatabaseJob {
   id: string;
@@ -29,40 +31,109 @@ interface JobWithScore {
   description: string;
   logo: string;
   matchScore: number;
-  isFromDatabase?: boolean;
+  isFromDatabase: boolean;
 }
 
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const role = searchParams.get("role") || "";
   const cityId = searchParams.get("city") || "new-york";
   const userType = searchParams.get("type") || "candidate";
 
   const [databaseJobs, setDatabaseJobs] = useState<DatabaseJob[]>([]);
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
+  const [savingJobId, setSavingJobId] = useState<string | null>(null);
 
   const roleInfo = ROLES.find((r) => r.id === role);
   const cityName = cityId === "toronto" ? "Toronto, ON" : "New York, NY";
 
-  // Fetch jobs from database
+  // Fetch jobs and saved jobs from database
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch jobs
+      const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
         .select("*")
         .eq("role_id", role)
         .eq("city_id", cityId);
 
-      if (!error && data) {
-        setDatabaseJobs(data);
+      if (!jobsError && jobsData) {
+        setDatabaseJobs(jobsData);
       }
+
+      // Fetch saved jobs if user is logged in
+      if (user) {
+        const { data: savedData, error: savedError } = await supabase
+          .from("saved_jobs")
+          .select("job_id")
+          .eq("user_id", user.id);
+
+        if (!savedError && savedData) {
+          setSavedJobIds(new Set(savedData.map(s => s.job_id)));
+        }
+      }
+      
       setIsLoading(false);
     };
 
-    fetchJobs();
-  }, [role, cityId]);
+    fetchData();
+  }, [role, cityId, user]);
+
+  const handleSaveJob = async (jobId: string, isFromDatabase: boolean) => {
+    if (!user) {
+      toast.error("Please sign in to save jobs");
+      navigate(`/auth?type=${userType}`);
+      return;
+    }
+
+    if (!isFromDatabase) {
+      toast.info("This is a sample job. You can save real employer-posted jobs!");
+      return;
+    }
+
+    setSavingJobId(jobId);
+    
+    const isSaved = savedJobIds.has(jobId);
+
+    if (isSaved) {
+      // Unsave
+      const { error } = await supabase
+        .from("saved_jobs")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("job_id", jobId);
+
+      if (error) {
+        toast.error("Failed to unsave job");
+      } else {
+        setSavedJobIds(prev => {
+          const next = new Set(prev);
+          next.delete(jobId);
+          return next;
+        });
+        toast.success("Job removed from saved");
+      }
+    } else {
+      // Save
+      const { error } = await supabase
+        .from("saved_jobs")
+        .insert({ user_id: user.id, job_id: jobId });
+
+      if (error) {
+        toast.error("Failed to save job");
+      } else {
+        setSavedJobIds(prev => new Set(prev).add(jobId));
+        toast.success("Job saved!");
+      }
+    }
+
+    setSavingJobId(null);
+  };
 
   // Get sample jobs for this role
   const sampleJobs = SAMPLE_JOBS.filter((job) => job.roleId === role);
@@ -80,7 +151,7 @@ const Results = () => {
       remote: job.remote ? "Remote" : "Onsite",
       description: job.description || "",
       logo: "🏢",
-      matchScore: Math.floor(Math.random() * 15) + 85, // Higher scores for real jobs (85-99%)
+      matchScore: Math.floor(Math.random() * 15) + 85,
       isFromDatabase: true,
     })),
     // Sample jobs
@@ -94,7 +165,7 @@ const Results = () => {
       remote: job.remote,
       description: job.description,
       logo: job.logo,
-      matchScore: Math.floor(Math.random() * 30) + 70, // 70-99%
+      matchScore: Math.floor(Math.random() * 30) + 70,
       isFromDatabase: false,
     })),
   ].sort((a, b) => b.matchScore - a.matchScore);
@@ -186,8 +257,18 @@ const Results = () => {
                   <Button className="flex-1" variant="default">
                     Apply Now
                   </Button>
-                  <Button variant="outline">
-                    Save
+                  <Button 
+                    variant={savedJobIds.has(job.id) ? "default" : "outline"}
+                    onClick={() => handleSaveJob(job.id, job.isFromDatabase)}
+                    disabled={savingJobId === job.id}
+                  >
+                    {savingJobId === job.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : savedJobIds.has(job.id) ? (
+                      <Heart className="w-4 h-4 fill-current" />
+                    ) : (
+                      <HeartOff className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               </motion.div>
