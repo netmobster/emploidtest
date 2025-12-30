@@ -11,19 +11,23 @@ const SkillsGame = () => {
   const navigate = useNavigate();
   const userType = (searchParams.get("type") as UserType) || "candidate";
   const role = searchParams.get("role") || "";
+  const city = searchParams.get("city") || "new-york";
   
   const questions = userType === "employer" ? EMPLOYER_SKILLS_QUESTIONS : CANDIDATE_SKILLS_QUESTIONS;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const handleAnswer = (questionId: string, answer: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answer }));
+    const updatedAnswers = { ...answers, [questionId]: answer };
+    setAnswers(updatedAnswers);
     
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Move to culture game
-      navigate(`/game/culture?type=${userType}&role=${role}`, { state: { skillsAnswers: answers } });
+      // Move to culture game with skills answers
+      navigate(`/game/culture?type=${userType}&role=${role}&city=${city}`, { 
+        state: { skillsAnswers: updatedAnswers } 
+      });
     }
   };
 
@@ -37,7 +41,7 @@ const SkillsGame = () => {
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
-          <Button variant="ghost" onClick={() => navigate(`/roles?type=${userType}`)} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate(`/roles?type=${userType}&city=${city}`)} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles
           </Button>
           <div className="text-center">
