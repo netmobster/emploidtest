@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CultureGame = () => {
+  const { user, profile } = useAuth();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,13 +29,13 @@ const CultureGame = () => {
   const role = ROLES.find(r => r.id === roleId);
 
   const saveJobToDatabase = async (cultureAnswers: Record<string, string>) => {
-    if (userType !== "employer") return;
+    if (userType !== "employer" || !user) return;
     
     setIsSaving(true);
     try {
       const { error } = await supabase.from("jobs").insert({
         title: role?.title || "Open Position",
-        company: "Your Company", // Could be collected in a future form
+        company: profile?.company_name || profile?.full_name || "Your Company",
         role_id: roleId,
         city_id: cityId,
         description: `Looking for a ${role?.title || "professional"} to join our team`,
@@ -42,6 +44,7 @@ const CultureGame = () => {
         remote: false,
         skills_preferences: skillsAnswers,
         culture_preferences: cultureAnswers,
+        user_id: user.id,
       });
 
       if (error) {

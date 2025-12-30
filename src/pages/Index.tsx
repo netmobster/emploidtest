@@ -2,19 +2,49 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, User, ArrowRight, Sparkles, Target, Heart } from "lucide-react";
+import { Building2, User, ArrowRight, Sparkles, Target, Heart, LogIn, LogOut } from "lucide-react";
 import { UserType } from "@/lib/gameData";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, profile, signOut } = useAuth();
   const [hoveredType, setHoveredType] = useState<UserType | null>(null);
 
   const handleSelect = (type: UserType) => {
-    navigate(`/city?type=${type}`);
+    if (!user) {
+      navigate(`/auth?type=${type}`);
+    } else {
+      navigate(`/city?type=${type}`);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
   };
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      {/* Auth header */}
+      <div className="absolute top-4 right-4 z-10">
+        {user ? (
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {profile?.full_name || user.email}
+            </span>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+            <LogIn className="w-4 h-4 mr-2" />
+            Sign In
+          </Button>
+        )}
+      </div>
+
       {/* Hero Section */}
       <div className="relative">
         {/* Background gradient */}
@@ -63,7 +93,7 @@ const Index = () => {
               { icon: Target, label: "Skills Match", desc: "Find the right expertise" },
               { icon: Heart, label: "Culture Fit", desc: "Align on values" },
               { icon: Sparkles, label: "Smart Matching", desc: "AI-powered results" },
-            ].map((feature, i) => (
+            ].map((feature) => (
               <div
                 key={feature.label}
                 className="flex items-center gap-3 bg-card shadow-card rounded-2xl px-5 py-3"
