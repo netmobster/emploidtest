@@ -8,6 +8,7 @@ import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import CultureSummaryDialog from "@/components/CultureSummaryDialog";
 
 const CultureGame = () => {
   const { user, profile } = useAuth();
@@ -20,11 +21,15 @@ const CultureGame = () => {
   
   const skillsAnswers = (location.state as { skillsAnswers?: Record<string, string> })?.skillsAnswers || {};
   
+  // For employers, we show their saved culture for confirmation instead of playing the game again
+  const isEmployerWithCulture = userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences;
+  
   const questions = userType === "employer" ? EMPLOYER_CULTURE_QUESTIONS : CANDIDATE_CULTURE_QUESTIONS;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCultureSummary, setShowCultureSummary] = useState<boolean>(!!isEmployerWithCulture);
 
   const role = ROLES.find(r => r.id === roleId);
 
@@ -61,6 +66,18 @@ const CultureGame = () => {
     }
   };
 
+  const handleConfirmCulture = async () => {
+    if (profile?.culture_preferences) {
+      await saveJobToDatabase(profile.culture_preferences as Record<string, string>);
+      setShowCultureSummary(false);
+      setIsComplete(true);
+    }
+  };
+
+  const handleEditCulture = () => {
+    navigate("/employer-onboarding");
+  };
+
   const handleAnswer = async (questionId: string, answer: string) => {
     const updatedAnswers = { ...answers, [questionId]: answer };
     setAnswers(updatedAnswers);
@@ -81,6 +98,32 @@ const CultureGame = () => {
       setCurrentIndex((prev) => prev - 1);
     }
   };
+
+  // Show culture summary dialog for employers who already completed the game
+  if (isEmployerWithCulture && showCultureSummary) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <CultureSummaryDialog
+          open={showCultureSummary}
+          onOpenChange={(open) => setShowCultureSummary(open)}
+          culturePreferences={profile.culture_preferences as Record<string, string>}
+          onConfirm={handleConfirmCulture}
+          onEdit={handleEditCulture}
+          isLoading={isSaving}
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center max-w-md"
+        >
+          <h1 className="text-2xl font-bold text-foreground mb-2">Post New Job</h1>
+          <p className="text-muted-foreground">
+            Review your company culture before posting
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (isComplete) {
     return (

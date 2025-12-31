@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { MapPin, ArrowLeft } from "lucide-react";
+import { MapPin, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface City {
   id: string;
@@ -32,10 +34,34 @@ const CitySelection = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userType = searchParams.get("type") || "candidate";
+  const { user, profile, isLoading } = useAuth();
+
+  // Require auth for employers
+  useEffect(() => {
+    if (!isLoading && userType === "employer") {
+      if (!user) {
+        navigate("/auth?type=employer");
+        return;
+      }
+      // If employer hasn't completed culture game, redirect to onboarding
+      if (profile && !profile.has_completed_culture_game) {
+        navigate("/employer-onboarding");
+      }
+    }
+  }, [user, profile, isLoading, userType, navigate]);
 
   const handleCitySelect = (cityId: string) => {
     navigate(`/roles?type=${userType}&city=${cityId}`);
   };
+
+  // Show loading while checking auth for employers
+  if (isLoading && userType === "employer") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
