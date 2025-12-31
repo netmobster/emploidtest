@@ -16,7 +16,7 @@ const nameSchema = z.string().trim().min(1, { message: "Name is required" }).max
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, signUp, signIn, isLoading: authLoading } = useAuth();
+  const { user, profile, signUp, signIn, isLoading: authLoading } = useAuth();
   
   const defaultUserType = (searchParams.get("type") as "employer" | "candidate") || "candidate";
   
@@ -29,10 +29,15 @@ const Auth = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && !authLoading) {
-      navigate(`/city?type=${userType}`);
+    if (user && !authLoading && profile) {
+      // Employers who haven't completed culture game go to onboarding
+      if (profile.user_type === "employer" && !profile.has_completed_culture_game) {
+        navigate("/employer-onboarding");
+      } else {
+        navigate(`/city?type=${profile.user_type}`);
+      }
     }
-  }, [user, authLoading, navigate, userType]);
+  }, [user, authLoading, navigate, profile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +60,12 @@ const Auth = () => {
           }
         } else {
           toast.success("Account created successfully!");
-          navigate(`/city?type=${userType}`);
+          // Employers go to culture onboarding first
+          if (userType === "employer") {
+            navigate("/employer-onboarding");
+          } else {
+            navigate(`/city?type=${userType}`);
+          }
         }
       } else {
         const { error } = await signIn(validatedEmail, validatedPassword);

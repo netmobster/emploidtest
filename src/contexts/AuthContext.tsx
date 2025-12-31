@@ -11,6 +11,8 @@ interface Profile {
   company_name: string | null;
   bio: string | null;
   user_type: "employer" | "candidate";
+  culture_preferences: Record<string, string> | null;
+  has_completed_culture_game: boolean;
 }
 
 interface AuthContextType {

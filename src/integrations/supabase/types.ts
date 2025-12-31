@@ -74,8 +74,10 @@ export type Database = {
           bio: string | null
           company_name: string | null
           created_at: string
+          culture_preferences: Json | null
           email: string | null
           full_name: string | null
+          has_completed_culture_game: boolean | null
           id: string
           updated_at: string
           user_id: string
@@ -86,8 +88,10 @@ export type Database = {
           bio?: string | null
           company_name?: string | null
           created_at?: string
+          culture_preferences?: Json | null
           email?: string | null
           full_name?: string | null
+          has_completed_culture_game?: boolean | null
           id?: string
           updated_at?: string
           user_id: string
@@ -98,8 +102,10 @@ export type Database = {
           bio?: string | null
           company_name?: string | null
           created_at?: string
+          culture_preferences?: Json | null
           email?: string | null
           full_name?: string | null
+          has_completed_culture_game?: boolean | null
           id?: string
           updated_at?: string
           user_id?: string
