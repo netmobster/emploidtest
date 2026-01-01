@@ -74,9 +74,6 @@ const CultureGame = () => {
     }
   };
 
-  const handleEditCulture = () => {
-    navigate("/employer-onboarding");
-  };
 
   const handleAnswer = async (questionId: string, answer: string) => {
     const updatedAnswers = { ...answers, [questionId]: answer };
@@ -108,7 +105,6 @@ const CultureGame = () => {
           onOpenChange={(open) => setShowCultureSummary(open)}
           culturePreferences={profile.culture_preferences as Record<string, string>}
           onConfirm={handleConfirmCulture}
-          onEdit={handleEditCulture}
           isLoading={isSaving}
         />
         <motion.div

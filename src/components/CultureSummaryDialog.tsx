@@ -1,3 +1,4 @@
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,6 @@ interface CultureSummaryDialogProps {
   onOpenChange: (open: boolean) => void;
   culturePreferences: Record<string, string> | null;
   onConfirm: () => void;
-  onEdit: () => void;
   isLoading?: boolean;
 }
 
@@ -25,9 +25,13 @@ const CultureSummaryDialog = ({
   onOpenChange,
   culturePreferences,
   onConfirm,
-  onEdit,
   isLoading,
 }: CultureSummaryDialogProps) => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  const roleId = searchParams.get("role");
+  const cityId = searchParams.get("city");
   if (!culturePreferences) return null;
 
   const getCultureSummaryItems = () => {
@@ -70,7 +74,11 @@ const CultureSummaryDialog = ({
         </div>
 
         <DialogFooter className="flex gap-2 sm:gap-2">
-          <Button variant="outline" onClick={onEdit} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={() => navigate(`/culture-edit?role=${roleId}&city=${cityId}`)}
+            disabled={isLoading}
+          >
             <Edit2 className="w-4 h-4 mr-2" />
             Edit Culture
           </Button>
