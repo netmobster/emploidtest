@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { EMPLOYER_CULTURE_QUESTIONS } from "@/lib/gameData";
 
+const CULTURE_CONFIRMED_KEY = "culture_confirmed_session";
+
 const CultureConfirmation = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading } = useAuth();
@@ -29,10 +31,17 @@ const CultureConfirmation = () => {
         navigate("/employer-onboarding");
         return;
       }
+
+      // Skip confirmation if already confirmed this session
+      if (sessionStorage.getItem(CULTURE_CONFIRMED_KEY) === "true") {
+        navigate("/city?type=employer");
+        return;
+      }
     }
   }, [user, profile, isLoading, navigate]);
 
   const handleContinue = () => {
+    sessionStorage.setItem(CULTURE_CONFIRMED_KEY, "true");
     navigate("/city?type=employer");
   };
 
