@@ -7,6 +7,7 @@ import { MapPin, DollarSign, Briefcase, ArrowLeft, Sparkles, Loader2, Heart, Hea
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import Logo from "@/components/Logo";
 
 interface DatabaseJob {
   id: string;
@@ -173,6 +174,7 @@ const Results = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-2xl mx-auto">
+        <Logo size="sm" className="mx-auto mb-6" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

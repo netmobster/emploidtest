@@ -5,6 +5,7 @@ import SwipeCard from "@/components/SwipeCard";
 import { EMPLOYER_SKILLS_QUESTIONS, CANDIDATE_SKILLS_QUESTIONS, UserType } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const SkillsGame = () => {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,7 @@ const SkillsGame = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-lg mx-auto">
+        <Logo size="sm" className="mx-auto mb-6" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
           <Button variant="ghost" onClick={() => navigate(`/roles?type=${userType}&city=${city}`)} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles

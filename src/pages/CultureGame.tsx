@@ -8,6 +8,7 @@ import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import Logo from "@/components/Logo";
 
 const CultureGame = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
@@ -136,6 +137,7 @@ const CultureGame = () => {
   return (
     <div className="min-h-screen bg-background py-12 px-4">
       <div className="container max-w-lg mx-auto">
+        <Logo size="sm" className="mx-auto mb-6" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
           <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back

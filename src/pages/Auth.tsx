@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, User, Building2 } from "lucide-react";
 import { z } from "zod";
+import Logo from "@/components/Logo";
 
 const emailSchema = z.string().trim().email({ message: "Invalid email address" }).max(255);
 const passwordSchema = z.string().min(6, { message: "Password must be at least 6 characters" }).max(100);
@@ -108,6 +109,7 @@ const Auth = () => {
       >
         <div className="bg-card rounded-2xl p-8 shadow-elegant">
           <div className="text-center mb-8">
+            <Logo size="md" className="mx-auto mb-4" />
             <h1 className="text-3xl font-bold text-foreground mb-2">
               {isSignUp ? "Create Account" : "Welcome Back"}
             </h1>
