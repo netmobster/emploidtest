@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, User, ArrowRight, Sparkles, Target, Heart, LogIn, LogOut } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
+import emploidLogo from "@/assets/emploid-logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -62,10 +63,11 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-              <span className="gradient-text">Emploid</span>
-            </h1>
-            <p className="text-muted-foreground mt-2">Find your kind of work. Keep your kind of people.</p>
+            <img 
+              src={emploidLogo} 
+              alt="Emploid - Find your kind of work. Keep your kind of people." 
+              className="h-32 md:h-40 mx-auto"
+            />
           </motion.div>
 
           {/* Main headline */}
