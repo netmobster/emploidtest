@@ -9,6 +9,7 @@ import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
 import { ROLES, SAMPLE_JOBS } from "@/lib/gameData";
+import { calculateJobMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
 
 interface JobWithScore {
@@ -58,7 +59,12 @@ const CandidateSwipe = () => {
           swipedIds = swipes?.map((s) => s.swiped_id) || [];
         }
 
-        // Fetch real jobs from database
+        // Get candidate's preferences for match calculation
+        const candidatePrefs = profile?.culture_preferences 
+          ? { culture_preferences: profile.culture_preferences }
+          : null;
+
+        // Fetch real jobs from database with preferences
         let query = supabase.from("jobs").select("*");
         if (role) query = query.eq("role_id", role);
         if (city) query = query.eq("city_id", city);
@@ -71,19 +77,30 @@ const CandidateSwipe = () => {
         );
 
         const allJobs: JobWithScore[] = [
-          ...(dbJobs || []).map((job) => ({
-            id: job.id,
-            title: job.title,
-            company: job.company,
-            description: job.description || "",
-            location: `${job.city_id}`,
-            salary: job.salary || "Competitive",
-            remote: job.remote || false,
-            benefits: job.benefits as string[] | undefined,
-            requirements: job.requirements as string[] | undefined,
-            matchScore: Math.floor(Math.random() * 30) + 70,
-            employerId: job.user_id || undefined,
-          })),
+          ...(dbJobs || []).map((job) => {
+            // Calculate match score based on preferences
+            const matchScore = calculateJobMatchScore(
+              candidatePrefs,
+              {
+                culture_preferences: job.culture_preferences as Record<string, string> | null,
+                skills_preferences: job.skills_preferences as Record<string, string> | null,
+              }
+            );
+
+            return {
+              id: job.id,
+              title: job.title,
+              company: job.company,
+              description: job.description || "",
+              location: `${job.city_id}`,
+              salary: job.salary || "Competitive",
+              remote: job.remote || false,
+              benefits: job.benefits as string[] | undefined,
+              requirements: job.requirements as string[] | undefined,
+              matchScore,
+              employerId: job.user_id || undefined,
+            };
+          }),
           ...sampleJobs.map((job) => ({
             id: job.id,
             title: job.title,
@@ -92,7 +109,8 @@ const CandidateSwipe = () => {
             location: job.location,
             salary: job.salary,
             remote: job.remote === "Remote",
-            matchScore: Math.floor(Math.random() * 30) + 70,
+            // Sample jobs don't have preferences, so use base score with slight randomization
+            matchScore: 65 + Math.floor(Math.random() * 15),
             employerId: "sample",
           })),
         ]
