@@ -9,6 +9,7 @@ import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
 import { ROLES, SAMPLE_CANDIDATES } from "@/lib/gameData";
+import { calculateCandidateMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
 
 interface CandidateWithScore {
@@ -59,6 +60,28 @@ const EmployerSwipe = () => {
           swipedIds = swipes?.map((s) => s.swiped_id) || [];
         }
 
+        // Get employer's job preferences for match calculation
+        let employerPrefs: { culture_preferences: any; skills_preferences: any } | null = null;
+        if (user && role) {
+          // Get the employer's most recent job for this role to use its preferences
+          const { data: jobData } = await supabase
+            .from("jobs")
+            .select("culture_preferences, skills_preferences")
+            .eq("user_id", user.id)
+            .eq("role_id", role)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          
+          employerPrefs = jobData;
+        }
+
+        // Fetch real candidate profiles from database
+        const { data: dbProfiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, avatar_url, bio, culture_preferences")
+          .eq("user_type", "candidate");
+
         // For now, use sample candidates (filtered by role)
         const roleCandidates = SAMPLE_CANDIDATES.filter(
           (c) => !role || c.roleId === role
@@ -67,20 +90,31 @@ const EmployerSwipe = () => {
         // Add match scores and filter out already swiped
         const candidatesWithScores: CandidateWithScore[] = roleCandidates
           .filter((c) => !swipedIds.includes(c.id))
-          .map((candidate) => ({
-            id: candidate.id,
-            name: candidate.name,
-            title: candidate.title,
-            avatar: candidate.avatar,
-            bio: candidate.bio,
-            skills: candidate.skills,
-            location: candidate.location,
-            experience: candidate.experience,
-            availability: candidate.availability,
-            remote: candidate.remote === "Remote" || candidate.remote === "Flexible",
-            matchScore: Math.floor(Math.random() * 30) + 70,
-            userId: candidate.id,
-          }))
+          .map((candidate) => {
+            // Check if we have a real profile for this candidate
+            const realProfile = dbProfiles?.find(p => p.user_id === candidate.id);
+            
+            // Calculate match score based on preferences
+            const matchScore = calculateCandidateMatchScore(
+              realProfile ? { culture_preferences: realProfile.culture_preferences as Record<string, string> | null } : null,
+              employerPrefs as { culture_preferences?: Record<string, string> | null; skills_preferences?: Record<string, string> | null } | null
+            );
+
+            return {
+              id: candidate.id,
+              name: realProfile?.full_name || candidate.name,
+              title: candidate.title,
+              avatar: realProfile?.avatar_url || candidate.avatar,
+              bio: realProfile?.bio || candidate.bio,
+              skills: candidate.skills,
+              location: candidate.location,
+              experience: candidate.experience,
+              availability: candidate.availability,
+              remote: candidate.remote === "Remote" || candidate.remote === "Flexible",
+              matchScore,
+              userId: candidate.id,
+            };
+          })
           .sort((a, b) => b.matchScore - a.matchScore);
 
         setCandidates(candidatesWithScores);
