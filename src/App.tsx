@@ -13,6 +13,7 @@ import CultureGame from "./pages/CultureGame";
 import Results from "./pages/Results";
 import EmployerResults from "./pages/EmployerResults";
 import EmployerOnboarding from "./pages/EmployerOnboarding";
+import CultureEdit from "./pages/CultureEdit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/results" element={<Results />} />
             <Route path="/employer-results" element={<EmployerResults />} />
             <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
+            <Route path="/culture-edit" element={<CultureEdit />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
