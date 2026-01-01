@@ -43,12 +43,21 @@ const CitySelection = () => {
         navigate("/auth?type=employer");
         return;
       }
-      // If employer hasn't completed culture game, redirect to onboarding
+      // If employer hasn't completed culture game, redirect to culture confirmation
+      // (which will then redirect to onboarding if needed)
       if (profile && !profile.has_completed_culture_game) {
-        navigate("/employer-onboarding");
+        navigate("/culture-confirmation");
       }
     }
   }, [user, profile, isLoading, userType, navigate]);
+
+  const handleBack = () => {
+    if (userType === "employer") {
+      navigate("/culture-confirmation");
+    } else {
+      navigate("/");
+    }
+  };
 
   const handleCitySelect = (cityId: string) => {
     navigate(`/roles?type=${userType}&city=${cityId}`);
@@ -71,7 +80,7 @@ const CitySelection = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/")}
+            onClick={handleBack}
             className="shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
