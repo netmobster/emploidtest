@@ -2,10 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, User, ArrowRight, Sparkles, Target, Heart, LogIn, LogOut } from "lucide-react";
+import { Building2, User, ArrowRight, LogIn, LogOut } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
+import HowItWorks from "@/components/HowItWorks";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -82,32 +83,8 @@ const Index = () => {
             </p>
           </motion.div>
 
-          {/* Features */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-wrap justify-center gap-6 mb-16"
-          >
-            {[
-              { icon: Target, label: "Skills Match", desc: "Find the right expertise" },
-              { icon: Heart, label: "Culture Fit", desc: "Align on values" },
-              { icon: Sparkles, label: "Smart Matching", desc: "AI-powered results" },
-            ].map((feature) => (
-              <div
-                key={feature.label}
-                className="flex items-center gap-3 bg-card shadow-card rounded-2xl px-5 py-3"
-              >
-                <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-                  <feature.icon className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div>
-                  <p className="font-semibold text-foreground">{feature.label}</p>
-                  <p className="text-sm text-muted-foreground">{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </motion.div>
+          {/* How it Works */}
+          <HowItWorks />
 
           {/* User type selection */}
           <motion.div
