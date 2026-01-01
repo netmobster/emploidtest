@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
@@ -21,15 +21,19 @@ const CultureGame = () => {
   
   const skillsAnswers = (location.state as { skillsAnswers?: Record<string, string> })?.skillsAnswers || {};
   
-  // For employers, we show their saved culture for confirmation instead of playing the game again
-  const isEmployerWithCulture = userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences;
-  
   const questions = userType === "employer" ? EMPLOYER_CULTURE_QUESTIONS : CANDIDATE_CULTURE_QUESTIONS;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showCultureSummary, setShowCultureSummary] = useState<boolean>(!!isEmployerWithCulture);
+  const [showCultureSummary, setShowCultureSummary] = useState(false);
+
+  // Check if employer has completed culture game and show summary dialog
+  useEffect(() => {
+    if (userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences) {
+      setShowCultureSummary(true);
+    }
+  }, [userType, profile]);
 
   const role = ROLES.find(r => r.id === roleId);
 
@@ -97,6 +101,8 @@ const CultureGame = () => {
   };
 
   // Show culture summary dialog for employers who already completed the game
+  const isEmployerWithCulture = userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences;
+  
   if (isEmployerWithCulture && showCultureSummary) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
