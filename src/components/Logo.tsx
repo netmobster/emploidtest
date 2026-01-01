@@ -11,7 +11,7 @@ const sizeClasses = {
   sm: "h-12",
   md: "h-20",
   lg: "h-32",
-  xl: "h-48 md:h-56",
+  xl: "h-80 md:h-96",
 };
 
 const Logo = ({ size = "md", linkTo = "/", className = "" }: LogoProps) => {
