@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import CultureSummaryDialog from "@/components/CultureSummaryDialog";
 
 const CultureGame = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading: isAuthLoading } = useAuth();
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -99,6 +99,22 @@ const CultureGame = () => {
       setCurrentIndex((prev) => prev - 1);
     }
   };
+
+  // Show loading state while profile is being fetched (for employers)
+  if (userType === "employer" && isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   // Show culture summary dialog for employers who already completed the game
   const isEmployerWithCulture = userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences;
