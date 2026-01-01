@@ -63,7 +63,7 @@ const Index = () => {
             className="text-center mb-12"
           >
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-              <span className="gradient-text">Emploi</span>
+              <span className="gradient-text">Emploid</span>
             </h1>
             <p className="text-muted-foreground mt-2">Where talent meets opportunity</p>
           </motion.div>
