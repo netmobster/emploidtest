@@ -120,13 +120,13 @@ const CultureGame = () => {
             variant="hero" 
             size="xl" 
             onClick={() => navigate(userType === "employer" 
-              ? `/employer-results?type=${userType}&role=${roleId}&city=${cityId}` 
-              : `/results?type=${userType}&role=${roleId}&city=${cityId}`
+              ? `/swipe/employer?role=${roleId}` 
+              : `/swipe/candidate?role=${roleId}&city=${cityId}`
             )}
             disabled={isSaving}
           >
             {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-            View Matches
+            Start Swiping
           </Button>
         </motion.div>
       </div>
