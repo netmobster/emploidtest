@@ -14,6 +14,9 @@ const Index = () => {
   const handleSelect = (type: UserType) => {
     if (!user) {
       navigate(`/auth?type=${type}`);
+    } else if (type === "employer" && profile?.has_completed_culture_game) {
+      // Employers who have completed culture game go to culture confirmation first
+      navigate("/culture-confirmation");
     } else {
       navigate(`/city?type=${type}`);
     }

@@ -23,7 +23,7 @@ const CultureEdit = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const returnUrl = searchParams.get("returnUrl") || "/city";
+  const returnUrl = searchParams.get("returnUrl") || "/culture-confirmation";
   const roleId = searchParams.get("role");
   const cityId = searchParams.get("city");
 

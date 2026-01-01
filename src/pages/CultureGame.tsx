@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
@@ -8,7 +8,6 @@ import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import CultureSummaryDialog from "@/components/CultureSummaryDialog";
 
 const CultureGame = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
@@ -26,14 +25,6 @@ const CultureGame = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showCultureSummary, setShowCultureSummary] = useState(false);
-
-  // Check if employer has completed culture game and show summary dialog
-  useEffect(() => {
-    if (userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences) {
-      setShowCultureSummary(true);
-    }
-  }, [userType, profile]);
 
   const role = ROLES.find(r => r.id === roleId);
 
@@ -70,14 +61,6 @@ const CultureGame = () => {
     }
   };
 
-  const handleConfirmCulture = async () => {
-    if (profile?.culture_preferences) {
-      await saveJobToDatabase(profile.culture_preferences as Record<string, string>);
-      setShowCultureSummary(false);
-      setIsComplete(true);
-    }
-  };
-
 
   const handleAnswer = async (questionId: string, answer: string) => {
     const updatedAnswers = { ...answers, [questionId]: answer };
@@ -111,33 +94,6 @@ const CultureGame = () => {
         >
           <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground">Loading your profile...</p>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // Show culture summary dialog for employers who already completed the game
-  const isEmployerWithCulture = userType === "employer" && profile?.has_completed_culture_game && profile?.culture_preferences;
-  
-  if (isEmployerWithCulture && showCultureSummary) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <CultureSummaryDialog
-          open={showCultureSummary}
-          onOpenChange={(open) => setShowCultureSummary(open)}
-          culturePreferences={profile.culture_preferences as Record<string, string>}
-          onConfirm={handleConfirmCulture}
-          isLoading={isSaving}
-        />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center max-w-md"
-        >
-          <h1 className="text-2xl font-bold text-foreground mb-2">Post New Job</h1>
-          <p className="text-muted-foreground">
-            Review your company culture before posting
-          </p>
         </motion.div>
       </div>
     );
