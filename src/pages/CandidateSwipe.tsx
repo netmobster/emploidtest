@@ -65,9 +65,9 @@ const CandidateSwipe = () => {
 
         const { data: dbJobs } = await query;
 
-        // Combine with sample jobs
+        // Combine with sample jobs (sample jobs don't have cityId, so only filter by role)
         const sampleJobs = SAMPLE_JOBS.filter(
-          (j) => (!role || j.roleId === role) && (!city || j.cityId === city)
+          (j) => !role || j.roleId === role
         );
 
         const allJobs: JobWithScore[] = [

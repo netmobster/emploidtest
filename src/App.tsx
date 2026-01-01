@@ -15,6 +15,10 @@ import EmployerResults from "./pages/EmployerResults";
 import EmployerOnboarding from "./pages/EmployerOnboarding";
 import CultureEdit from "./pages/CultureEdit";
 import CultureConfirmation from "./pages/CultureConfirmation";
+import EmployerSwipe from "./pages/EmployerSwipe";
+import CandidateSwipe from "./pages/CandidateSwipe";
+import Matches from "./pages/Matches";
+import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +42,10 @@ const App = () => (
             <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
             <Route path="/culture-edit" element={<CultureEdit />} />
             <Route path="/culture-confirmation" element={<CultureConfirmation />} />
+            <Route path="/swipe/employer" element={<EmployerSwipe />} />
+            <Route path="/swipe/candidate" element={<CandidateSwipe />} />
+            <Route path="/matches" element={<Matches />} />
+            <Route path="/chat/:matchId" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
