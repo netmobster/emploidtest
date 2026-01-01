@@ -61,7 +61,7 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="flex justify-center mb-12"
           >
             <Logo size="xl" linkTo="" />
           </motion.div>
