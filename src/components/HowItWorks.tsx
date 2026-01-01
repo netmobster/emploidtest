@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Handshake, Clock, Heart, BookOpen, Users, Puzzle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import WorkLoveLanguageModal from "./WorkLoveLanguageModal";
 
 const cards = [
   {
@@ -23,6 +26,8 @@ const cards = [
 ];
 
 const HowItWorks = () => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <section className="py-16 px-4">
       <motion.h2
@@ -69,6 +74,24 @@ const HowItWorks = () => {
           );
         })}
       </div>
+
+      {/* CTA Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="flex justify-center mt-10"
+      >
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="gradient-hero text-primary-foreground font-semibold px-8 py-3 rounded-xl hover-lift"
+        >
+          See how we match humans to humans
+        </Button>
+      </motion.div>
+
+      {/* Modal */}
+      <WorkLoveLanguageModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </section>
   );
 };
