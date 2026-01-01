@@ -76,12 +76,11 @@ const Index = () => {
             className="text-center max-w-3xl mx-auto mb-16"
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-              Find your perfect match,{" "}
-              <span className="gradient-text">not just a job</span>
+              Work is more than a tech stack—it's a{" "}
+              <span className="gradient-text">human connection</span>
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground">
-              Swipe through preferences, discover compatibility, and connect with 
-              companies and candidates that truly align with your values.
+              We match you with the people and cultures where you truly click.
             </p>
           </motion.div>
 
