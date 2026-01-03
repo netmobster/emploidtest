@@ -45,9 +45,13 @@ const Auth = () => {
   // Redirect if already logged in
   useEffect(() => {
     if (user && !authLoading && profile) {
-      // Employers who haven't completed culture game go to onboarding
-      if (profile.user_type === "employer" && !profile.has_completed_culture_game) {
-        navigate("/employer-onboarding");
+      if (profile.user_type === "employer") {
+        // Employers who haven't completed culture game go to onboarding
+        if (!profile.has_completed_culture_game) {
+          navigate("/employer-onboarding");
+        } else {
+          navigate("/employer-dashboard");
+        }
       } else {
         navigate(`/city?type=${profile.user_type}`);
       }
