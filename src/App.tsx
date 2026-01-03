@@ -13,6 +13,7 @@ import CultureGame from "./pages/CultureGame";
 import Results from "./pages/Results";
 import EmployerResults from "./pages/EmployerResults";
 import EmployerOnboarding from "./pages/EmployerOnboarding";
+import EmployerDashboard from "./pages/EmployerDashboard";
 import CultureEdit from "./pages/CultureEdit";
 import CultureConfirmation from "./pages/CultureConfirmation";
 import EmployerSwipe from "./pages/EmployerSwipe";
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/results" element={<Results />} />
             <Route path="/employer-results" element={<EmployerResults />} />
             <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
+            <Route path="/employer-dashboard" element={<EmployerDashboard />} />
             <Route path="/culture-edit" element={<CultureEdit />} />
             <Route path="/culture-confirmation" element={<CultureConfirmation />} />
             <Route path="/swipe/employer" element={<EmployerSwipe />} />
