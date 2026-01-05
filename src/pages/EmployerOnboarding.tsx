@@ -8,6 +8,7 @@ import { ArrowLeft, PartyPopper, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const EmployerOnboarding = () => {
   const { user, profile } = useAuth();
@@ -96,6 +97,11 @@ const EmployerOnboarding = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-lg mx-auto">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
           <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">

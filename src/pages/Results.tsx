@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
+import ProfileHeader from "@/components/ProfileHeader";
 
 interface DatabaseJob {
   id: string;
@@ -173,6 +174,11 @@ const Results = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-2xl mx-auto">
         <Logo size="sm" className="mx-auto mb-6" />
         <motion.div

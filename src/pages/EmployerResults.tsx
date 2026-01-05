@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { SAMPLE_CANDIDATES, ROLES } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, GraduationCap, ArrowLeft, Sparkles, Briefcase } from "lucide-react";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const EmployerResults = () => {
   const [searchParams] = useSearchParams();
@@ -21,6 +22,11 @@ const EmployerResults = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-2xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

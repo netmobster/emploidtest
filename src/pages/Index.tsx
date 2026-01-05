@@ -2,52 +2,33 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Building2, User, ArrowRight, LogIn, LogOut } from "lucide-react";
+import { Building2, User, ArrowRight } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
 import HowItWorks from "@/components/HowItWorks";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const [hoveredType, setHoveredType] = useState<UserType | null>(null);
 
   const handleSelect = (type: UserType) => {
     if (!user) {
       navigate(`/auth?type=${type}`);
     } else if (type === "employer" && profile?.has_completed_culture_game) {
-      // Employers who have completed culture game go to culture confirmation first
       navigate("/culture-confirmation");
     } else {
       navigate(`/city?type=${type}`);
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       {/* Auth header */}
       <div className="absolute top-4 right-4 z-10">
-        {user ? (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              {profile?.full_name || user.email}
-            </span>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-            <LogIn className="w-4 h-4 mr-2" />
-            Sign In
-          </Button>
-        )}
+        <ProfileHeader />
       </div>
 
       {/* Hero Section */}

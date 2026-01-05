@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat } from "@/hooks/useChat";
 import ChatInterface from "@/components/chat/ChatInterface";
+import ProfileHeader from "@/components/ProfileHeader";
 
 interface MatchDetails {
   id: string;
@@ -145,9 +146,12 @@ const Chat = () => {
             </div>
           </div>
 
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="w-5 h-5" />
+            </Button>
+            <ProfileHeader />
+          </div>
         </div>
       </motion.header>
 

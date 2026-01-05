@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const CultureGame = () => {
   const { user, profile, isLoading: isAuthLoading } = useAuth();
@@ -136,6 +137,11 @@ const CultureGame = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-lg mx-auto">
         <Logo size="sm" className="mx-auto mb-6" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">

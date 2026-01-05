@@ -6,6 +6,7 @@ import { EMPLOYER_SKILLS_QUESTIONS, CANDIDATE_SKILLS_QUESTIONS, UserType } from 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const SkillsGame = () => {
   const [searchParams] = useSearchParams();
@@ -25,7 +26,6 @@ const SkillsGame = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      // Move to culture game with skills answers
       navigate(`/game/culture?type=${userType}&role=${role}&city=${city}`, { 
         state: { skillsAnswers: updatedAnswers } 
       });
@@ -40,6 +40,11 @@ const SkillsGame = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-lg mx-auto">
         <Logo size="sm" className="mx-auto mb-6" />
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
