@@ -13,6 +13,10 @@ interface Profile {
   user_type: "employer" | "candidate";
   culture_preferences: Record<string, string> | null;
   has_completed_culture_game: boolean;
+  company_website: string | null;
+  company_size: string | null;
+  company_industry: string | null;
+  company_location: string | null;
 }
 
 interface AuthContextType {
@@ -23,6 +27,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, userType: "employer" | "candidate") => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -108,8 +113,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, profile, isLoading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, isLoading, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
