@@ -139,7 +139,11 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          company_industry: string | null
+          company_location: string | null
           company_name: string | null
+          company_size: string | null
+          company_website: string | null
           created_at: string
           culture_preferences: Json | null
           email: string | null
@@ -153,7 +157,11 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          company_industry?: string | null
+          company_location?: string | null
           company_name?: string | null
+          company_size?: string | null
+          company_website?: string | null
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null
@@ -167,7 +175,11 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          company_industry?: string | null
+          company_location?: string | null
           company_name?: string | null
+          company_size?: string | null
+          company_website?: string | null
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null

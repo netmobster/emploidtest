@@ -10,6 +10,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { JobCard } from "@/components/dashboard/JobCard";
 import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
+import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -17,7 +18,7 @@ import ProfileHeader from "@/components/ProfileHeader";
 
 export default function EmployerDashboard() {
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const stats = useEmployerStats();
   const { jobs, isLoading: jobsLoading, deleteJob } = useEmployerJobs();
   const { activities, isLoading: activityLoading } = useEmployerActivity();
@@ -244,6 +245,24 @@ export default function EmployerDashboard() {
             </motion.div>
           </div>
         </div>
+
+        {/* Company Details Panel */}
+        {profile && (
+          <div className="mt-6">
+            <CompanyDetailsPanel 
+              profile={{
+                company_name: profile.company_name,
+                bio: profile.bio,
+                avatar_url: profile.avatar_url,
+                company_website: profile.company_website,
+                company_size: profile.company_size,
+                company_industry: profile.company_industry,
+                company_location: profile.company_location,
+              }}
+              onEditSuccess={refreshProfile}
+            />
+          </div>
+        )}
       </main>
     </div>
   );
