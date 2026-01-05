@@ -5,6 +5,7 @@ import { ROLES, UserType } from "@/lib/gameData";
 import RoleCard from "@/components/RoleCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const RoleSelection = () => {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,6 @@ const RoleSelection = () => {
   const cityId = searchParams.get("city") || "new-york";
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
 
-  // Filter roles by selected city
   const filteredRoles = useMemo(() => {
     return ROLES.filter((role) => role.cityId === cityId);
   }, [cityId]);
@@ -28,6 +28,11 @@ const RoleSelection = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-6xl mx-auto">
         {/* Header */}
         <motion.div

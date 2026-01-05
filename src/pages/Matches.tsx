@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMatches } from "@/hooks/useMatches";
 import { cn } from "@/lib/utils";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const Matches = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const Matches = () => {
 
           <h1 className="font-bold text-foreground">Messages</h1>
 
-          <div className="w-10" /> {/* Spacer for centering */}
+          <ProfileHeader />
         </div>
       </motion.header>
 

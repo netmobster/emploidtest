@@ -13,10 +13,11 @@ import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
+import ProfileHeader from "@/components/ProfileHeader";
 
 export default function EmployerDashboard() {
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading, signOut } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const stats = useEmployerStats();
   const { jobs, isLoading: jobsLoading, deleteJob } = useEmployerJobs();
   const { activities, isLoading: activityLoading } = useEmployerActivity();
@@ -39,11 +40,6 @@ export default function EmployerDashboard() {
     navigate(`/swipe/employer?job=${jobId}`);
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -59,17 +55,7 @@ export default function EmployerDashboard() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
-              <Avatar className="w-9 h-9">
-                <AvatarImage src={profile?.avatar_url || undefined} />
-                <AvatarFallback>
-                  {profile?.full_name?.slice(0, 2).toUpperCase() || "EM"}
-                </AvatarFallback>
-              </Avatar>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                Sign Out
-              </Button>
-            </div>
+            <ProfileHeader />
           </div>
         </div>
       </header>

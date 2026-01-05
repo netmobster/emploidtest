@@ -11,6 +11,7 @@ import { useSwipe } from "@/hooks/useSwipe";
 import { ROLES, SAMPLE_CANDIDATES } from "@/lib/gameData";
 import { calculateCandidateMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
+import ProfileHeader from "@/components/ProfileHeader";
 
 interface CandidateWithScore {
   id: string;
@@ -205,13 +206,16 @@ const EmployerSwipe = () => {
             </p>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/matches")}
-          >
-            <MessageCircle className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/matches")}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+            <ProfileHeader />
+          </div>
         </div>
       </motion.header>
 

@@ -5,6 +5,7 @@ import { ArrowRight, Edit2, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { EMPLOYER_CULTURE_QUESTIONS } from "@/lib/gameData";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const CULTURE_CONFIRMED_KEY = "culture_confirmed_session";
 
@@ -87,6 +88,11 @@ const CultureConfirmation = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-2xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

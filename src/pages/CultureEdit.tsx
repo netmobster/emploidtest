@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { EMPLOYER_CULTURE_QUESTIONS } from "@/lib/gameData";
 import { toast } from "sonner";
+import ProfileHeader from "@/components/ProfileHeader";
 
 const CultureEdit = () => {
   const navigate = useNavigate();
@@ -99,6 +100,11 @@ const CultureEdit = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Profile Header */}
+      <div className="absolute top-4 right-4 z-10">
+        <ProfileHeader />
+      </div>
+      
       <div className="container max-w-2xl mx-auto px-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
