@@ -38,12 +38,12 @@ const Index = () => {
         <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-accent/5 rounded-full blur-3xl" />
 
-        <div className="container mx-auto px-4 py-16 md:py-24 relative">
+        <div className="container mx-auto px-4 pt-16 md:pt-20 pb-12 relative">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center mb-12"
+            className="flex justify-center mb-8"
           >
             <Logo size="xl" linkTo="" />
           </motion.div>
@@ -53,7 +53,7 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-center max-w-3xl mx-auto mb-16"
+            className="text-center max-w-3xl mx-auto mb-10"
           >
             <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
               Work is more than a tech stack—it's a{" "}
@@ -142,7 +142,7 @@ const Index = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-center mt-16"
+            className="text-center mt-10"
           >
             <p className="text-sm text-muted-foreground">
               Join thousands finding their perfect professional match

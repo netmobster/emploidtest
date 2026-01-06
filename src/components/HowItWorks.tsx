@@ -29,12 +29,12 @@ const HowItWorks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="py-16 px-4">
+    <section className="py-10 px-4">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="text-2xl md:text-3xl font-bold text-center text-foreground mb-12"
+        className="text-2xl md:text-3xl font-bold text-center text-foreground mb-8"
       >
         How it Works
       </motion.h2>
@@ -80,7 +80,7 @@ const HowItWorks = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="flex justify-center mt-10"
+        className="flex justify-center mt-8 mb-10"
       >
         <Button
           onClick={() => setIsModalOpen(true)}
