@@ -20,7 +20,14 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
     if (profile?.user_type === "employer") {
       return "/employer-dashboard";
     }
-    return "/";
+    return "/candidate-dashboard";
+  };
+
+  const getDashboardLabel = () => {
+    if (profile?.user_type === "employer") {
+      return "Employer Dashboard";
+    }
+    return "Candidate Dashboard";
   };
 
   if (!user) {
@@ -38,10 +45,19 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
     <div className={`flex items-center gap-2 ${className}`}>
       <Button
         variant="ghost"
+        size="sm"
+        onClick={() => navigate(getDashboardRoute())}
+        className="hidden sm:flex"
+      >
+        <LayoutDashboard className="w-4 h-4 mr-2" />
+        {getDashboardLabel()}
+      </Button>
+      <Button
+        variant="ghost"
         size="icon"
         onClick={() => navigate(getDashboardRoute())}
         className="rounded-full"
-        title="Dashboard"
+        title={getDashboardLabel()}
       >
         <Avatar className="w-8 h-8">
           <AvatarImage src={profile?.avatar_url || undefined} />
