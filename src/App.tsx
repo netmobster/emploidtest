@@ -14,12 +14,14 @@ import Results from "./pages/Results";
 import EmployerResults from "./pages/EmployerResults";
 import EmployerOnboarding from "./pages/EmployerOnboarding";
 import EmployerDashboard from "./pages/EmployerDashboard";
+import CandidateDashboard from "./pages/CandidateDashboard";
 import CultureEdit from "./pages/CultureEdit";
 import CultureConfirmation from "./pages/CultureConfirmation";
 import EmployerSwipe from "./pages/EmployerSwipe";
 import CandidateSwipe from "./pages/CandidateSwipe";
 import Matches from "./pages/Matches";
 import Chat from "./pages/Chat";
+import CompanyProfile from "./pages/CompanyProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +50,8 @@ const App = () => (
             <Route path="/swipe/candidate" element={<CandidateSwipe />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/chat/:matchId" element={<Chat />} />
+            <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+            <Route path="/company/:userId" element={<CompanyProfile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

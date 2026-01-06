@@ -1,6 +1,8 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState, useRef } from "react";
+import { Upload, Loader2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,10 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { useState } from "react";
 
 const formSchema = z.object({
   company_name: z.string().min(1, "Company name is required").max(100),
@@ -82,6 +84,9 @@ const industryOptions = [
 export function EditCompanyDialog({ open, onOpenChange, profile, onSuccess }: EditCompanyDialogProps) {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(profile.avatar_url);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -94,6 +99,73 @@ export function EditCompanyDialog({ open, onOpenChange, profile, onSuccess }: Ed
       company_location: profile.company_location || "",
     },
   });
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}/logo.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from("company-logos")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("company-logos")
+        .getPublicUrl(fileName);
+
+      // Add cache buster to URL
+      const urlWithCacheBuster = `${publicUrl}?t=${Date.now()}`;
+      setLogoUrl(urlWithCacheBuster);
+      toast.success("Logo uploaded successfully");
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast.error("Failed to upload logo");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!user) return;
+
+    setIsUploading(true);
+    try {
+      // Try to delete existing file
+      const { error } = await supabase.storage
+        .from("company-logos")
+        .remove([`${user.id}/logo.png`, `${user.id}/logo.jpg`, `${user.id}/logo.jpeg`, `${user.id}/logo.webp`]);
+
+      if (error) console.error("Error removing logo:", error);
+      
+      setLogoUrl(null);
+      toast.success("Logo removed");
+    } catch (error) {
+      console.error("Error removing logo:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const onSubmit = async (data: FormData) => {
     if (!user) return;
@@ -109,6 +181,7 @@ export function EditCompanyDialog({ open, onOpenChange, profile, onSuccess }: Ed
           company_size: data.company_size || null,
           company_industry: data.company_industry || null,
           company_location: data.company_location || null,
+          avatar_url: logoUrl,
         })
         .eq("user_id", user.id);
 
@@ -136,6 +209,58 @@ export function EditCompanyDialog({ open, onOpenChange, profile, onSuccess }: Ed
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {/* Logo Upload */}
+            <div className="space-y-2">
+              <FormLabel>Company Logo</FormLabel>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={logoUrl || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                    {form.watch("company_name")?.charAt(0) || "C"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4 mr-2" />
+                    )}
+                    Upload Logo
+                  </Button>
+                  {logoUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveLogo}
+                      disabled={isUploading}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4 mr-2" />
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Recommended: Square image, max 2MB
+              </p>
+            </div>
+
             <FormField
               control={form.control}
               name="company_name"
