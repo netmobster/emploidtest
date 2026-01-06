@@ -1,14 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2 } from "lucide-react";
+import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCandidateStats } from "@/hooks/useCandidateStats";
 import { useJobRecommendations } from "@/hooks/useJobRecommendations";
 import { useMatches } from "@/hooks/useMatches";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { JobRecommendationCard } from "@/components/dashboard/JobRecommendationCard";
-import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
+import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidateProfileDialog";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -16,10 +16,11 @@ import ProfileHeader from "@/components/ProfileHeader";
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const stats = useCandidateStats();
   const { jobs, isLoading: jobsLoading } = useJobRecommendations();
   const { matches, isLoading: matchesLoading } = useMatches();
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -249,24 +250,37 @@ export default function CandidateDashboard() {
               </div>
             </motion.div>
 
-            {/* Profile Completion */}
+            {/* Profile Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
               className="bg-card rounded-xl p-5 shadow-card border border-border"
             >
-              <h3 className="font-semibold text-foreground mb-4">Your Profile</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-foreground">Your Profile</h3>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setEditProfileOpen(true)}
+                >
+                  <Pencil className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+              </div>
               <div className="flex items-center gap-3 mb-4">
-                <Avatar className="w-12 h-12">
+                <Avatar className="w-14 h-14">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary">
+                  <AvatarFallback className="bg-primary/10 text-primary text-lg">
                     {profile?.full_name?.slice(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="font-medium text-foreground">{profile?.full_name || "Your Name"}</p>
-                  <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">{profile?.full_name || "Your Name"}</p>
+                  <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+                  {profile?.bio && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
+                  )}
                 </div>
               </div>
               {!profile?.has_completed_culture_game && (
@@ -281,6 +295,15 @@ export default function CandidateDashboard() {
                 </div>
               )}
             </motion.div>
+
+            <EditCandidateProfileDialog
+              open={editProfileOpen}
+              onOpenChange={setEditProfileOpen}
+              onSuccess={() => {
+                setEditProfileOpen(false);
+                refreshProfile();
+              }}
+            />
           </div>
         </div>
       </main>
