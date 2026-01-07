@@ -6,11 +6,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useEmployerStats } from "@/hooks/useEmployerStats";
 import { useEmployerJobs } from "@/hooks/useEmployerJobs";
 import { useEmployerActivity } from "@/hooks/useEmployerActivity";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { JobCard } from "@/components/dashboard/JobCard";
 import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
+import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -22,6 +24,7 @@ export default function EmployerDashboard() {
   const stats = useEmployerStats();
   const { jobs, isLoading: jobsLoading, deleteJob } = useEmployerJobs();
   const { activities, isLoading: activityLoading } = useEmployerActivity();
+  const profileCompletion = useProfileCompletion(profile);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -194,8 +197,9 @@ export default function EmployerDashboard() {
             </motion.div>
           </div>
 
-          {/* Right Column - Quick Actions */}
+          {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
+            <ProfileCompletionCard {...profileCompletion} />
             <QuickActionsPanel />
 
             {/* Recent Matches Preview */}
