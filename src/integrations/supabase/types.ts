@@ -178,7 +178,7 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id: string
-          user_type: string
+          user_type?: string
         }
         Update: {
           avatar_url?: string | null
