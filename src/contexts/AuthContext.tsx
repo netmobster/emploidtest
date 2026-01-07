@@ -14,6 +14,9 @@ interface Profile {
   culture_preferences: Record<string, string> | null;
   has_completed_culture_game: boolean;
   has_completed_profile: boolean;
+  has_completed_extended_profile: boolean;
+  has_completed_work_love_language: boolean;
+  has_completed_manager_profile: boolean;
   company_website: string | null;
   company_size: string | null;
   company_industry: string | null;

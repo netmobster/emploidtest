@@ -6,9 +6,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCandidateStats } from "@/hooks/useCandidateStats";
 import { useJobRecommendations } from "@/hooks/useJobRecommendations";
 import { useMatches } from "@/hooks/useMatches";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { JobRecommendationCard } from "@/components/dashboard/JobRecommendationCard";
 import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidateProfileDialog";
+import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -20,6 +22,7 @@ export default function CandidateDashboard() {
   const stats = useCandidateStats();
   const { jobs, isLoading: jobsLoading } = useJobRecommendations();
   const { matches, isLoading: matchesLoading } = useMatches();
+  const profileCompletion = useProfileCompletion(profile);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   useEffect(() => {
@@ -213,8 +216,10 @@ export default function CandidateDashboard() {
             </motion.div>
           </div>
 
-          {/* Right Column - Quick Actions */}
+          {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
+            <ProfileCompletionCard {...profileCompletion} />
+            
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
