@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,13 @@ import Logo from "@/components/Logo";
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, profile, isLoading: authLoading } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   
   const defaultUserType = (searchParams.get("type") as "employer" | "candidate") || "candidate";
   
   const [isLoading, setIsLoading] = useState(false);
   const [userType, setUserType] = useState<"employer" | "candidate">(defaultUserType);
+  const hasUpdatedProfile = useRef(false);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -41,6 +42,28 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  // Update profile with user_type from URL after OAuth callback
+  useEffect(() => {
+    const updateProfileUserType = async () => {
+      if (user && profile && !hasUpdatedProfile.current) {
+        // If profile user_type doesn't match URL param and profile isn't complete, update it
+        if (profile.user_type !== defaultUserType && !profile.has_completed_profile) {
+          hasUpdatedProfile.current = true;
+          const { error } = await supabase
+            .from("profiles")
+            .update({ user_type: defaultUserType })
+            .eq("user_id", user.id);
+          
+          if (!error) {
+            await refreshProfile();
+          }
+        }
+      }
+    };
+
+    updateProfileUserType();
+  }, [user, profile, defaultUserType, refreshProfile]);
 
   // Redirect if already logged in - check onboarding completion
   useEffect(() => {
