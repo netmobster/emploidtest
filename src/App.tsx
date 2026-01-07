@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ProfileSetup from "./pages/ProfileSetup";
+import CandidateOnboarding from "./pages/CandidateOnboarding";
+import OnboardingComplete from "./pages/OnboardingComplete";
 import CitySelection from "./pages/CitySelection";
 import RoleSelection from "./pages/RoleSelection";
 import SkillsGame from "./pages/SkillsGame";
@@ -36,6 +39,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/profile-setup" element={<ProfileSetup />} />
+            <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+            <Route path="/onboarding-complete" element={<OnboardingComplete />} />
             <Route path="/city" element={<CitySelection />} />
             <Route path="/roles" element={<RoleSelection />} />
             <Route path="/game/skills" element={<SkillsGame />} />

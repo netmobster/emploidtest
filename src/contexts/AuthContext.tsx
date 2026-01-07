@@ -13,6 +13,7 @@ interface Profile {
   user_type: "employer" | "candidate";
   culture_preferences: Record<string, string> | null;
   has_completed_culture_game: boolean;
+  has_completed_profile: boolean;
   company_website: string | null;
   company_size: string | null;
   company_industry: string | null;

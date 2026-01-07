@@ -42,18 +42,30 @@ const Auth = () => {
     }
   };
 
-  // Redirect if already logged in
+  // Redirect if already logged in - check onboarding completion
   useEffect(() => {
     if (user && !authLoading && profile) {
-      if (profile.user_type === "employer") {
-        // Employers who haven't completed culture game go to onboarding
-        if (!profile.has_completed_culture_game) {
+      // Check if profile setup is complete
+      if (!profile.has_completed_profile) {
+        navigate("/profile-setup");
+        return;
+      }
+      
+      // Check if culture game is complete
+      if (!profile.has_completed_culture_game) {
+        if (profile.user_type === "employer") {
           navigate("/employer-onboarding");
         } else {
-          navigate("/employer-dashboard");
+          navigate("/candidate-onboarding");
         }
+        return;
+      }
+      
+      // Fully onboarded - go to dashboard
+      if (profile.user_type === "employer") {
+        navigate("/employer-dashboard");
       } else {
-        navigate(`/city?type=${profile.user_type}`);
+        navigate("/candidate-dashboard");
       }
     }
   }, [user, authLoading, navigate, profile]);

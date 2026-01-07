@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import ProfileHeader from "@/components/ProfileHeader";
 
 const EmployerOnboarding = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const cityId = searchParams.get("city") || "new-york";
@@ -20,6 +20,32 @@ const EmployerOnboarding = () => {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/auth");
+      return;
+    }
+    
+    if (!isLoading && profile) {
+      // If not an employer, redirect to candidate onboarding
+      if (profile.user_type !== 'employer') {
+        navigate("/candidate-onboarding");
+        return;
+      }
+      
+      // If profile not complete, redirect to profile setup
+      if (!profile.has_completed_profile) {
+        navigate("/profile-setup");
+        return;
+      }
+      
+      // If already completed culture game, go to completion
+      if (profile.has_completed_culture_game) {
+        navigate("/onboarding-complete");
+      }
+    }
+  }, [user, profile, isLoading, navigate]);
 
   const saveCulturePreferences = async (cultureAnswers: Record<string, string>) => {
     if (!user) return;
@@ -66,6 +92,14 @@ const EmployerOnboarding = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (isComplete) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -84,11 +118,11 @@ const EmployerOnboarding = () => {
           <Button 
             variant="hero" 
             size="xl" 
-            onClick={() => navigate(`/city?type=employer`)}
+            onClick={() => navigate("/onboarding-complete")}
             disabled={isSaving}
           >
             {isSaving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : null}
-            Start Hiring
+            Continue
           </Button>
         </motion.div>
       </div>
