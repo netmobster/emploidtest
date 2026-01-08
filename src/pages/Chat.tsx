@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useChat } from "@/hooks/useChat";
 import { useUnmatch } from "@/hooks/useUnmatch";
 import { useBlock } from "@/hooks/useBlock";
+import { useChatPresence } from "@/hooks/useChatPresence";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 
@@ -56,6 +57,7 @@ const Chat = () => {
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
   const { blockUser, isBlocking } = useBlock();
+  const { isOtherUserOnline, isOtherUserTyping, setTyping } = useChatPresence(matchId || "");
 
   // Fetch match and other user details
   useEffect(() => {
@@ -233,6 +235,9 @@ const Chat = () => {
           isSending={isSending}
           isLoading={isLoading}
           otherUser={otherUser ? { name: otherUser.name, avatar: otherUser.avatar } : undefined}
+          isOtherUserOnline={isOtherUserOnline}
+          isOtherUserTyping={isOtherUserTyping}
+          onTyping={setTyping}
         />
       </div>
 

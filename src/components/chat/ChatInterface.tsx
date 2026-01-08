@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +23,30 @@ interface ChatInterfaceProps {
     name: string;
     avatar?: string;
   };
+  isOtherUserOnline?: boolean;
+  isOtherUserTyping?: boolean;
+  onTyping?: (isTyping: boolean) => void;
 }
+
+const TypingIndicator = () => (
+  <div className="flex items-center gap-1 px-3 py-2">
+    <motion.span
+      className="w-2 h-2 bg-muted-foreground rounded-full"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0 }}
+    />
+    <motion.span
+      className="w-2 h-2 bg-muted-foreground rounded-full"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
+    />
+    <motion.span
+      className="w-2 h-2 bg-muted-foreground rounded-full"
+      animate={{ opacity: [0.4, 1, 0.4] }}
+      transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
+    />
+  </div>
+);
 
 const ChatInterface = ({
   messages,
@@ -31,22 +54,55 @@ const ChatInterface = ({
   isSending,
   isLoading,
   otherUser,
+  isOtherUserOnline = false,
+  isOtherUserTyping = false,
+  onTyping,
 }: ChatInterfaceProps) => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom on new messages or typing
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, isOtherUserTyping]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+
+    // Notify typing
+    if (onTyping && e.target.value.length > 0) {
+      onTyping(true);
+
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Set timeout to stop typing indicator
+      typingTimeoutRef.current = setTimeout(() => {
+        onTyping(false);
+      }, 2000);
+    } else if (onTyping && e.target.value.length === 0) {
+      onTyping(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim() || isSending) return;
+
+    // Stop typing indicator
+    if (onTyping) {
+      onTyping(false);
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     const success = await onSendMessage(inputValue);
     if (success) {
@@ -95,6 +151,19 @@ const ChatInterface = ({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Online Status Bar */}
+      <div className="px-4 py-2 border-b border-border flex items-center gap-2">
+        <span
+          className={cn(
+            "w-2 h-2 rounded-full",
+            isOtherUserOnline ? "bg-green-500" : "bg-muted-foreground"
+          )}
+        />
+        <span className="text-sm text-muted-foreground">
+          {isOtherUserOnline ? "Online" : "Offline"}
+        </span>
+      </div>
+
       {/* Messages */}
       <ScrollArea ref={scrollRef} className="flex-1 p-4">
         {messages.length === 0 ? (
@@ -169,6 +238,33 @@ const ChatInterface = ({
                 </div>
               </div>
             ))}
+
+            {/* Typing Indicator */}
+            <AnimatePresence>
+              {isOtherUserTyping && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-end gap-2"
+                >
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0">
+                    {otherUser?.avatar ? (
+                      <img
+                        src={otherUser.avatar}
+                        alt=""
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      otherUser?.name?.charAt(0) || "?"
+                    )}
+                  </div>
+                  <div className="bg-secondary rounded-2xl rounded-bl-md">
+                    <TypingIndicator />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </ScrollArea>
@@ -179,7 +275,7 @@ const ChatInterface = ({
           <Input
             ref={inputRef}
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Type a message..."
             className="flex-1 rounded-full px-4"
             disabled={isSending}

@@ -26,6 +26,7 @@ import CandidateExtendedProfile from "./pages/CandidateExtendedProfile";
 import Matches from "./pages/Matches";
 import Chat from "./pages/Chat";
 import CompanyProfile from "./pages/CompanyProfile";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/chat/:matchId" element={<Chat />} />
             <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
             <Route path="/company/:userId" element={<CompanyProfile />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
