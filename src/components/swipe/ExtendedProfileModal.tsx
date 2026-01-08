@@ -127,12 +127,14 @@ const ExtendedProfileModal = ({
                 <div className="flex items-end gap-4">
                   {type === "candidate" && candidate ? (
                     <div className="w-28 h-28 rounded-2xl bg-card border-4 border-background shadow-lg flex items-center justify-center text-4xl font-bold text-primary overflow-hidden flex-shrink-0">
-                      {candidate.avatar ? (
+                      {candidate.avatar && candidate.avatar.startsWith("http") ? (
                         <img
                           src={candidate.avatar}
                           alt={candidate.name}
                           className="w-full h-full object-cover"
                         />
+                      ) : candidate.avatar ? (
+                        <span className="text-5xl">{candidate.avatar}</span>
                       ) : (
                         candidate.name.charAt(0)
                       )}
