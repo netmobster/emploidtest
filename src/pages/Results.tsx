@@ -3,12 +3,15 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { SAMPLE_JOBS, ROLES } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
-import { MapPin, DollarSign, Briefcase, ArrowLeft, Sparkles, Loader2, Heart, HeartOff } from "lucide-react";
+import { ArrowLeft, Sparkles, Loader2, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import ProfileHeader from "@/components/ProfileHeader";
+import SwipeStack from "@/components/swipe/SwipeStack";
+import MatchCelebration from "@/components/match/MatchCelebration";
+import { useSwipe } from "@/hooks/useSwipe";
 
 interface DatabaseJob {
   id: string;
@@ -20,6 +23,9 @@ interface DatabaseJob {
   salary: string | null;
   type: string | null;
   remote: boolean | null;
+  benefits: string[] | null;
+  requirements: string[] | null;
+  user_id: string | null;
 }
 
 interface JobWithScore {
@@ -28,268 +34,215 @@ interface JobWithScore {
   company: string;
   location: string;
   salary: string;
-  type: string;
-  remote: string;
+  remote: boolean;
   description: string;
-  logo: string;
+  benefits?: string[];
+  requirements?: string[];
   matchScore: number;
   isFromDatabase: boolean;
+  employerId?: string;
 }
 
 const Results = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const role = searchParams.get("role") || "";
   const cityId = searchParams.get("city") || "new-york";
   const userType = searchParams.get("type") || "candidate";
 
-  const [databaseJobs, setDatabaseJobs] = useState<DatabaseJob[]>([]);
-  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [jobs, setJobs] = useState<JobWithScore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [savingJobId, setSavingJobId] = useState<string | null>(null);
+  const [showMatch, setShowMatch] = useState(false);
+  const [matchedJob, setMatchedJob] = useState<JobWithScore | null>(null);
+  const [matchId, setMatchId] = useState<string | null>(null);
+
+  const { recordSwipe, latestMatch, clearLatestMatch } = useSwipe();
 
   const roleInfo = ROLES.find((r) => r.id === role);
   const cityName = cityId === "toronto" ? "Toronto, ON" : "New York, NY";
 
-  // Fetch jobs and saved jobs from database
+  // Fetch jobs
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       
+      // Get already swiped jobs to exclude
+      let swipedIds: string[] = [];
+      if (user) {
+        const { data: swipes } = await supabase
+          .from("swipes")
+          .select("swiped_id")
+          .eq("swiper_id", user.id);
+        swipedIds = swipes?.map((s) => s.swiped_id) || [];
+      }
+
       // Fetch jobs
       const { data: jobsData, error: jobsError } = await supabase
         .from("jobs")
         .select("*")
         .eq("role_id", role)
         .eq("city_id", cityId);
-
-      if (!jobsError && jobsData) {
-        setDatabaseJobs(jobsData);
-      }
-
-      // Fetch saved jobs if user is logged in
-      if (user) {
-        const { data: savedData, error: savedError } = await supabase
-          .from("saved_jobs")
-          .select("job_id")
-          .eq("user_id", user.id);
-
-        if (!savedError && savedData) {
-          setSavedJobIds(new Set(savedData.map(s => s.job_id)));
-        }
-      }
       
+      // Get sample jobs for this role
+      const sampleJobs = SAMPLE_JOBS.filter((job) => job.roleId === role);
+
+      // Combine database jobs and sample jobs
+      const allJobs: JobWithScore[] = [
+        // Database jobs first (real employer postings)
+        ...(jobsData || []).map((job: DatabaseJob) => ({
+          id: job.id,
+          title: job.title,
+          company: job.company,
+          location: cityName,
+          salary: job.salary || "Competitive",
+          remote: job.remote || false,
+          description: job.description || "",
+          benefits: job.benefits || undefined,
+          requirements: job.requirements || undefined,
+          matchScore: Math.floor(Math.random() * 15) + 85,
+          isFromDatabase: true,
+          employerId: job.user_id || undefined,
+        })),
+        // Sample jobs
+        ...sampleJobs.map((job) => ({
+          id: job.id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          salary: job.salary,
+          remote: job.remote === "Remote",
+          description: job.description,
+          matchScore: Math.floor(Math.random() * 30) + 70,
+          isFromDatabase: false,
+          employerId: "sample",
+        })),
+      ]
+        .filter((j) => !swipedIds.includes(j.id))
+        .sort((a, b) => b.matchScore - a.matchScore);
+
+      setJobs(allJobs);
       setIsLoading(false);
     };
 
     fetchData();
-  }, [role, cityId, user]);
+  }, [role, cityId, user, cityName]);
 
-  const handleSaveJob = async (jobId: string, isFromDatabase: boolean) => {
-    if (!user) {
-      toast.error("Please sign in to save jobs");
-      navigate(`/auth?type=${userType}`);
-      return;
-    }
-
-    if (!isFromDatabase) {
-      toast.info("This is a sample job. You can save real employer-posted jobs!");
-      return;
-    }
-
-    setSavingJobId(jobId);
-    
-    const isSaved = savedJobIds.has(jobId);
-
-    if (isSaved) {
-      // Unsave
-      const { error } = await supabase
-        .from("saved_jobs")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("job_id", jobId);
-
-      if (error) {
-        toast.error("Failed to unsave job");
-      } else {
-        setSavedJobIds(prev => {
-          const next = new Set(prev);
-          next.delete(jobId);
-          return next;
-        });
-        toast.success("Job removed from saved");
+  // Handle match detection
+  useEffect(() => {
+    if (latestMatch) {
+      const matched = jobs.find(
+        (j) => j.employerId === latestMatch.matchedUserId
+      );
+      if (matched) {
+        setMatchedJob(matched);
+        setMatchId(latestMatch.matchId);
+        setShowMatch(true);
       }
-    } else {
-      // Save
-      const { error } = await supabase
-        .from("saved_jobs")
-        .insert({ user_id: user.id, job_id: jobId });
+      clearLatestMatch();
+    }
+  }, [latestMatch, jobs, clearLatestMatch]);
 
-      if (error) {
-        toast.error("Failed to save job");
-      } else {
-        setSavedJobIds(prev => new Set(prev).add(jobId));
-        toast.success("Job saved!");
+  const handleSwipe = async (
+    job: JobWithScore,
+    direction: "like" | "pass" | "super_like"
+  ) => {
+    if (direction !== "pass" && job.employerId && job.employerId !== "sample") {
+      const result = await recordSwipe(job.employerId, direction);
+      
+      // Demo: Show match celebration randomly
+      if (result && Math.random() < 0.3) {
+        setMatchedJob(job);
+        setMatchId(result.matchId || "demo-match");
+        setShowMatch(true);
       }
     }
-
-    setSavingJobId(null);
   };
 
-  // Get sample jobs for this role
-  const sampleJobs = SAMPLE_JOBS.filter((job) => job.roleId === role);
+  const handleStartChat = () => {
+    setShowMatch(false);
+    if (matchId) {
+      navigate(`/chat/${matchId}`);
+    } else {
+      navigate("/matches");
+    }
+  };
 
-  // Combine database jobs and sample jobs
-  const allJobs: JobWithScore[] = [
-    // Database jobs first (real employer postings)
-    ...databaseJobs.map((job) => ({
-      id: job.id,
-      title: job.title,
-      company: job.company,
-      location: cityName,
-      salary: job.salary || "Competitive",
-      type: job.type || "Full-time",
-      remote: job.remote ? "Remote" : "Onsite",
-      description: job.description || "",
-      logo: "🏢",
-      matchScore: Math.floor(Math.random() * 15) + 85,
-      isFromDatabase: true,
-    })),
-    // Sample jobs
-    ...sampleJobs.map((job) => ({
-      id: job.id,
-      title: job.title,
-      company: job.company,
-      location: job.location,
-      salary: job.salary,
-      type: job.type,
-      remote: job.remote,
-      description: job.description,
-      logo: job.logo,
-      matchScore: Math.floor(Math.random() * 30) + 70,
-      isFromDatabase: false,
-    })),
-  ].sort((a, b) => b.matchScore - a.matchScore);
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      {/* Profile Header */}
-      <div className="absolute top-4 right-4 z-10">
-        <ProfileHeader />
-      </div>
-      
-      <div className="container max-w-2xl mx-auto">
-        <Logo size="sm" className="mx-auto mb-6" />
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border"
+      >
+        <div className="flex items-center justify-between px-4 py-3">
           <Button
             variant="ghost"
+            size="icon"
             onClick={() => navigate(`/roles?type=${userType}&city=${cityId}`)}
-            className="mb-4"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Roles
+            <ArrowLeft className="w-5 h-5" />
           </Button>
-          
-          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
-            <Sparkles className="w-4 h-4" />
-            <span className="font-medium">Your Matches Are Ready!</span>
-          </div>
-          
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            {roleInfo?.title} Opportunities
-          </h1>
-          <p className="text-muted-foreground">
-            Based on your preferences, here are your top matches in {cityId === "toronto" ? "Toronto" : "New York"}
-          </p>
-        </motion.div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="text-center">
+            <div className="inline-flex items-center gap-1.5 text-xs text-primary mb-0.5">
+              <Sparkles className="w-3 h-3" />
+              <span>Matches Ready</span>
+            </div>
+            <h1 className="font-bold text-foreground">
+              {roleInfo?.title || "Jobs"}
+            </h1>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {allJobs.map((job, index) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-card rounded-2xl p-6 shadow-card hover:shadow-elegant transition-shadow"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl">{job.logo}</div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {job.title}
-                        </h3>
-                        {job.isFromDatabase && (
-                          <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full">
-                            New
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 bg-accent/20 text-accent px-3 py-1 rounded-full">
-                        <span className="text-sm font-bold">{job.matchScore}%</span>
-                        <span className="text-xs">match</span>
-                      </div>
-                    </div>
-                    
-                    <p className="text-primary font-medium mb-2">{job.company}</p>
-                    <p className="text-muted-foreground text-sm mb-3">{job.description}</p>
-                    
-                    <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {job.location}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <DollarSign className="w-4 h-4" />
-                        {job.salary}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-4 h-4" />
-                        {job.remote}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-border flex gap-3">
-                  <Button className="flex-1" variant="default">
-                    Apply Now
-                  </Button>
-                  <Button 
-                    variant={savedJobIds.has(job.id) ? "default" : "outline"}
-                    onClick={() => handleSaveJob(job.id, job.isFromDatabase)}
-                    disabled={savingJobId === job.id}
-                  >
-                    {savingJobId === job.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : savedJobIds.has(job.id) ? (
-                      <Heart className="w-4 h-4 fill-current" />
-                    ) : (
-                      <HeartOff className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
 
-        {!isLoading && allJobs.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No jobs found for this role yet.</p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/matches")}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+            <ProfileHeader />
           </div>
-        )}
+        </div>
+      </motion.header>
+
+      {/* Swipe Stack */}
+      <div className="flex-1 flex flex-col">
+        <SwipeStack
+          items={jobs}
+          type="job"
+          onSwipe={handleSwipe}
+          onEmpty={() => {
+            toast.success("You've reviewed all jobs!");
+          }}
+        />
       </div>
+
+      {/* Match Celebration */}
+      <MatchCelebration
+        isOpen={showMatch}
+        onClose={() => setShowMatch(false)}
+        onStartChat={handleStartChat}
+        matchedProfile={{
+          name: matchedJob?.company || "",
+          title: matchedJob?.title,
+        }}
+        currentUser={{
+          name: profile?.full_name || "You",
+          avatar: profile?.avatar_url || undefined,
+        }}
+        matchScore={matchedJob?.matchScore}
+      />
     </div>
   );
 };
