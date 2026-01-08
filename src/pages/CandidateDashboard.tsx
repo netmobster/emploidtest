@@ -8,6 +8,8 @@ import { useJobRecommendations } from "@/hooks/useJobRecommendations";
 import { useMatches } from "@/hooks/useMatches";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { SynergyScoreChart } from "@/components/dashboard/SynergyScoreChart";
+import { Category } from "@/data/questions";
 import { JobRecommendationCard } from "@/components/dashboard/JobRecommendationCard";
 import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidateProfileDialog";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
@@ -219,6 +221,11 @@ export default function CandidateDashboard() {
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
             <ProfileCompletionCard {...profileCompletion} />
+            
+            {/* Synergy Score Chart */}
+            {profile?.synergy_scores && (
+              <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+            )}
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}

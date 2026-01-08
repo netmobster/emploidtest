@@ -6,6 +6,7 @@ interface Profile {
   has_completed_extended_profile: boolean;
   has_completed_work_love_language: boolean;
   has_completed_manager_profile: boolean;
+  has_completed_synergy_quiz: boolean;
   avatar_url: string | null;
   user_type: "employer" | "candidate";
 }
@@ -37,6 +38,12 @@ export function useProfileCompletion(profile: Profile | null): ProfileCompletion
     const isEmployer = profile.user_type === "employer";
 
     const items: CompletionItem[] = [
+      {
+        id: "synergy-score",
+        label: "Synergy Score",
+        completed: profile.has_completed_synergy_quiz ?? false,
+        path: "/synergy-score-quiz",
+      },
       {
         id: "basic-profile",
         label: "Basic Profile",

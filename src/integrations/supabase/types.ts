@@ -211,6 +211,7 @@ export type Database = {
           has_completed_extended_profile: boolean | null
           has_completed_manager_profile: boolean | null
           has_completed_profile: boolean | null
+          has_completed_synergy_quiz: boolean | null
           has_completed_work_love_language: boolean | null
           id: string
           job_title: string | null
@@ -220,6 +221,7 @@ export type Database = {
           remote_preference: string | null
           resume_url: string | null
           skills: string[] | null
+          synergy_scores: Json | null
           updated_at: string
           user_id: string
           user_type: string
@@ -244,6 +246,7 @@ export type Database = {
           has_completed_extended_profile?: boolean | null
           has_completed_manager_profile?: boolean | null
           has_completed_profile?: boolean | null
+          has_completed_synergy_quiz?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
           job_title?: string | null
@@ -253,6 +256,7 @@ export type Database = {
           remote_preference?: string | null
           resume_url?: string | null
           skills?: string[] | null
+          synergy_scores?: Json | null
           updated_at?: string
           user_id: string
           user_type?: string
@@ -277,6 +281,7 @@ export type Database = {
           has_completed_extended_profile?: boolean | null
           has_completed_manager_profile?: boolean | null
           has_completed_profile?: boolean | null
+          has_completed_synergy_quiz?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
           job_title?: string | null
@@ -286,6 +291,7 @@ export type Database = {
           remote_preference?: string | null
           resume_url?: string | null
           skills?: string[] | null
+          synergy_scores?: Json | null
           updated_at?: string
           user_id?: string
           user_type?: string

@@ -17,6 +17,8 @@ interface Profile {
   has_completed_extended_profile: boolean;
   has_completed_work_love_language: boolean;
   has_completed_manager_profile: boolean;
+  has_completed_synergy_quiz: boolean;
+  synergy_scores: Record<string, number> | null;
   company_website: string | null;
   company_size: string | null;
   company_industry: string | null;
