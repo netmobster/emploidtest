@@ -53,8 +53,7 @@ export function useProfileCompletion(profile: Profile | null): ProfileCompletion
         id: "extended-profile",
         label: "Extended Profile",
         completed: profile.has_completed_extended_profile ?? false,
-        path: "/profile-setup",
-        comingSoon: true,
+        path: isEmployer ? "/profile-setup" : "/candidate-extended-profile",
       },
       {
         id: "avatar",

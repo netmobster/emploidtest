@@ -137,6 +137,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: string | null
           avatar_url: string | null
           bio: string | null
           company_industry: string | null
@@ -144,6 +145,7 @@ export type Database = {
           company_name: string | null
           company_size: string | null
           company_website: string | null
+          cover_image_url: string | null
           created_at: string
           culture_preferences: Json | null
           email: string | null
@@ -154,11 +156,21 @@ export type Database = {
           has_completed_profile: boolean | null
           has_completed_work_love_language: boolean | null
           id: string
+          job_title: string | null
+          linkedin_url: string | null
+          location: string | null
+          portfolio_url: string | null
+          remote_preference: string | null
+          resume_url: string | null
+          skills: string[] | null
           updated_at: string
           user_id: string
           user_type: string
+          website_url: string | null
+          years_of_experience: string | null
         }
         Insert: {
+          availability?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_industry?: string | null
@@ -166,6 +178,7 @@ export type Database = {
           company_name?: string | null
           company_size?: string | null
           company_website?: string | null
+          cover_image_url?: string | null
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null
@@ -176,11 +189,21 @@ export type Database = {
           has_completed_profile?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          portfolio_url?: string | null
+          remote_preference?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
           updated_at?: string
           user_id: string
           user_type?: string
+          website_url?: string | null
+          years_of_experience?: string | null
         }
         Update: {
+          availability?: string | null
           avatar_url?: string | null
           bio?: string | null
           company_industry?: string | null
@@ -188,6 +211,7 @@ export type Database = {
           company_name?: string | null
           company_size?: string | null
           company_website?: string | null
+          cover_image_url?: string | null
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null
@@ -198,9 +222,18 @@ export type Database = {
           has_completed_profile?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          portfolio_url?: string | null
+          remote_preference?: string | null
+          resume_url?: string | null
+          skills?: string[] | null
           updated_at?: string
           user_id?: string
           user_type?: string
+          website_url?: string | null
+          years_of_experience?: string | null
         }
         Relationships: []
       }

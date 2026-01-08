@@ -22,6 +22,7 @@ import CultureEdit from "./pages/CultureEdit";
 import CultureConfirmation from "./pages/CultureConfirmation";
 import EmployerSwipe from "./pages/EmployerSwipe";
 import CandidateSwipe from "./pages/CandidateSwipe";
+import CandidateExtendedProfile from "./pages/CandidateExtendedProfile";
 import Matches from "./pages/Matches";
 import Chat from "./pages/Chat";
 import CompanyProfile from "./pages/CompanyProfile";
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/culture-confirmation" element={<CultureConfirmation />} />
             <Route path="/swipe/employer" element={<EmployerSwipe />} />
             <Route path="/swipe/candidate" element={<CandidateSwipe />} />
+            <Route path="/candidate-extended-profile" element={<CandidateExtendedProfile />} />
             <Route path="/matches" element={<Matches />} />
             <Route path="/chat/:matchId" element={<Chat />} />
             <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
