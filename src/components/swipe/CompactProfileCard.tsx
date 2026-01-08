@@ -120,12 +120,17 @@ const CompactProfileCard = ({ data, type, dragX = 0, onExpand }: CompactProfileC
         <div className="flex-1 relative min-h-[50%]">
           {type === "candidate" && isCandidate(data) ? (
             <div className="w-full h-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-              {data.avatar ? (
+              {data.avatar && data.avatar.startsWith("http") ? (
                 <img 
                   src={data.avatar} 
                   alt={data.name} 
                   className="w-full h-full object-cover"
                 />
+              ) : data.avatar ? (
+                // Emoji avatar
+                <span className="text-9xl">
+                  {data.avatar}
+                </span>
               ) : (
                 <span className="text-8xl font-bold text-primary/30">
                   {data.name.charAt(0)}
