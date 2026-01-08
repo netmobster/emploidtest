@@ -26,6 +26,13 @@ interface CandidateWithScore {
   remote: boolean;
   matchScore: number;
   userId?: string;
+  // Extended profile fields
+  linkedinUrl?: string;
+  websiteUrl?: string;
+  portfolioUrl?: string;
+  remotePreference?: string;
+  resumeUrl?: string;
+  coverImageUrl?: string;
 }
 
 const EmployerSwipe = () => {
@@ -77,10 +84,10 @@ const EmployerSwipe = () => {
           employerPrefs = jobData;
         }
 
-        // Fetch real candidate profiles from database
+        // Fetch real candidate profiles from database with extended fields
         const { data: dbProfiles } = await supabase
           .from("profiles")
-          .select("user_id, full_name, avatar_url, bio, culture_preferences")
+          .select("user_id, full_name, avatar_url, bio, culture_preferences, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url")
           .eq("user_type", "candidate");
 
         // For now, use sample candidates (filtered by role)
@@ -104,16 +111,23 @@ const EmployerSwipe = () => {
             return {
               id: candidate.id,
               name: realProfile?.full_name || candidate.name,
-              title: candidate.title,
+              title: realProfile?.job_title || candidate.title,
               avatar: realProfile?.avatar_url || candidate.avatar,
               bio: realProfile?.bio || candidate.bio,
-              skills: candidate.skills,
-              location: candidate.location,
-              experience: candidate.experience,
-              availability: candidate.availability,
-              remote: candidate.remote === "Remote" || candidate.remote === "Flexible",
+              skills: realProfile?.skills || candidate.skills,
+              location: realProfile?.location || candidate.location,
+              experience: realProfile?.years_of_experience || candidate.experience,
+              availability: realProfile?.availability || candidate.availability,
+              remote: realProfile?.remote_preference === "remote" || realProfile?.remote_preference === "flexible" || candidate.remote === "Remote" || candidate.remote === "Flexible",
               matchScore,
               userId: candidate.id,
+              // Extended profile fields
+              linkedinUrl: realProfile?.linkedin_url || undefined,
+              websiteUrl: realProfile?.website_url || undefined,
+              portfolioUrl: realProfile?.portfolio_url || undefined,
+              remotePreference: realProfile?.remote_preference || undefined,
+              resumeUrl: realProfile?.resume_url || undefined,
+              coverImageUrl: realProfile?.cover_image_url || undefined,
             };
           })
           .sort((a, b) => b.matchScore - a.matchScore);

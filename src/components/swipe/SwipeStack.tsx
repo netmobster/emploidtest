@@ -1,7 +1,8 @@
 import { useState, useCallback } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from "framer-motion";
-import SwipeableProfileCard from "./SwipeableProfileCard";
+import SwipeableProfileCard, { CandidateData, JobData } from "./SwipeableProfileCard";
 import SwipeControls from "./SwipeControls";
+import ExtendedProfileModal from "./ExtendedProfileModal";
 
 interface SwipeStackProps<T> {
   items: T[];
@@ -19,6 +20,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [swipeHistory, setSwipeHistory] = useState<{ item: T; direction: "like" | "pass" | "super_like" }[]>([]);
+  const [expandedProfile, setExpandedProfile] = useState<T | null>(null);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -29,6 +31,9 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
 
   const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
     if (!currentItem) return;
+
+    // Close modal if open
+    setExpandedProfile(null);
 
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
@@ -59,6 +64,24 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
     setSwipeHistory(prev => prev.slice(0, -1));
     setCurrentIndex(prev => Math.max(0, prev - 1));
   }, [swipeHistory.length]);
+
+  const handleExpandProfile = useCallback(() => {
+    if (currentItem) {
+      setExpandedProfile(currentItem);
+    }
+  }, [currentItem]);
+
+  const handleCloseModal = useCallback(() => {
+    setExpandedProfile(null);
+  }, []);
+
+  const handleModalLike = useCallback(() => {
+    handleSwipe("like");
+  }, [handleSwipe]);
+
+  const handleModalPass = useCallback(() => {
+    handleSwipe("pass");
+  }, [handleSwipe]);
 
   if (!currentItem) {
     return (
@@ -97,7 +120,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
         {/* Next card (background) */}
         {nextItem && (
           <div className="absolute inset-4 transform scale-95 opacity-50">
-            <SwipeableProfileCard data={nextItem as any} type={type} />
+            <SwipeableProfileCard data={nextItem as unknown as CandidateData | JobData} type={type} />
           </div>
         )}
 
@@ -120,9 +143,10 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
             }}
           >
             <SwipeableProfileCard
-              data={currentItem as any}
+              data={currentItem as unknown as CandidateData | JobData}
               type={type}
               dragX={x.get()}
+              onExpand={handleExpandProfile}
             />
           </motion.div>
         </AnimatePresence>
@@ -138,6 +162,16 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
           canUndo={swipeHistory.length > 0}
         />
       </div>
+
+      {/* Extended Profile Modal */}
+      <ExtendedProfileModal
+        isOpen={!!expandedProfile}
+        data={expandedProfile as unknown as CandidateData | JobData | null}
+        type={type}
+        onClose={handleCloseModal}
+        onLike={handleModalLike}
+        onPass={handleModalPass}
+      />
     </div>
   );
 };
