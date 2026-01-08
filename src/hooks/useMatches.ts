@@ -8,6 +8,7 @@ interface Match {
   candidate_id: string;
   job_id: string | null;
   matched_at: string;
+  status?: string;
   other_user?: {
     id: string;
     full_name: string;
@@ -38,18 +39,29 @@ export const useMatches = () => {
         const userIdField = isEmployer ? "employer_id" : "candidate_id";
         const otherIdField = isEmployer ? "candidate_id" : "employer_id";
 
-        // Fetch matches
+        // Fetch active matches only (filter out unmatched)
         const { data: matchesData, error } = await supabase
           .from("matches")
           .select("*")
           .eq(userIdField, user.id)
+          .or("status.eq.active,status.is.null")
           .order("matched_at", { ascending: false });
 
         if (error) throw error;
 
-        // Fetch other user profiles and last messages
+        // Get blocked user IDs to filter them out
+        const { data: blockedData } = await supabase
+          .from("blocked_users")
+          .select("blocked_id")
+          .eq("blocker_id", user.id);
+
+        const blockedIds = new Set((blockedData || []).map((b) => b.blocked_id));
+
+        // Fetch other user profiles and last messages, filtering out blocked users
         const enrichedMatches = await Promise.all(
-          (matchesData || []).map(async (match) => {
+          (matchesData || [])
+            .filter((match) => !blockedIds.has(match[otherIdField]))
+            .map(async (match) => {
             const otherUserId = match[otherIdField];
 
             // Get other user's profile

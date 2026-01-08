@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           benefits: string[] | null
@@ -75,6 +96,7 @@ export type Database = {
           id: string
           job_id: string | null
           matched_at: string
+          status: string | null
         }
         Insert: {
           candidate_id: string
@@ -82,6 +104,7 @@ export type Database = {
           id?: string
           job_id?: string | null
           matched_at?: string
+          status?: string | null
         }
         Update: {
           candidate_id?: string
@@ -89,6 +112,7 @@ export type Database = {
           id?: string
           job_id?: string | null
           matched_at?: string
+          status?: string | null
         }
         Relationships: [
           {
@@ -134,6 +158,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          data: Json | null
+          id: string
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

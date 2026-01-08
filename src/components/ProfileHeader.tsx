@@ -3,6 +3,7 @@ import { LogIn, LogOut, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 interface ProfileHeaderProps {
   className?: string;
@@ -52,6 +53,7 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
         <LayoutDashboard className="w-4 h-4 mr-2" />
         {getDashboardLabel()}
       </Button>
+      <NotificationBell />
       <Button
         variant="ghost"
         size="icon"
