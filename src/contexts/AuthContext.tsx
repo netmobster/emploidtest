@@ -21,6 +21,18 @@ interface Profile {
   company_size: string | null;
   company_industry: string | null;
   company_location: string | null;
+  // Candidate extended profile fields
+  linkedin_url: string | null;
+  website_url: string | null;
+  portfolio_url: string | null;
+  skills: string[] | null;
+  job_title: string | null;
+  location: string | null;
+  years_of_experience: string | null;
+  availability: string | null;
+  remote_preference: string | null;
+  resume_url: string | null;
+  cover_image_url: string | null;
 }
 
 interface AuthContextType {
