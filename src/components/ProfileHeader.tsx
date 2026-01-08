@@ -1,7 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { LogIn, LogOut, LayoutDashboard } from "lucide-react";
+import { LogIn, LogOut, LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationBell from "@/components/notifications/NotificationBell";
 
@@ -54,24 +61,40 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
         {getDashboardLabel()}
       </Button>
       <NotificationBell />
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => navigate(getDashboardRoute())}
-        className="rounded-full"
-        title={getDashboardLabel()}
-      >
-        <Avatar className="w-8 h-8">
-          <AvatarImage src={profile?.avatar_url || undefined} />
-          <AvatarFallback className="text-xs">
-            {profile?.full_name?.slice(0, 2).toUpperCase() || user.email?.slice(0, 2).toUpperCase() || "U"}
-          </AvatarFallback>
-        </Avatar>
-      </Button>
-      <Button variant="ghost" size="sm" onClick={handleSignOut}>
-        <LogOut className="w-4 h-4 mr-2" />
-        Sign Out
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full"
+            title="Profile menu"
+          >
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={profile?.avatar_url || undefined} />
+              <AvatarFallback className="text-xs">
+                {profile?.full_name?.slice(0, 2).toUpperCase() ||
+                  user.email?.slice(0, 2).toUpperCase() ||
+                  "U"}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => navigate(getDashboardRoute())}>
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Dashboard
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate("/settings")}>
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleSignOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
