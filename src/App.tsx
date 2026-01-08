@@ -27,6 +27,7 @@ import Matches from "./pages/Matches";
 import Chat from "./pages/Chat";
 import CompanyProfile from "./pages/CompanyProfile";
 import Settings from "./pages/Settings";
+import SynergyScoreQuiz from "./pages/SynergyScoreQuiz";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
             <Route path="/company/:userId" element={<CompanyProfile />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

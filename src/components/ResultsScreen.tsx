@@ -326,7 +326,7 @@ Compare at: ${shareUrlWithScores}`;
       <div className="max-w-2xl mx-auto">
         {/* Logo */}
         <div className="flex justify-center mb-8">
-          <Logo size="small" />
+          <Logo size="sm" />
         </div>
 
         <h2 className="text-2xl md:text-3xl font-bold text-primary text-center mb-2">

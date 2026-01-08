@@ -8,6 +8,8 @@ import { useEmployerJobs } from "@/hooks/useEmployerJobs";
 import { useEmployerActivity } from "@/hooks/useEmployerActivity";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { SynergyScoreChart } from "@/components/dashboard/SynergyScoreChart";
+import { Category } from "@/data/questions";
 import { JobCard } from "@/components/dashboard/JobCard";
 import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
@@ -200,6 +202,12 @@ export default function EmployerDashboard() {
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
             <ProfileCompletionCard {...profileCompletion} />
+            
+            {/* Synergy Score Chart */}
+            {profile?.synergy_scores && (
+              <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+            )}
+            
             <QuickActionsPanel />
 
             {/* Recent Matches Preview */}
