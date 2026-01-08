@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Building2, User, ArrowRight } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
 import HowItWorks from "@/components/HowItWorks";
 import ProfileHeader from "@/components/ProfileHeader";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -150,6 +150,18 @@ const Index = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* About Section */}
+      <section id="about" className="py-16 px-4 bg-muted/20">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">About Emploid</h2>
+          <p className="text-muted-foreground">
+            We believe great work starts with great connections. Emploid uses culture-first matching to help candidates and companies find their perfect fit—beyond just skills and experience.
+          </p>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 };

@@ -29,7 +29,7 @@ const HowItWorks = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <section className="py-10 px-4">
+    <section id="how-it-works" className="py-10 px-4">
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
