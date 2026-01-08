@@ -1,11 +1,30 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2 } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat } from "@/hooks/useChat";
+import { useUnmatch } from "@/hooks/useUnmatch";
+import { useBlock } from "@/hooks/useBlock";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 
@@ -31,8 +50,12 @@ const Chat = () => {
   const [match, setMatch] = useState<MatchDetails | null>(null);
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
   const [isLoadingMatch, setIsLoadingMatch] = useState(true);
+  const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
+  const [showBlockDialog, setShowBlockDialog] = useState(false);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
+  const { unmatch, isUnmatching } = useUnmatch();
+  const { blockUser, isBlocking } = useBlock();
 
   // Fetch match and other user details
   useEffect(() => {
@@ -81,6 +104,24 @@ const Chat = () => {
 
     fetchMatchDetails();
   }, [matchId, user, profile]);
+
+  const handleUnmatch = async () => {
+    if (!matchId) return;
+    const success = await unmatch(matchId);
+    if (success) {
+      navigate("/matches");
+    }
+    setShowUnmatchDialog(false);
+  };
+
+  const handleBlock = async () => {
+    if (!otherUser || !matchId) return;
+    const success = await blockUser(otherUser.id, matchId);
+    if (success) {
+      navigate("/matches");
+    }
+    setShowBlockDialog(false);
+  };
 
   if (isLoadingMatch) {
     return (
@@ -147,9 +188,38 @@ const Chat = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="w-5 h-5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreVertical className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => {
+                    // View profile functionality
+                  }}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  View Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setShowUnmatchDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <UserX className="w-4 h-4 mr-2" />
+                  Unmatch
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setShowBlockDialog(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Ban className="w-4 h-4 mr-2" />
+                  Block User
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ProfileHeader />
           </div>
         </div>
@@ -165,6 +235,52 @@ const Chat = () => {
           otherUser={otherUser ? { name: otherUser.name, avatar: otherUser.avatar } : undefined}
         />
       </div>
+
+      {/* Unmatch Confirmation Dialog */}
+      <AlertDialog open={showUnmatchDialog} onOpenChange={setShowUnmatchDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unmatch with {otherUser?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove this match and you won't be able to message each other anymore. 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleUnmatch}
+              disabled={isUnmatching}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isUnmatching ? "Unmatching..." : "Unmatch"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Block Confirmation Dialog */}
+      <AlertDialog open={showBlockDialog} onOpenChange={setShowBlockDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Block {otherUser?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Blocking will unmatch you and prevent this person from appearing in your results 
+              or contacting you. You can unblock them later from settings.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBlock}
+              disabled={isBlocking}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isBlocking ? "Blocking..." : "Block User"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
