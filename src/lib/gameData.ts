@@ -22,6 +22,24 @@ export interface Role {
 }
 
 // New York Roles (original 10)
+// Cities with readable names
+export const CITIES = [
+  { id: "new-york", name: "New York, NY" },
+  { id: "toronto", name: "Toronto, ON" },
+  { id: "los-angeles", name: "Los Angeles, CA" },
+  { id: "chicago", name: "Chicago, IL" },
+  { id: "san-francisco", name: "San Francisco, CA" },
+  { id: "boston", name: "Boston, MA" },
+  { id: "seattle", name: "Seattle, WA" },
+  { id: "austin", name: "Austin, TX" },
+  { id: "denver", name: "Denver, CO" },
+  { id: "miami", name: "Miami, FL" },
+];
+
+// Test account IDs for development
+export const TEST_EMPLOYER_ID = "3d1017f8-9212-4931-ab73-ddf934434ce6";
+export const TEST_CANDIDATE_ID = "8edb0fa6-9d73-4c12-b1ee-079ca970f5f5";
+
 export const ROLES: Role[] = [
   // NEW YORK ROLES
   {

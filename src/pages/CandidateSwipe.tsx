@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
-import { ROLES, SAMPLE_JOBS } from "@/lib/gameData";
+import { ROLES, SAMPLE_JOBS, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateJobMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
@@ -88,12 +88,13 @@ const CandidateSwipe = () => {
               }
             );
 
+            const cityInfo = CITIES.find(c => c.id === job.city_id);
             return {
               id: job.id,
               title: job.title,
               company: job.company,
               description: job.description || "",
-              location: `${job.city_id}`,
+              location: cityInfo?.name || job.city_id,
               salary: job.salary || "Competitive",
               remote: job.remote || false,
               benefits: job.benefits as string[] | undefined,
@@ -114,9 +115,18 @@ const CandidateSwipe = () => {
             matchScore: 65 + Math.floor(Math.random() * 15),
             employerId: "sample",
           })),
-        ]
-          .filter((j) => !swipedIds.includes(j.id))
-          .sort((a, b) => b.matchScore - a.matchScore);
+        ].filter((j) => !swipedIds.includes(j.id));
+
+        // Prioritize test employer jobs for test candidate
+        if (user?.id === TEST_CANDIDATE_ID) {
+          allJobs.sort((a, b) => {
+            if (a.employerId === TEST_EMPLOYER_ID) return -1;
+            if (b.employerId === TEST_EMPLOYER_ID) return 1;
+            return b.matchScore - a.matchScore;
+          });
+        } else {
+          allJobs.sort((a, b) => b.matchScore - a.matchScore);
+        }
 
         setJobs(allJobs);
       } catch (error) {

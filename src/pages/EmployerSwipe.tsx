@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
-import { ROLES, SAMPLE_CANDIDATES } from "@/lib/gameData";
+import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateCandidateMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
@@ -129,8 +129,36 @@ const EmployerSwipe = () => {
               resumeUrl: realProfile?.resume_url || undefined,
               coverImageUrl: realProfile?.cover_image_url || undefined,
             };
-          })
-          .sort((a, b) => b.matchScore - a.matchScore);
+          });
+
+        // Inject test candidate for test employer
+        if (user?.id === TEST_EMPLOYER_ID) {
+          const testProfile = dbProfiles?.find(p => p.user_id === TEST_CANDIDATE_ID);
+          if (testProfile && !swipedIds.includes(TEST_CANDIDATE_ID)) {
+            candidatesWithScores.unshift({
+              id: TEST_CANDIDATE_ID,
+              name: testProfile.full_name || "Test Candidate",
+              title: testProfile.job_title || "Candidate",
+              avatar: testProfile.avatar_url || "",
+              bio: testProfile.bio || "",
+              skills: testProfile.skills || [],
+              location: testProfile.location || "",
+              experience: testProfile.years_of_experience || "",
+              availability: testProfile.availability || "Immediate",
+              remote: testProfile.remote_preference === "remote" || testProfile.remote_preference === "flexible",
+              matchScore: 95,
+              userId: TEST_CANDIDATE_ID,
+              linkedinUrl: testProfile.linkedin_url || undefined,
+              websiteUrl: testProfile.website_url || undefined,
+              portfolioUrl: testProfile.portfolio_url || undefined,
+              remotePreference: testProfile.remote_preference || undefined,
+              resumeUrl: testProfile.resume_url || undefined,
+              coverImageUrl: testProfile.cover_image_url || undefined,
+            });
+          }
+        } else {
+          candidatesWithScores.sort((a, b) => b.matchScore - a.matchScore);
+        }
 
         setCandidates(candidatesWithScores);
       } catch (error) {

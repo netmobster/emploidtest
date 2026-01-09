@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
-import { EMPLOYER_SKILLS_QUESTIONS, CANDIDATE_SKILLS_QUESTIONS, UserType } from "@/lib/gameData";
+import { EMPLOYER_SKILLS_QUESTIONS, CANDIDATE_SKILLS_QUESTIONS, UserType, ROLES, CITIES } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
@@ -28,12 +28,29 @@ const SkillsGame = () => {
     if (!user || !profile) return;
 
     try {
+      const roleInfo = ROLES.find(r => r.id === role);
+      const cityInfo = CITIES.find(c => c.id === city);
+      const companyName = profile.company_name || "Our Company";
+      
+      // Generate richer job data
+      const defaultRequirements = [
+        roleInfo?.title ? `Experience as ${roleInfo.title}` : "Relevant experience",
+        "Strong communication skills",
+        "Team collaboration",
+        "Problem-solving abilities",
+      ];
+      
+      const description = `Join ${companyName} as a ${roleInfo?.title || role}. ${roleInfo?.description || ''} We're looking for talented individuals who are passionate about making an impact.`;
+
       const { error } = await supabase.from("jobs").insert({
         user_id: user.id,
-        title: role.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
-        company: profile.company_name || "Company",
+        title: roleInfo?.title || role.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        company: companyName,
         role_id: role,
         city_id: city,
+        description,
+        requirements: defaultRequirements,
+        salary: "Competitive",
         skills_preferences: skillsAnswers,
         culture_preferences: profile.culture_preferences || {},
         remote: profile.remote_preference === "remote",
