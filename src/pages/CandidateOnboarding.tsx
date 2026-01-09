@@ -9,6 +9,7 @@ import { Loader2, ArrowLeft, CheckCircle } from "lucide-react";
 import Logo from "@/components/Logo";
 import SwipeCard from "@/components/SwipeCard";
 import ProfileHeader from "@/components/ProfileHeader";
+import OnboardingProgress from "@/components/OnboardingProgress";
 import { GameQuestion } from "@/lib/gameData";
 
 // Candidate culture questions
@@ -192,6 +193,8 @@ const CandidateOnboarding = () => {
           <Logo size="sm" />
           <ProfileHeader className="ml-auto" />
         </div>
+
+        <OnboardingProgress currentStep="culture" className="mb-6" />
 
         <div className="text-center mb-6">
           <span className="text-sm font-medium text-accent bg-accent/10 px-3 py-1 rounded-full">

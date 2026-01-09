@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import ProfileHeader from "@/components/ProfileHeader";
+import OnboardingProgress from "@/components/OnboardingProgress";
 
 const EmployerOnboarding = () => {
   const { user, profile, isLoading } = useAuth();
@@ -137,6 +138,8 @@ const EmployerOnboarding = () => {
       </div>
       
       <div className="container max-w-lg mx-auto">
+        <OnboardingProgress currentStep="culture" className="mb-6" />
+        
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-8">
           <Button variant="ghost" onClick={() => navigate("/")} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" /> Back
