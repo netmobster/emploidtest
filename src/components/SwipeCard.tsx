@@ -11,6 +11,7 @@ interface SwipeCardProps {
   onAnswer: (questionId: string, answer: string) => void;
   onBack?: () => void;
   canGoBack?: boolean;
+  disabled?: boolean;
 }
 
 const SwipeCard = ({
@@ -20,12 +21,14 @@ const SwipeCard = ({
   onAnswer,
   onBack,
   canGoBack = false,
+  disabled = false,
 }: SwipeCardProps) => {
   if (!question) {
     return null;
   }
 
   const handleOptionClick = (option: string) => {
+    if (disabled) return;
     onAnswer(question.id, option);
   };
 
@@ -71,11 +74,13 @@ const SwipeCard = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleOptionClick(option)}
+                disabled={disabled}
                 className={cn(
                   "w-full p-4 rounded-xl text-left transition-all duration-200",
                   "border-2 border-border bg-secondary/50 text-foreground",
                   "hover:border-primary hover:bg-primary/10 hover:scale-[1.02]",
-                  "active:scale-[0.98]"
+                  "active:scale-[0.98]",
+                  disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
                 <div className="flex items-center gap-3">
