@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Upload, User, Building2 } from "lucide-react";
 import Logo from "@/components/Logo";
+import OnboardingProgress from "@/components/OnboardingProgress";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -160,8 +161,9 @@ const ProfileSetup = () => {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-lg mx-auto"
       >
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <Logo size="md" className="mx-auto mb-4" />
+          <OnboardingProgress currentStep="profile" className="mb-6" />
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Complete Your Profile
           </h1>

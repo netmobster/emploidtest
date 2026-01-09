@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GameQuestion } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
@@ -23,14 +24,23 @@ const SwipeCard = ({
   canGoBack = false,
   disabled = false,
 }: SwipeCardProps) => {
+  const [isAnimating, setIsAnimating] = useState(false);
+
   if (!question) {
     return null;
   }
 
-  const handleOptionClick = (option: string) => {
-    if (disabled) return;
-    onAnswer(question.id, option);
-  };
+  const handleOptionClick = useCallback((option: string) => {
+    if (disabled || isAnimating) return;
+    setIsAnimating(true);
+    
+    // Small delay to let animation complete before state change
+    setTimeout(() => {
+      onAnswer(question.id, option);
+      // Reset after navigation/state change
+      setTimeout(() => setIsAnimating(false), 100);
+    }, 150);
+  }, [disabled, isAnimating, onAnswer, question.id]);
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -74,13 +84,13 @@ const SwipeCard = ({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleOptionClick(option)}
-                disabled={disabled}
+                disabled={disabled || isAnimating}
                 className={cn(
                   "w-full p-4 rounded-xl text-left transition-all duration-200",
                   "border-2 border-border bg-secondary/50 text-foreground",
                   "hover:border-primary hover:bg-primary/10 hover:scale-[1.02]",
                   "active:scale-[0.98]",
-                  disabled && "opacity-50 cursor-not-allowed"
+                  (disabled || isAnimating) && "opacity-50 cursor-not-allowed pointer-events-none"
                 )}
               >
                 <div className="flex items-center gap-3">

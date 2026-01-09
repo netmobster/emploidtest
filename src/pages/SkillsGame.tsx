@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import SwipeCard from "@/components/SwipeCard";
 import { EMPLOYER_SKILLS_QUESTIONS, CANDIDATE_SKILLS_QUESTIONS, UserType } from "@/lib/gameData";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Sparkles } from "lucide-react";
 import Logo from "@/components/Logo";
 import ProfileHeader from "@/components/ProfileHeader";
 import { useAuth } from "@/contexts/AuthContext";
@@ -101,9 +101,15 @@ const SkillsGame = () => {
         </motion.div>
 
         {isProcessing ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">Finding your matches...</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="relative mb-6">
+              <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <Sparkles className="w-6 h-6 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2">Finding Your Perfect Matches</h3>
+            <p className="text-muted-foreground max-w-xs">
+              We're analyzing your preferences to find the best {userType === "employer" ? "candidates" : "opportunities"} for you...
+            </p>
           </div>
         ) : (
           <SwipeCard
