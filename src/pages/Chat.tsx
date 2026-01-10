@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -168,23 +169,38 @@ const Chat = () => {
               // Could open a profile view here
             }}
           >
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-lg font-bold text-primary overflow-hidden">
-              {otherUser?.avatar ? (
-                <img
-                  src={otherUser.avatar}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                otherUser?.name?.charAt(0) || "?"
-              )}
+            <div className="relative">
+              <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-lg font-bold text-primary overflow-hidden">
+                {otherUser?.avatar ? (
+                  <img
+                    src={otherUser.avatar}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  otherUser?.name?.charAt(0) || "?"
+                )}
+              </div>
+              {/* Online Status Indicator */}
+              <span
+                className={cn(
+                  "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-background",
+                  isOtherUserOnline ? "bg-green-500" : "bg-muted-foreground"
+                )}
+              />
             </div>
             <div>
               <h1 className="font-semibold text-foreground">
                 {otherUser?.name || "Unknown"}
               </h1>
-              <p className="text-xs text-muted-foreground capitalize">
-                {otherUser?.type}
+              <p className="text-xs text-muted-foreground">
+                {isOtherUserTyping ? (
+                  <span className="text-primary">Typing...</span>
+                ) : isOtherUserOnline ? (
+                  <span className="text-green-500">Online</span>
+                ) : (
+                  <span className="capitalize">{otherUser?.type}</span>
+                )}
               </p>
             </div>
           </div>
