@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,10 @@ interface ChatInterfaceProps {
   isSending: boolean;
   isLoading: boolean;
   otherUser?: {
+    id: string;
     name: string;
     avatar?: string;
+    type: string;
   };
   isOtherUserOnline?: boolean;
   isOtherUserTyping?: boolean;
@@ -58,11 +61,21 @@ const ChatInterface = ({
   isOtherUserTyping = false,
   onTyping,
 }: ChatInterfaceProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleAvatarClick = () => {
+    if (otherUser) {
+      const profilePath = otherUser.type === 'employer' 
+        ? `/company/${otherUser.id}` 
+        : `/candidate/${otherUser.id}`;
+      navigate(profilePath);
+    }
+  };
 
   // Scroll to bottom on new messages or typing
   useEffect(() => {
@@ -200,7 +213,10 @@ const ChatInterface = ({
                         className={cn("flex items-end gap-2", isOwn ? "justify-end" : "justify-start")}
                       >
                         {!isOwn && showAvatar && (
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0">
+                          <button
+                            onClick={handleAvatarClick}
+                            className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
+                          >
                             {otherUser?.avatar ? (
                               <img
                                 src={otherUser.avatar}
@@ -210,7 +226,7 @@ const ChatInterface = ({
                             ) : (
                               otherUser?.name?.charAt(0) || "?"
                             )}
-                          </div>
+                          </button>
                         )}
                         {!isOwn && !showAvatar && <div className="w-8" />}
 
@@ -248,7 +264,10 @@ const ChatInterface = ({
                   exit={{ opacity: 0, y: -10 }}
                   className="flex items-end gap-2"
                 >
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0">
+                  <button
+                    onClick={handleAvatarClick}
+                    className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
+                  >
                     {otherUser?.avatar ? (
                       <img
                         src={otherUser.avatar}
@@ -258,7 +277,7 @@ const ChatInterface = ({
                     ) : (
                       otherUser?.name?.charAt(0) || "?"
                     )}
-                  </div>
+                  </button>
                   <div className="bg-secondary rounded-2xl rounded-bl-md">
                     <TypingIndicator />
                   </div>
