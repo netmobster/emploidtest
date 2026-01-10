@@ -1,4 +1,4 @@
-import { MapPin, Wifi, Star, ChevronUp } from "lucide-react";
+import { MapPin, Wifi, Star, ChevronUp, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +20,8 @@ interface CandidateData {
   remotePreference?: string;
   resumeUrl?: string;
   coverImageUrl?: string;
+  hasSynergyScore?: boolean;
+  synergyBadge?: string;
 }
 
 interface JobData {
@@ -100,6 +102,16 @@ const CompactProfileCard = ({ data, type, dragX = 0, onExpand }: CompactProfileC
           <span className="text-4xl font-black text-red-500 border-4 border-red-500 px-4 py-2 rounded-lg">
             PASS
           </span>
+        </div>
+      )}
+
+      {/* Synergy Badge - Top Left */}
+      {isCandidate(data) && data.hasSynergyScore && (
+        <div className="absolute top-4 left-4 z-10">
+          <Badge className="bg-primary/90 text-primary-foreground text-xs">
+            <Sparkles className="w-3 h-3 mr-1" />
+            {data.synergyBadge || "Synergy Verified"}
+          </Badge>
         </div>
       )}
 

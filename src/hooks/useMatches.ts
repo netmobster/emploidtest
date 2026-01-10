@@ -14,6 +14,8 @@ interface Match {
     full_name: string;
     avatar_url: string | null;
     user_type: string;
+    has_completed_synergy_quiz?: boolean;
+    synergy_scores?: Record<string, number>;
   };
   last_message?: {
     content: string;
@@ -67,7 +69,7 @@ export const useMatches = () => {
             // Get other user's profile
             const { data: otherProfile } = await supabase
               .from("profiles")
-              .select("user_id, full_name, avatar_url, user_type")
+              .select("user_id, full_name, avatar_url, user_type, has_completed_synergy_quiz, synergy_scores")
               .eq("user_id", otherUserId)
               .single();
 
@@ -96,6 +98,8 @@ export const useMatches = () => {
                     full_name: otherProfile.full_name || "Unknown",
                     avatar_url: otherProfile.avatar_url,
                     user_type: otherProfile.user_type,
+                    has_completed_synergy_quiz: otherProfile.has_completed_synergy_quiz || false,
+                    synergy_scores: otherProfile.synergy_scores as Record<string, number> | undefined,
                   }
                 : undefined,
               last_message: lastMessage || undefined,

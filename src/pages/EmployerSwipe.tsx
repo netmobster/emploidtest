@@ -10,6 +10,7 @@ import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
 import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateCandidateMatchScore } from "@/lib/matchUtils";
+import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
 
@@ -33,6 +34,9 @@ interface CandidateWithScore {
   remotePreference?: string;
   resumeUrl?: string;
   coverImageUrl?: string;
+  // Synergy score fields
+  hasSynergyScore?: boolean;
+  synergyBadge?: string;
 }
 
 const EmployerSwipe = () => {
@@ -87,7 +91,7 @@ const EmployerSwipe = () => {
         // Fetch real candidate profiles from database with extended fields
         const { data: dbProfiles } = await supabase
           .from("profiles")
-          .select("user_id, full_name, avatar_url, bio, culture_preferences, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url")
+          .select("user_id, full_name, avatar_url, bio, culture_preferences, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url, has_completed_synergy_quiz, synergy_scores")
           .eq("user_type", "candidate");
 
         // For now, use sample candidates (filtered by role)
@@ -128,6 +132,11 @@ const EmployerSwipe = () => {
               remotePreference: realProfile?.remote_preference || undefined,
               resumeUrl: realProfile?.resume_url || undefined,
               coverImageUrl: realProfile?.cover_image_url || undefined,
+              // Synergy score fields
+              hasSynergyScore: realProfile?.has_completed_synergy_quiz || false,
+              synergyBadge: realProfile?.synergy_scores 
+                ? getPrimaryBadge(realProfile.synergy_scores as Record<string, number>)?.title 
+                : undefined,
             };
           });
 
@@ -154,6 +163,10 @@ const EmployerSwipe = () => {
               remotePreference: testProfile.remote_preference || undefined,
               resumeUrl: testProfile.resume_url || undefined,
               coverImageUrl: testProfile.cover_image_url || undefined,
+              hasSynergyScore: testProfile.has_completed_synergy_quiz || false,
+              synergyBadge: testProfile.synergy_scores 
+                ? getPrimaryBadge(testProfile.synergy_scores as Record<string, number>)?.title 
+                : undefined,
             });
           }
         } else {
