@@ -164,9 +164,14 @@ const Chat = () => {
 
           {/* User info */}
           <div
-            className="flex items-center gap-3 flex-1 cursor-pointer"
+            className="flex items-center gap-3 flex-1 cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => {
-              // Could open a profile view here
+              if (otherUser) {
+                const profilePath = otherUser.type === 'employer' 
+                  ? `/company/${otherUser.id}` 
+                  : `/candidate/${otherUser.id}`;
+                navigate(profilePath);
+              }
             }}
           >
             <div className="relative">
@@ -215,7 +220,12 @@ const Chat = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => {
-                    // View profile functionality
+                    if (otherUser) {
+                      const profilePath = otherUser.type === 'employer' 
+                        ? `/company/${otherUser.id}` 
+                        : `/candidate/${otherUser.id}`;
+                      navigate(profilePath);
+                    }
                   }}
                 >
                   <User className="w-4 h-4 mr-2" />
@@ -250,7 +260,7 @@ const Chat = () => {
           onSendMessage={sendMessage}
           isSending={isSending}
           isLoading={isLoading}
-          otherUser={otherUser ? { name: otherUser.name, avatar: otherUser.avatar } : undefined}
+          otherUser={otherUser ? { id: otherUser.id, name: otherUser.name, avatar: otherUser.avatar, type: otherUser.type } : undefined}
           isOtherUserOnline={isOtherUserOnline}
           isOtherUserTyping={isOtherUserTyping}
           onTyping={setTyping}
