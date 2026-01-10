@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 import { Card } from '@/components/ui/card';
@@ -24,6 +24,7 @@ const categoryOrder: Category[] = ['autonomy', 'impact', 'collaboration', 'secur
 
 export function SynergyScoreChart({ scores }: SynergyScoreChartProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const chartData = useMemo(() => {
     return categoryOrder.map((key) => ({
@@ -51,7 +52,7 @@ export function SynergyScoreChart({ scores }: SynergyScoreChartProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/synergy-score-quiz')}
+            onClick={() => navigate('/synergy-score-quiz', { state: { returnTo: location.pathname } })}
           >
             <RefreshCw className="w-4 h-4 mr-1" />
             Retake

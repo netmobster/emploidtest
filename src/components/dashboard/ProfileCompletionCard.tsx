@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Circle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ export function ProfileCompletionCard({
   message,
 }: ProfileCompletionCardProps) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Calculate stroke dasharray for circular progress
   const radius = 40;
@@ -29,7 +30,7 @@ export function ProfileCompletionCard({
 
   const handleItemClick = (item: CompletionItem) => {
     if (!item.comingSoon && !item.completed) {
-      navigate(item.path);
+      navigate(item.path, { state: { returnTo: location.pathname } });
     }
   };
 

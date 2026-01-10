@@ -1,11 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMatches } from "@/hooks/useMatches";
 import { cn } from "@/lib/utils";
 import ProfileHeader from "@/components/ProfileHeader";
+import { getPrimaryBadge } from "@/lib/badgeUtils";
 
 const Matches = () => {
   const navigate = useNavigate();
@@ -94,8 +95,15 @@ const Matches = () => {
                       match.other_user?.full_name?.charAt(0) || "?"
                     )}
                   </div>
+                  {/* Synergy Score Badge */}
+                  {match.other_user?.has_completed_synergy_quiz && (
+                    <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                      <Sparkles className="w-3 h-3" />
+                    </span>
+                  )}
+                  {/* Unread Count Badge */}
                   {match.unread_count && match.unread_count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-primary-foreground text-xs font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground text-xs font-bold rounded-full flex items-center justify-center">
                       {match.unread_count > 9 ? "9+" : match.unread_count}
                     </span>
                   )}
@@ -110,6 +118,12 @@ const Matches = () => {
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                       {match.other_user?.user_type === "employer" ? "Employer" : "Candidate"}
                     </Badge>
+                    {/* Archetype Badge */}
+                    {match.other_user?.synergy_scores && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                        {getPrimaryBadge(match.other_user.synergy_scores)?.title}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
                     {match.last_message

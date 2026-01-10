@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { questions, Category } from '@/data/questions';
@@ -10,6 +10,8 @@ import { toast } from '@/hooks/use-toast';
 
 export default function SynergyScoreQuiz() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = (location.state as { returnTo?: string })?.returnTo;
   const { user, refreshProfile } = useAuth();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scores, setScores] = useState<Record<Category, number>>({
@@ -87,17 +89,21 @@ export default function SynergyScoreQuiz() {
         description: "Your Synergy Score has been recorded.",
       });
 
-      // Navigate back to dashboard based on user type
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile?.user_type === 'employer') {
-        navigate('/employer-dashboard');
+      // Navigate back to previous page or dashboard based on user type
+      if (returnTo) {
+        navigate(returnTo);
       } else {
-        navigate('/candidate-dashboard');
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('user_id', user.id)
+          .single();
+
+        if (profile?.user_type === 'employer') {
+          navigate('/employer-dashboard');
+        } else {
+          navigate('/candidate-dashboard');
+        }
       }
     } catch (error) {
       console.error('Error saving synergy scores:', error);
