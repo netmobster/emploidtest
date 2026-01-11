@@ -15,6 +15,7 @@ import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
+import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -207,6 +208,9 @@ export default function EmployerDashboard() {
             {profile?.synergy_scores && (
               <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
             )}
+            
+            {/* Quick Match Panel for Testing */}
+            <QuickMatchPanel />
             
             <QuickActionsPanel />
 

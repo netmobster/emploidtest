@@ -12,6 +12,7 @@ import { ROLES, SAMPLE_JOBS, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from 
 import { calculateJobMatchScore } from "@/lib/matchUtils";
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
+import { AdminMatchButton } from "@/components/testing/AdminMatchButton";
 
 interface JobWithScore {
   id: string;
@@ -224,6 +225,11 @@ const CandidateSwipe = () => {
             </Button>
             <ProfileHeader />
           </div>
+        </div>
+
+        {/* Testing Button */}
+        <div className="px-4 pb-2">
+          <AdminMatchButton className="w-full border-dashed border-yellow-500/50 text-yellow-600 hover:text-yellow-700" />
         </div>
       </motion.header>
 
