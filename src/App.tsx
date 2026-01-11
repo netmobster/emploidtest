@@ -26,6 +26,7 @@ import CandidateExtendedProfile from "./pages/CandidateExtendedProfile";
 import Matches from "./pages/Matches";
 import Chat from "./pages/Chat";
 import CompanyProfile from "./pages/CompanyProfile";
+import CandidateProfile from "./pages/CandidateProfile";
 import Settings from "./pages/Settings";
 import SynergyScoreQuiz from "./pages/SynergyScoreQuiz";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/chat/:matchId" element={<Chat />} />
             <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
             <Route path="/company/:userId" element={<CompanyProfile />} />
+            <Route path="/candidate/:userId" element={<CandidateProfile />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
             <Route path="*" element={<NotFound />} />

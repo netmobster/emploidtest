@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, Sparkles, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMatches } from "@/hooks/useMatches";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import ProfileHeader from "@/components/ProfileHeader";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { SynergyScoreModal } from "@/components/SynergyScoreModal";
+import { getCompatibilityLabel, getCompatibilityColor } from "@/lib/synergyUtils";
 
 const Matches = () => {
   const navigate = useNavigate();
@@ -130,7 +131,7 @@ const Matches = () => {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 text-left">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-foreground truncate">
                       {match.other_user?.full_name || "Unknown"}
                     </span>
@@ -144,7 +145,16 @@ const Matches = () => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
+                  {/* Synergy Compatibility Score */}
+                  {match.synergy_compatibility && match.synergy_compatibility > 0 && (
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <Heart className={cn("w-3 h-3", getCompatibilityColor(match.synergy_compatibility))} />
+                      <span className={cn("text-xs font-medium", getCompatibilityColor(match.synergy_compatibility))}>
+                        {match.synergy_compatibility}% {getCompatibilityLabel(match.synergy_compatibility)}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
                     {match.last_message
                       ? match.last_message.content
                       : "Start the conversation!"}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -29,6 +29,8 @@ import { useBlock } from "@/hooks/useBlock";
 import { useChatPresence } from "@/hooks/useChatPresence";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
+import Logo from "@/components/Logo";
+import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
 
 interface MatchDetails {
   id: string;
@@ -43,6 +45,7 @@ interface OtherUser {
   name: string;
   avatar?: string;
   type: string;
+  synergy_scores?: Record<string, number>;
 }
 
 const Chat = () => {
@@ -54,6 +57,7 @@ const Chat = () => {
   const [isLoadingMatch, setIsLoadingMatch] = useState(true);
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
@@ -83,20 +87,29 @@ const Chat = () => {
           ? matchData.candidate_id
           : matchData.employer_id;
 
-        // Get other user's profile
+        // Get other user's profile with synergy scores
         const { data: otherProfile } = await supabase
           .from("profiles")
-          .select("user_id, full_name, avatar_url, user_type")
+          .select("user_id, full_name, avatar_url, user_type, synergy_scores")
           .eq("user_id", otherUserId)
           .single();
 
         if (otherProfile) {
+          const otherSynergyScores = otherProfile.synergy_scores as Record<string, number> | null;
           setOtherUser({
             id: otherProfile.user_id,
             name: otherProfile.full_name || "Unknown",
             avatar: otherProfile.avatar_url || undefined,
             type: otherProfile.user_type,
+            synergy_scores: otherSynergyScores || undefined,
           });
+
+          // Calculate synergy compatibility
+          const userSynergyScores = profile.synergy_scores as Record<string, number> | null;
+          if (userSynergyScores && otherSynergyScores) {
+            const compatibility = calculateSynergyCompatibility(userSynergyScores, otherSynergyScores);
+            setSynergyCompatibility(compatibility > 0 ? compatibility : null);
+          }
         }
       } catch (error) {
         console.error("Error fetching match details:", error);
@@ -251,6 +264,18 @@ const Chat = () => {
             <ProfileHeader />
           </div>
         </div>
+
+        {/* Synergy Compatibility Banner */}
+        {synergyCompatibility && synergyCompatibility > 0 && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-primary/10 rounded-full">
+              <Heart className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-medium text-primary">
+                {synergyCompatibility}% Synergy Compatibility • {getCompatibilityLabel(synergyCompatibility)}
+              </span>
+            </div>
+          </div>
+        )}
       </motion.header>
 
       {/* Chat */}
@@ -266,6 +291,13 @@ const Chat = () => {
           onTyping={setTyping}
         />
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-background/80 backdrop-blur-sm py-2">
+        <div className="flex items-center justify-center gap-2">
+          <Logo size="sm" />
+        </div>
+      </footer>
 
       {/* Unmatch Confirmation Dialog */}
       <AlertDialog open={showUnmatchDialog} onOpenChange={setShowUnmatchDialog}>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
 
 interface Match {
   id: string;
@@ -23,6 +24,7 @@ interface Match {
     sender_id: string;
   };
   unread_count?: number;
+  synergy_compatibility?: number;
 }
 
 export const useMatches = () => {
@@ -90,6 +92,11 @@ export const useMatches = () => {
               .neq("sender_id", user.id)
               .is("read_at", null);
 
+            // Calculate synergy compatibility if both users have synergy scores
+            const userSynergyScores = profile.synergy_scores as Record<string, number> | null;
+            const otherUserSynergyScores = otherProfile?.synergy_scores as Record<string, number> | null;
+            const synergyCompatibility = calculateSynergyCompatibility(userSynergyScores, otherUserSynergyScores);
+
             return {
               ...match,
               other_user: otherProfile
@@ -99,11 +106,12 @@ export const useMatches = () => {
                     avatar_url: otherProfile.avatar_url,
                     user_type: otherProfile.user_type,
                     has_completed_synergy_quiz: otherProfile.has_completed_synergy_quiz || false,
-                    synergy_scores: otherProfile.synergy_scores as Record<string, number> | undefined,
+                    synergy_scores: otherUserSynergyScores || undefined,
                   }
                 : undefined,
               last_message: lastMessage || undefined,
               unread_count: unreadCount || 0,
+              synergy_compatibility: synergyCompatibility > 0 ? synergyCompatibility : undefined,
             };
           })
         );
