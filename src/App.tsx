@@ -30,6 +30,7 @@ import CandidateProfile from "./pages/CandidateProfile";
 import Settings from "./pages/Settings";
 import SynergyScoreQuiz from "./pages/SynergyScoreQuiz";
 import SavedJobs from "./pages/SavedJobs";
+import ApplicationTracker from "./pages/ApplicationTracker";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
             <Route path="/saved-jobs" element={<SavedJobs />} />
+            <Route path="/applications" element={<ApplicationTracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
