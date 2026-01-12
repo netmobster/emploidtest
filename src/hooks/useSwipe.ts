@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useJobApplication } from "./useJobApplication";
 
 interface SwipeResult {
   swipeId: string;
@@ -10,12 +11,13 @@ interface SwipeResult {
 }
 
 export const useSwipe = (jobId?: string) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [latestMatch, setLatestMatch] = useState<{
     matchId: string;
     matchedUserId: string;
   } | null>(null);
+  const { createApplication } = useJobApplication();
 
   // Subscribe to new matches
   useEffect(() => {
@@ -113,6 +115,15 @@ export const useSwipe = (jobId?: string) => {
             matchId: match.id,
             matchedUserId: swipedUserId,
           });
+
+          // Auto-create job application for candidates when match is created
+          if (profile?.user_type === "candidate" && jobId) {
+            await createApplication({
+              jobId,
+              matchId: match.id,
+              status: "applied",
+            });
+          }
         }
 
         return {
@@ -125,9 +136,10 @@ export const useSwipe = (jobId?: string) => {
         toast.error("Failed to record swipe");
         return null;
       } finally {
-        setIsLoading(false);
-      }
-    },
+      setIsLoading(false);
+    }
+  },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
     [user, jobId]
   );
 

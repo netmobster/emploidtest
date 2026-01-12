@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import ProfileHeader from "@/components/ProfileHeader";
+import { useJobApplication } from "@/hooks/useJobApplication";
 
 interface SavedJob {
   id: string;
@@ -49,6 +50,7 @@ export default function SavedJobs() {
   const [isLoading, setIsLoading] = useState(true);
   const [deleteJobId, setDeleteJobId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { createApplication } = useJobApplication();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -122,6 +124,12 @@ export default function SavedJobs() {
             benefits: job.benefits,
           },
           employer_profile: employerProfile || undefined,
+        });
+
+        // Auto-create job application for saved jobs
+        await createApplication({
+          jobId: job.id,
+          status: "saved",
         });
       }
 

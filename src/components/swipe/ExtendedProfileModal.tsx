@@ -1,9 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Briefcase, Clock, Wifi, Star, Linkedin, Globe, FileText, ExternalLink } from "lucide-react";
+import { X, MapPin, Briefcase, Clock, Wifi, Star, Linkedin, Globe, FileText, ExternalLink, Palette } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
 
 interface CandidateData {
   id: string;
@@ -36,6 +37,7 @@ interface JobData {
   benefits?: string[];
   requirements?: string[];
   matchScore: number;
+  culturePreferences?: Record<string, string>;
 }
 
 interface ExtendedProfileModalProps {
@@ -207,6 +209,13 @@ const ExtendedProfileModal = ({
                     ))}
                   </div>
                 </div>
+
+                {/* Company Culture Section for Jobs */}
+                {job?.culturePreferences && Object.keys(job.culturePreferences).length > 0 && (
+                  <CompanyCultureSection
+                    culturePreferences={job.culturePreferences}
+                  />
+                )}
 
                 {/* Candidate-specific info */}
                 {candidate && (

@@ -16,6 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/Logo";
+import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
+import { HiringTeamSection } from "@/components/profile/HiringTeamSection";
+import { Json } from "@/integrations/supabase/types";
 
 interface CompanyProfile {
   id: string;
@@ -27,6 +30,7 @@ interface CompanyProfile {
   company_size: string | null;
   company_industry: string | null;
   company_location: string | null;
+  culture_preferences: Json | null;
 }
 
 interface Job {
@@ -51,10 +55,10 @@ export default function CompanyProfile() {
 
     const fetchCompanyData = async () => {
       try {
-        // Fetch company profile
+        // Fetch company profile including culture_preferences
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select("id, user_id, company_name, bio, avatar_url, company_website, company_size, company_industry, company_location, culture_preferences")
           .eq("user_id", userId)
           .eq("user_type", "employer")
           .single();
@@ -182,11 +186,35 @@ export default function CompanyProfile() {
           </div>
         </motion.div>
 
+        {/* Company Culture Section */}
+        {company.culture_preferences && Object.keys(company.culture_preferences as object).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-card rounded-xl p-6 shadow-card border border-border mb-6"
+          >
+            <CompanyCultureSection
+              culturePreferences={company.culture_preferences as Record<string, string>}
+            />
+          </motion.div>
+        )}
+
+        {/* Hiring Team Section (Placeholder) */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-6"
+        >
+          <HiringTeamSection />
+        </motion.div>
+
         {/* Open Positions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="bg-card rounded-xl p-6 shadow-card border border-border"
         >
           <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -206,7 +234,7 @@ export default function CompanyProfile() {
                   key={job.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 + index * 0.05 }}
+                  transition={{ delay: 0.25 + index * 0.05 }}
                   className="p-4 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
