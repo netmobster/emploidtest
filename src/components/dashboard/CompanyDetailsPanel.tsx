@@ -1,4 +1,4 @@
-import { Building2, Globe, Users, MapPin, Briefcase, Pencil } from "lucide-react";
+import { Building2, Globe, Users, MapPin, Briefcase, Pencil, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,9 +19,10 @@ interface Profile {
 interface CompanyDetailsPanelProps {
   profile: Profile;
   onEditSuccess: () => void;
+  onPreview?: () => void;
 }
 
-export function CompanyDetailsPanel({ profile, onEditSuccess }: CompanyDetailsPanelProps) {
+export function CompanyDetailsPanel({ profile, onEditSuccess, onPreview }: CompanyDetailsPanelProps) {
   const [editOpen, setEditOpen] = useState(false);
 
   const hasDetails = profile.company_name || profile.bio || profile.company_website || 
@@ -40,10 +41,18 @@ export function CompanyDetailsPanel({ profile, onEditSuccess }: CompanyDetailsPa
               <Building2 className="h-5 w-5 text-primary" />
               Company Details
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+            <div className="flex items-center gap-2">
+              {onPreview && (
+                <Button variant="ghost" size="sm" onClick={onPreview}>
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {hasDetails ? (

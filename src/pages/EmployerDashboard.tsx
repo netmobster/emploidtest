@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Briefcase, Users, Eye, TrendingUp, Plus, Loader2 } from "lucide-react";
@@ -15,6 +15,7 @@ import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
+import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,6 +29,7 @@ export default function EmployerDashboard() {
   const { jobs, isLoading: jobsLoading, deleteJob } = useEmployerJobs();
   const { activities, isLoading: activityLoading } = useEmployerActivity();
   const profileCompletion = useProfileCompletion(profile);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -288,9 +290,15 @@ export default function EmployerDashboard() {
                 company_location: profile.company_location,
               }}
               onEditSuccess={refreshProfile}
+              onPreview={() => setPreviewOpen(true)}
             />
           </div>
         )}
+
+        <ProfilePreviewModal
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+        />
       </main>
     </div>
   );

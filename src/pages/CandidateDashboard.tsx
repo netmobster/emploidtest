@@ -13,6 +13,7 @@ import { Category } from "@/data/questions";
 import { JobRecommendationCard } from "@/components/dashboard/JobRecommendationCard";
 import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidateProfileDialog";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
+import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -26,6 +27,7 @@ export default function CandidateDashboard() {
   const { matches, isLoading: matchesLoading } = useMatches();
   const profileCompletion = useProfileCompletion(profile);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -87,7 +89,7 @@ export default function CandidateDashboard() {
             value={stats.savedJobs}
             icon={Bookmark}
             delay={0.1}
-            onClick={() => navigate("/swipe/candidate")}
+            onClick={() => navigate("/saved-jobs")}
           />
           <StatsCard
             title="Total Matches"
@@ -275,14 +277,24 @@ export default function CandidateDashboard() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-foreground">Your Profile</h3>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setEditProfileOpen(true)}
-                >
-                  <Pencil className="w-4 h-4 mr-1" />
-                  Edit
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setPreviewOpen(true)}
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Preview
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setEditProfileOpen(true)}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Edit
+                  </Button>
+                </div>
               </div>
               <div className="flex items-center gap-3 mb-4">
                 <Avatar className="w-14 h-14">
@@ -319,6 +331,11 @@ export default function CandidateDashboard() {
                 setEditProfileOpen(false);
                 refreshProfile();
               }}
+            />
+
+            <ProfilePreviewModal
+              open={previewOpen}
+              onOpenChange={setPreviewOpen}
             />
           </div>
         </div>
