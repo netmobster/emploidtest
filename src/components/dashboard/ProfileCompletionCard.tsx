@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check, Circle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CompletionItem } from "@/hooks/useProfileCompletion";
+import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
@@ -11,14 +12,23 @@ import {
 
 interface ProfileCompletionCardProps {
   percentage: number;
+  basicPercentage: number;
+  extendedPercentage: number;
   items: CompletionItem[];
+  basicItems: CompletionItem[];
+  extendedItems: CompletionItem[];
   message: string;
+  isComplete: boolean;
 }
 
 export function ProfileCompletionCard({
   percentage,
-  items,
+  basicPercentage,
+  extendedPercentage,
+  basicItems,
+  extendedItems,
   message,
+  isComplete,
 }: ProfileCompletionCardProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -40,6 +50,12 @@ export function ProfileCompletionCard({
         <CardTitle className="text-lg flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
           Profile Completion
+          {isComplete && (
+            <Badge className="bg-green-500/20 text-green-600 border-green-500/30 ml-auto">
+              <Check className="w-3 h-3 mr-1" />
+              Complete
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -91,16 +107,73 @@ export function ProfileCompletionCard({
             <p className="text-sm font-medium text-muted-foreground">
               {message}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {items.filter((i) => i.completed).length} of {items.length}{" "}
-              completed
-            </p>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Basic:</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${basicPercentage}%` }}
+                  />
+                </div>
+                <span className="font-medium">{basicPercentage}%</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground">Extended:</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent transition-all"
+                    style={{ width: `${extendedPercentage}%` }}
+                  />
+                </div>
+                <span className="font-medium">{extendedPercentage}%</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Checklist */}
+        {/* Basic Items */}
         <div className="space-y-2">
-          {items.map((item) => (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Basic
+            </span>
+            <Badge variant="secondary" className="text-[10px] h-4">
+              Required
+            </Badge>
+          </div>
+          {basicItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleItemClick(item)}
+              className={cn(
+                "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors",
+                item.completed
+                  ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
+                  : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
+              )}
+            >
+              {item.completed ? (
+                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+              ) : (
+                <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              )}
+              <span className="text-sm flex-1">{item.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Extended Items */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Extended
+            </span>
+            <Badge variant="outline" className="text-[10px] h-4">
+              Optional
+            </Badge>
+          </div>
+          {extendedItems.map((item) => (
             <Tooltip key={item.id}>
               <TooltipTrigger asChild>
                 <button
@@ -111,12 +184,12 @@ export function ProfileCompletionCard({
                     item.comingSoon
                       ? "bg-muted/50 text-muted-foreground cursor-not-allowed"
                       : item.completed
-                      ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
+                      ? "bg-accent/10 text-accent-foreground hover:bg-accent/20 cursor-pointer"
                       : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
                   )}
                 >
                   {item.completed ? (
-                    <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                    <Check className="h-4 w-4 text-accent flex-shrink-0" />
                   ) : (
                     <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   )}

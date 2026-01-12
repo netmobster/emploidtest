@@ -1,4 +1,4 @@
-import { Eye, MapPin, Briefcase, Clock, Globe, Linkedin, ExternalLink } from "lucide-react";
+import { Eye, MapPin, Briefcase, Clock, Globe, Linkedin, ExternalLink, CheckCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
+import { HiringTeamSection } from "@/components/profile/HiringTeamSection";
 
 interface ProfilePreviewModalProps {
   open: boolean;
@@ -18,6 +21,7 @@ interface ProfilePreviewModalProps {
 
 export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalProps) {
   const { profile } = useAuth();
+  const profileCompletion = useProfileCompletion(profile);
 
   if (!profile) return null;
 
@@ -33,6 +37,12 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
           <DialogTitle className="flex items-center gap-2">
             <Eye className="w-5 h-5 text-primary" />
             Profile Preview
+            {profileCompletion.isComplete && (
+              <Badge className="bg-green-500/20 text-green-600 border-green-500/30 ml-2">
+                <CheckCircle className="w-3 h-3 mr-1" />
+                Complete
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -67,9 +77,14 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
                 </Avatar>
 
                 <div className="flex-1 pt-12">
-                  <h2 className="text-xl font-bold text-foreground">
-                    {isEmployer ? profile.company_name : profile.full_name}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-bold text-foreground">
+                      {isEmployer ? profile.company_name : profile.full_name}
+                    </h2>
+                    {profileCompletion.isComplete && (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    )}
+                  </div>
                   {!isEmployer && profile.job_title && (
                     <p className="text-muted-foreground">{profile.job_title}</p>
                   )}
@@ -144,6 +159,16 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
                 </div>
               )}
 
+              {/* Culture Section for Employers */}
+              {isEmployer && profile.culture_preferences && (
+                <div className="mt-6">
+                  <CompanyCultureSection
+                    culturePreferences={profile.culture_preferences as Record<string, string>}
+                    compact
+                  />
+                </div>
+              )}
+
               {/* Links */}
               <div className="flex flex-wrap gap-2 mt-4">
                 {profile.linkedin_url && (
@@ -177,6 +202,13 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
                       </Badge>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Hiring Team Section for Employers */}
+              {isEmployer && (
+                <div className="mt-6">
+                  <HiringTeamSection />
                 </div>
               )}
             </div>
