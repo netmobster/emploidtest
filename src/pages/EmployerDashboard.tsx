@@ -89,24 +89,31 @@ export default function EmployerDashboard() {
             value={stats.totalJobs}
             icon={Briefcase}
             delay={0.1}
+            onClick={() => {
+              const jobsSection = document.getElementById("job-postings");
+              jobsSection?.scrollIntoView({ behavior: "smooth" });
+            }}
           />
           <StatsCard
             title="Total Matches"
             value={stats.totalMatches}
             icon={Users}
             delay={0.15}
+            onClick={() => navigate("/matches")}
           />
           <StatsCard
             title="Candidates Viewed"
             value={stats.totalSwipes}
             icon={Eye}
             delay={0.2}
+            onClick={() => navigate("/swipe/employer")}
           />
           <StatsCard
             title="Match Rate"
             value={`${stats.matchRate}%`}
             icon={TrendingUp}
             delay={0.25}
+            onClick={() => navigate("/matches")}
           />
         </div>
 
@@ -116,6 +123,7 @@ export default function EmployerDashboard() {
           <div className="lg:col-span-2 space-y-6">
             {/* Job Postings */}
             <motion.div
+              id="job-postings"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -242,7 +250,11 @@ export default function EmployerDashboard() {
                     .filter((a) => a.type === "match")
                     .slice(0, 3)
                     .map((match) => (
-                      <div key={match.id} className="flex items-center gap-3">
+                      <div 
+                        key={match.id} 
+                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                        onClick={() => match.matchId && navigate(`/chat/${match.matchId}`)}
+                      >
                         <Avatar className="w-10 h-10">
                           <AvatarImage src={match.user?.avatar} />
                           <AvatarFallback className="text-xs">

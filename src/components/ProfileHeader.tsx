@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import ChatsDropdown from "@/components/ChatsDropdown";
 
 interface ProfileHeaderProps {
   className?: string;
@@ -60,6 +61,7 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
         <LayoutDashboard className="w-4 h-4 mr-2" />
         {getDashboardLabel()}
       </Button>
+      <ChatsDropdown />
       <NotificationBell />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

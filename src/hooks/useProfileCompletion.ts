@@ -39,12 +39,6 @@ export function useProfileCompletion(profile: Profile | null): ProfileCompletion
 
     const items: CompletionItem[] = [
       {
-        id: "synergy-score",
-        label: "Synergy Score",
-        completed: profile.has_completed_synergy_quiz ?? false,
-        path: "/synergy-score-quiz",
-      },
-      {
         id: "basic-profile",
         label: "Basic Profile",
         completed: profile.has_completed_profile ?? false,
@@ -69,15 +63,14 @@ export function useProfileCompletion(profile: Profile | null): ProfileCompletion
         path: "/profile-setup",
       },
       {
-        id: "work-love-language",
-        label: "Work Love Language",
-        completed: profile.has_completed_work_love_language ?? false,
-        path: "/work-love-language",
-        comingSoon: true,
+        id: "synergy-score",
+        label: "Synergy Score",
+        completed: profile.has_completed_synergy_quiz ?? false,
+        path: "/synergy-score-quiz",
       },
     ];
 
-    // Add manager profile for employers only
+    // Add manager profile for employers only (coming soon)
     if (isEmployer) {
       items.push({
         id: "manager-profile",
