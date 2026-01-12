@@ -1,19 +1,22 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2, Sparkles, Heart } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useMatches } from "@/hooks/useMatches";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import ProfileHeader from "@/components/ProfileHeader";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { SynergyScoreModal } from "@/components/SynergyScoreModal";
-import { getCompatibilityLabel, getCompatibilityColor } from "@/lib/synergyUtils";
+import { MatchScoreBadge } from "@/components/MatchScoreBadge";
+import { calculateMatchScore } from "@/lib/matchScoreUtils";
 
 const Matches = () => {
   const navigate = useNavigate();
   const { matches, isLoading } = useMatches();
+  const { profile } = useAuth();
   const [synergyModal, setSynergyModal] = useState<{
     isOpen: boolean;
     userName: string;
@@ -145,15 +148,31 @@ const Matches = () => {
                       </Badge>
                     )}
                   </div>
-                  {/* Synergy Compatibility Score */}
-                  {match.synergy_compatibility && match.synergy_compatibility > 0 && (
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <Heart className={cn("w-3 h-3", getCompatibilityColor(match.synergy_compatibility))} />
-                      <span className={cn("text-xs font-medium", getCompatibilityColor(match.synergy_compatibility))}>
-                        {match.synergy_compatibility}% {getCompatibilityLabel(match.synergy_compatibility)}
-                      </span>
-                    </div>
-                  )}
+                  {/* Match Score with Breakdown */}
+                  {(() => {
+                    const breakdown = calculateMatchScore(
+                      {
+                        skills: null,
+                        culture_preferences: null,
+                        synergy_scores: match.other_user?.synergy_scores || null,
+                      },
+                      {
+                        culture_preferences: null,
+                        synergy_scores: profile?.synergy_scores as Record<string, number> || null,
+                      },
+                      null
+                    );
+                    return (
+                      <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+                        <MatchScoreBadge
+                          breakdown={breakdown}
+                          candidateName={profile?.user_type === "employer" ? match.other_user?.full_name : profile?.full_name || undefined}
+                          employerName={profile?.user_type === "employer" ? profile?.company_name || profile?.full_name || undefined : match.other_user?.full_name}
+                          size="sm"
+                        />
+                      </div>
+                    );
+                  })()}
                   <p className="text-sm text-muted-foreground truncate mt-0.5">
                     {match.last_message
                       ? match.last_message.content

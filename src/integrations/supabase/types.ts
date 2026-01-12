@@ -35,6 +35,57 @@ export type Database = {
         }
         Relationships: []
       }
+      job_applications: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          id: string
+          job_id: string
+          match_id: string | null
+          notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          match_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          match_id?: string | null
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           benefits: string[] | null
@@ -206,6 +257,7 @@ export type Database = {
           created_at: string
           culture_preferences: Json | null
           email: string | null
+          email_notifications_enabled: boolean | null
           full_name: string | null
           has_completed_culture_game: boolean | null
           has_completed_extended_profile: boolean | null
@@ -241,6 +293,7 @@ export type Database = {
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null
+          email_notifications_enabled?: boolean | null
           full_name?: string | null
           has_completed_culture_game?: boolean | null
           has_completed_extended_profile?: boolean | null
@@ -276,6 +329,7 @@ export type Database = {
           created_at?: string
           culture_preferences?: Json | null
           email?: string | null
+          email_notifications_enabled?: boolean | null
           full_name?: string | null
           has_completed_culture_game?: boolean | null
           has_completed_extended_profile?: boolean | null
