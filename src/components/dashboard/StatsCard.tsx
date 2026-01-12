@@ -10,15 +10,17 @@ interface StatsCardProps {
     isPositive: boolean;
   };
   delay?: number;
+  onClick?: () => void;
 }
 
-export function StatsCard({ title, value, icon: Icon, trend, delay = 0 }: StatsCardProps) {
+export function StatsCard({ title, value, icon: Icon, trend, delay = 0, onClick }: StatsCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="bg-card rounded-xl p-6 shadow-card border border-border hover-lift"
+      onClick={onClick}
+      className={`bg-card rounded-xl p-6 shadow-card border border-border hover-lift ${onClick ? "cursor-pointer" : ""}`}
     >
       <div className="flex items-start justify-between">
         <div>

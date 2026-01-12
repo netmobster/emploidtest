@@ -87,24 +87,28 @@ export default function CandidateDashboard() {
             value={stats.savedJobs}
             icon={Bookmark}
             delay={0.1}
+            onClick={() => navigate("/swipe/candidate")}
           />
           <StatsCard
             title="Total Matches"
             value={stats.totalMatches}
             icon={Users}
             delay={0.15}
+            onClick={() => navigate("/matches")}
           />
           <StatsCard
             title="Jobs Viewed"
             value={stats.jobsViewed}
             icon={Eye}
             delay={0.2}
+            onClick={() => navigate("/swipe/candidate")}
           />
           <StatsCard
             title="Match Rate"
             value={`${stats.matchRate}%`}
             icon={TrendingUp}
             delay={0.25}
+            onClick={() => navigate("/matches")}
           />
         </div>
 

@@ -29,7 +29,7 @@ export function ProfileCompletionCard({
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const handleItemClick = (item: CompletionItem) => {
-    if (!item.comingSoon && !item.completed) {
+    if (!item.comingSoon) {
       navigate(item.path, { state: { returnTo: location.pathname } });
     }
   };
@@ -105,13 +105,13 @@ export function ProfileCompletionCard({
               <TooltipTrigger asChild>
                 <button
                   onClick={() => handleItemClick(item)}
-                  disabled={item.completed || item.comingSoon}
+                  disabled={item.comingSoon}
                   className={cn(
                     "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors",
-                    item.completed
-                      ? "bg-primary/10 text-primary"
-                      : item.comingSoon
+                    item.comingSoon
                       ? "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                      : item.completed
+                      ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
                       : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
                   )}
                 >

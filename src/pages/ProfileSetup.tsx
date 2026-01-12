@@ -68,7 +68,7 @@ const ProfileSetup = () => {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const bucketName = profile?.user_type === 'employer' ? 'company-logos' : 'candidate-avatars';
 
       const { error: uploadError } = await supabase.storage
