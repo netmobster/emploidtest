@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface Activity {
   id: string;
   matchId?: string;
+  candidateId?: string;
   type: "match" | "message" | "like" | "super_like";
   description: string;
   timestamp: string;
@@ -54,6 +55,7 @@ export function useEmployerActivity(): UseEmployerActivityReturn {
             activityList.push({
               id: `match-${match.id}`,
               matchId: match.id,
+              candidateId: match.candidate_id,
               type: "match",
               description: `New match with ${profile?.full_name || "a candidate"}`,
               timestamp: match.matched_at,
