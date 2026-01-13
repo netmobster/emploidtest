@@ -16,21 +16,21 @@ import {
   Wifi,
   FileText,
   Heart,
-  CheckCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { SynergyScoreModal } from "@/components/SynergyScoreModal";
 import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
+import { CultureCompatibilityBadge } from "@/components/culture/CultureCompatibilityBadge";
 import { ProfileCompleteBadge } from "@/components/profile/ProfileCompleteBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
+import { calculateCultureCompatibility } from "@/lib/cultureUtils";
 
 interface CandidateProfileData {
   id: string;
@@ -65,6 +65,11 @@ export default function CandidateProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [synergyModalOpen, setSynergyModalOpen] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
+  const [cultureCompatibility, setCultureCompatibility] = useState<{
+    score: number;
+    matchingAreas: string[];
+    differingAreas: string[];
+  } | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -93,6 +98,15 @@ export default function CandidateProfile() {
         if (currentUserSynergy && candidateData.synergy_scores) {
           const compatibility = calculateSynergyCompatibility(currentUserSynergy, candidateData.synergy_scores);
           setSynergyCompatibility(compatibility > 0 ? compatibility : null);
+        }
+
+        // Calculate culture compatibility if both users have culture preferences
+        const currentUserCulture = currentUserProfile?.culture_preferences as Record<string, string> | null;
+        if (currentUserCulture && candidateData.culture_preferences) {
+          const compatibility = calculateCultureCompatibility(currentUserCulture, candidateData.culture_preferences);
+          if (compatibility.score > 0) {
+            setCultureCompatibility(compatibility);
+          }
         }
       } catch (error) {
         console.error("Error fetching candidate data:", error);
@@ -192,17 +206,28 @@ export default function CandidateProfile() {
           </motion.div>
         )}
 
-        {/* Synergy Compatibility Banner */}
-        {synergyCompatibility && synergyCompatibility > 0 && (
+        {/* Compatibility Banners */}
+        {(synergyCompatibility || cultureCompatibility) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-center gap-2 py-3 px-4 bg-primary/10 rounded-xl border border-primary/20"
+            className="flex flex-wrap items-center justify-center gap-3"
           >
-            <Heart className="w-5 h-5 text-primary" />
-            <span className="font-medium text-primary">
-              {synergyCompatibility}% Synergy Compatibility • {getCompatibilityLabel(synergyCompatibility)}
-            </span>
+            {synergyCompatibility && synergyCompatibility > 0 && (
+              <div className="flex items-center gap-2 py-2 px-4 bg-primary/10 rounded-xl border border-primary/20">
+                <Heart className="w-4 h-4 text-primary" />
+                <span className="font-medium text-primary text-sm">
+                  {synergyCompatibility}% Synergy • {getCompatibilityLabel(synergyCompatibility)}
+                </span>
+              </div>
+            )}
+            {cultureCompatibility && cultureCompatibility.score > 0 && (
+              <CultureCompatibilityBadge
+                score={cultureCompatibility.score}
+                matchingAreas={cultureCompatibility.matchingAreas}
+                differingAreas={cultureCompatibility.differingAreas}
+              />
+            )}
           </motion.div>
         )}
 
@@ -333,6 +358,22 @@ export default function CandidateProfile() {
             </div>
           </div>
         </motion.div>
+
+        {/* Culture Compatibility Details (if available) */}
+        {cultureCompatibility && cultureCompatibility.score > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <CultureCompatibilityBadge
+              score={cultureCompatibility.score}
+              matchingAreas={cultureCompatibility.matchingAreas}
+              differingAreas={cultureCompatibility.differingAreas}
+              showDetails
+            />
+          </motion.div>
+        )}
 
         {/* Skills Section */}
         {candidate.skills && candidate.skills.length > 0 && (

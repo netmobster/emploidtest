@@ -214,3 +214,80 @@ export function getCultureCategoryBgColor(category: string): string {
       return "bg-primary/10";
   }
 }
+
+// Calculate culture compatibility between two users
+export function calculateCultureCompatibility(
+  userPreferences: Record<string, string> | null | undefined,
+  otherPreferences: Record<string, string> | null | undefined
+): { score: number; matchingAreas: string[]; differingAreas: string[] } {
+  if (!userPreferences || !otherPreferences) {
+    return { score: 0, matchingAreas: [], differingAreas: [] };
+  }
+
+  const userDimensions = getCultureDimensions(userPreferences);
+  const otherDimensions = getCultureDimensions(otherPreferences);
+  
+  const matchingAreas: string[] = [];
+  const differingAreas: string[] = [];
+  let totalDiff = 0;
+  let count = 0;
+
+  userDimensions.forEach((userDim, index) => {
+    const otherDim = otherDimensions[index];
+    if (otherDim) {
+      const diff = Math.abs(userDim.value - otherDim.value);
+      totalDiff += diff;
+      count++;
+      
+      if (diff <= 15) {
+        matchingAreas.push(userDim.name);
+      } else if (diff >= 30) {
+        differingAreas.push(userDim.name);
+      }
+    }
+  });
+
+  // Also compare individual preferences
+  const sharedKeys = Object.keys(userPreferences).filter(key => otherPreferences[key]);
+  sharedKeys.forEach(key => {
+    if (userPreferences[key] === otherPreferences[key]) {
+      const mapping = cultureQuestionMap[key];
+      if (mapping && !matchingAreas.includes(mapping.label)) {
+        // Add to matching if exact match
+      }
+    }
+  });
+
+  // Calculate compatibility score (100 - average difference)
+  const avgDiff = count > 0 ? totalDiff / count : 50;
+  const score = Math.max(0, Math.min(100, Math.round(100 - avgDiff)));
+
+  return { score, matchingAreas, differingAreas };
+}
+
+// Get compatibility label based on score
+export function getCultureCompatibilityLabel(score: number): string {
+  if (score >= 85) return "Excellent Match";
+  if (score >= 70) return "Strong Match";
+  if (score >= 55) return "Good Match";
+  if (score >= 40) return "Moderate Match";
+  return "Different Styles";
+}
+
+// Get compatibility color based on score
+export function getCultureCompatibilityColor(score: number): string {
+  if (score >= 85) return "text-green-500";
+  if (score >= 70) return "text-emerald-500";
+  if (score >= 55) return "text-yellow-500";
+  if (score >= 40) return "text-orange-500";
+  return "text-red-500";
+}
+
+// Get compatibility background based on score
+export function getCultureCompatibilityBg(score: number): string {
+  if (score >= 85) return "bg-green-500/10 border-green-500/20";
+  if (score >= 70) return "bg-emerald-500/10 border-emerald-500/20";
+  if (score >= 55) return "bg-yellow-500/10 border-yellow-500/20";
+  if (score >= 40) return "bg-orange-500/10 border-orange-500/20";
+  return "bg-red-500/10 border-red-500/20";
+}
