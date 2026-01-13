@@ -15,12 +15,14 @@ interface CompanyCultureSectionProps {
   culturePreferences: Record<string, string> | null | undefined;
   className?: string;
   compact?: boolean;
+  title?: string;
 }
 
 export function CompanyCultureSection({
   culturePreferences,
   className,
   compact = false,
+  title = "Company Culture",
 }: CompanyCultureSectionProps) {
   if (!culturePreferences || Object.keys(culturePreferences).length === 0) {
     return null;
@@ -39,7 +41,7 @@ export function CompanyCultureSection({
       {/* Section Header */}
       <div className="flex items-center gap-2">
         <Palette className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">Company Culture</h3>
+        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
       </div>
 
       {/* Radar Chart */}

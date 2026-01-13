@@ -11,15 +11,26 @@ import {
   ExternalLink,
   Linkedin,
   Calendar,
-  Sparkles
+  Sparkles,
+  Clock,
+  Wifi,
+  FileText,
+  Heart,
+  CheckCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import Logo from "@/components/Logo";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { SynergyScoreModal } from "@/components/SynergyScoreModal";
+import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
+import { ProfileCompleteBadge } from "@/components/profile/ProfileCompleteBadge";
+import { useAuth } from "@/contexts/AuthContext";
+import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
 
 interface CandidateProfileData {
   id: string;
@@ -27,6 +38,7 @@ interface CandidateProfileData {
   full_name: string | null;
   bio: string | null;
   avatar_url: string | null;
+  cover_image_url: string | null;
   job_title: string | null;
   location: string | null;
   years_of_experience: string | null;
@@ -36,16 +48,23 @@ interface CandidateProfileData {
   linkedin_url: string | null;
   website_url: string | null;
   portfolio_url: string | null;
+  resume_url: string | null;
   has_completed_synergy_quiz: boolean | null;
+  has_completed_culture_game: boolean | null;
+  has_completed_extended_profile: boolean | null;
   synergy_scores: Record<string, number> | null;
+  culture_preferences: Record<string, string> | null;
+  email: string | null;
 }
 
 export default function CandidateProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { profile: currentUserProfile } = useAuth();
   const [candidate, setCandidate] = useState<CandidateProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [synergyModalOpen, setSynergyModalOpen] = useState(false);
+  const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -60,10 +79,21 @@ export default function CandidateProfile() {
           .single();
 
         if (profileError) throw profileError;
-        setCandidate({
+        
+        const candidateData = {
           ...profileData,
           synergy_scores: profileData.synergy_scores as Record<string, number> | null,
-        });
+          culture_preferences: profileData.culture_preferences as Record<string, string> | null,
+        };
+        
+        setCandidate(candidateData);
+
+        // Calculate synergy compatibility if both users have synergy scores
+        const currentUserSynergy = currentUserProfile?.synergy_scores as Record<string, number> | null;
+        if (currentUserSynergy && candidateData.synergy_scores) {
+          const compatibility = calculateSynergyCompatibility(currentUserSynergy, candidateData.synergy_scores);
+          setSynergyCompatibility(compatibility > 0 ? compatibility : null);
+        }
       } catch (error) {
         console.error("Error fetching candidate data:", error);
       } finally {
@@ -72,7 +102,7 @@ export default function CandidateProfile() {
     };
 
     fetchCandidateData();
-  }, [userId]);
+  }, [userId, currentUserProfile]);
 
   if (isLoading) {
     return (
@@ -97,6 +127,38 @@ export default function CandidateProfile() {
   }
 
   const primaryBadge = candidate.synergy_scores ? getPrimaryBadge(candidate.synergy_scores) : null;
+  
+  // Check if profile is complete
+  const isProfileComplete = !!(
+    candidate.full_name &&
+    candidate.job_title &&
+    candidate.location &&
+    candidate.avatar_url &&
+    candidate.bio &&
+    candidate.skills?.length &&
+    candidate.has_completed_synergy_quiz &&
+    candidate.has_completed_culture_game
+  );
+
+  const getRemoteLabel = (pref: string | null) => {
+    switch (pref) {
+      case 'remote': return 'Remote Only';
+      case 'hybrid': return 'Hybrid';
+      case 'onsite': return 'On-site';
+      case 'flexible': return 'Flexible';
+      default: return pref;
+    }
+  };
+
+  const getAvailabilityLabel = (avail: string | null) => {
+    switch (avail) {
+      case 'immediately': return 'Available Immediately';
+      case '2-weeks': return '2 Weeks Notice';
+      case '1-month': return '1 Month Notice';
+      case '3-months': return '3+ Months';
+      default: return avail;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -114,12 +176,41 @@ export default function CandidateProfile() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Candidate Header */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {/* Cover Image */}
+        {candidate.cover_image_url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="w-full h-48 sm:h-64 rounded-xl overflow-hidden"
+          >
+            <img 
+              src={candidate.cover_image_url} 
+              alt="Cover" 
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        )}
+
+        {/* Synergy Compatibility Banner */}
+        {synergyCompatibility && synergyCompatibility > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-center gap-2 py-3 px-4 bg-primary/10 rounded-xl border border-primary/20"
+          >
+            <Heart className="w-5 h-5 text-primary" />
+            <span className="font-medium text-primary">
+              {synergyCompatibility}% Synergy Compatibility • {getCompatibilityLabel(synergyCompatibility)}
+            </span>
+          </motion.div>
+        )}
+
+        {/* Candidate Header Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-xl p-6 sm:p-8 shadow-card border border-border mb-6"
+          className="bg-card rounded-xl p-6 sm:p-8 shadow-card border border-border"
         >
           <div className="flex flex-col sm:flex-row items-start gap-6">
             <div className="relative">
@@ -140,10 +231,11 @@ export default function CandidateProfile() {
             </div>
             
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                   {candidate.full_name || "Candidate"}
                 </h1>
+                {isProfileComplete && <ProfileCompleteBadge />}
                 {primaryBadge && (
                   <Badge variant="secondary" className="flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
@@ -171,19 +263,20 @@ export default function CandidateProfile() {
                 )}
                 {candidate.remote_preference && (
                   <Badge variant="secondary">
-                    {candidate.remote_preference}
+                    <Wifi className="h-3 w-3 mr-1" />
+                    {getRemoteLabel(candidate.remote_preference)}
                   </Badge>
                 )}
                 {candidate.availability && (
                   <Badge variant="outline">
-                    <Calendar className="h-3 w-3 mr-1" />
-                    {candidate.availability}
+                    <Clock className="h-3 w-3 mr-1" />
+                    {getAvailabilityLabel(candidate.availability)}
                   </Badge>
                 )}
               </div>
 
               {candidate.bio && (
-                <p className="text-muted-foreground">{candidate.bio}</p>
+                <p className="text-muted-foreground leading-relaxed">{candidate.bio}</p>
               )}
 
               {/* Links */}
@@ -193,7 +286,7 @@ export default function CandidateProfile() {
                     href={candidate.linkedin_url.startsWith('http') ? candidate.linkedin_url : `https://${candidate.linkedin_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                   >
                     <Linkedin className="h-4 w-4" />
                     LinkedIn
@@ -205,7 +298,7 @@ export default function CandidateProfile() {
                     href={candidate.website_url.startsWith('http') ? candidate.website_url : `https://${candidate.website_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                   >
                     <Globe className="h-4 w-4" />
                     Website
@@ -217,10 +310,22 @@ export default function CandidateProfile() {
                     href={candidate.portfolio_url.startsWith('http') ? candidate.portfolio_url : `https://${candidate.portfolio_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
                   >
                     <Briefcase className="h-4 w-4" />
                     Portfolio
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                {candidate.resume_url && (
+                  <a
+                    href={candidate.resume_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-primary hover:underline text-sm"
+                  >
+                    <FileText className="h-4 w-4" />
+                    Resume
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
@@ -229,26 +334,148 @@ export default function CandidateProfile() {
           </div>
         </motion.div>
 
-        {/* Skills */}
+        {/* Skills Section */}
         {candidate.skills && candidate.skills.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-card rounded-xl p-6 shadow-card border border-border"
           >
-            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-primary" />
-              Skills
-            </h2>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  Skills & Expertise
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {candidate.skills.map((skill, index) => (
+                    <Badge key={index} variant="secondary" className="text-sm">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
-            <div className="flex flex-wrap gap-2">
-              {candidate.skills.map((skill, index) => (
-                <Badge key={index} variant="secondary">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
+        {/* Work Preferences Section */}
+        {(candidate.remote_preference || candidate.availability) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  Work Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {candidate.remote_preference && (
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Wifi className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Work Location</p>
+                        <p className="font-medium">{getRemoteLabel(candidate.remote_preference)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {candidate.availability && (
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Clock className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Availability</p>
+                        <p className="font-medium">{getAvailabilityLabel(candidate.availability)}</p>
+                      </div>
+                    </div>
+                  )}
+                  {candidate.years_of_experience && (
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Briefcase className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Experience</p>
+                        <p className="font-medium">{candidate.years_of_experience} years</p>
+                      </div>
+                    </div>
+                  )}
+                  {candidate.location && (
+                    <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <MapPin className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Location</p>
+                        <p className="font-medium">{candidate.location}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Culture Preferences Section */}
+        {candidate.culture_preferences && Object.keys(candidate.culture_preferences).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <CompanyCultureSection 
+              culturePreferences={candidate.culture_preferences} 
+              title="Work Culture Preferences"
+            />
+          </motion.div>
+        )}
+
+        {/* Synergy Scores Section */}
+        {candidate.has_completed_synergy_quiz && candidate.synergy_scores && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Synergy Profile
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-muted-foreground mb-2">
+                      {candidate.full_name} has completed their Synergy Score assessment.
+                    </p>
+                    {primaryBadge && (
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-primary/10 text-primary border-primary/20">
+                          <Sparkles className="w-3 h-3 mr-1" />
+                          {primaryBadge.title}
+                        </Badge>
+                        <span className="text-sm text-muted-foreground">
+                          {primaryBadge.description}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSynergyModalOpen(true)}
+                    className="flex-shrink-0"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    View Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
       </main>

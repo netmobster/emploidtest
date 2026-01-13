@@ -255,7 +255,7 @@ export default function EmployerDashboard() {
                       <div 
                         key={match.id} 
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                        onClick={() => match.matchId && navigate(`/chat/${match.matchId}`)}
+                        onClick={() => match.candidateId && navigate(`/candidate/${match.candidateId}`)}
                       >
                         <Avatar className="w-10 h-10">
                           <AvatarImage src={match.user?.avatar} />

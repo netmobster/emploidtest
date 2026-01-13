@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Briefcase, Clock, Wifi, Star, Linkedin, Globe, FileText, ExternalLink, Palette } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { X, MapPin, Briefcase, Clock, Wifi, Star, Linkedin, Globe, FileText, ExternalLink, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +9,7 @@ import { CompanyCultureSection } from "@/components/culture/CompanyCultureSectio
 
 interface CandidateData {
   id: string;
+  userId?: string;
   name: string;
   title: string;
   avatar: string;
@@ -28,6 +30,7 @@ interface CandidateData {
 
 interface JobData {
   id: string;
+  userId?: string;
   title: string;
   company: string;
   description: string;
@@ -61,6 +64,8 @@ const ExtendedProfileModal = ({
   onLike,
   onPass,
 }: ExtendedProfileModalProps) => {
+  const navigate = useNavigate();
+  
   if (!data) return null;
 
   const matchScore = data.matchScore;
@@ -79,6 +84,18 @@ const ExtendedProfileModal = ({
 
   const candidate = isCandidate(data) ? data : null;
   const job = !isCandidate(data) ? data : null;
+  
+  const handleViewFullProfile = () => {
+    if (candidate) {
+      const profileId = candidate.userId || candidate.id;
+      navigate(`/candidate/${profileId}`);
+      onClose();
+    } else if (job) {
+      // For jobs, navigate to company profile if we have the employer's userId
+      // For now, just close the modal
+      onClose();
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -182,6 +199,19 @@ const ExtendedProfileModal = ({
                     </Badge>
                   )}
                 </div>
+                
+                {/* View Full Profile Button */}
+                {candidate && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={handleViewFullProfile}
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    View Full Profile
+                  </Button>
+                )}
               </div>
 
               {/* Content sections */}
