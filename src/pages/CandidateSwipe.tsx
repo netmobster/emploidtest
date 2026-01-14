@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
@@ -8,8 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
+import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
 import { ROLES, SAMPLE_JOBS, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
-import { calculateJobMatchScore } from "@/lib/matchUtils";
+import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
 import { AdminMatchButton } from "@/components/testing/AdminMatchButton";
@@ -25,7 +26,11 @@ interface JobWithScore {
   benefits?: string[];
   requirements?: string[];
   matchScore: number;
+  matchBreakdown?: MatchScoreBreakdown;
+  cultureCompatibility?: number;
   employerId?: string;
+  hiringManagerName?: string;
+  hiringManagerAvatar?: string;
 }
 
 const CandidateSwipe = () => {
@@ -45,7 +50,14 @@ const CandidateSwipe = () => {
 
   const roleInfo = ROLES.find((r) => r.id === role);
 
-  // Fetch jobs
+  // Get employer IDs for batch match status checking
+  const employerIds = useMemo(
+    () => jobs.map((j) => j.employerId).filter((id): id is string => !!id && id !== "sample"),
+    [jobs]
+  );
+  const { isMatched: checkIsMatched } = useBatchMatchStatus(employerIds);
+
+  // Fetch jobs with real match score calculations
   useEffect(() => {
     const fetchJobs = async () => {
       setIsLoading(true);
@@ -61,35 +73,68 @@ const CandidateSwipe = () => {
           swipedIds = swipes?.map((s) => s.swiped_id) || [];
         }
 
-        // Get candidate's preferences for match calculation
-        const candidatePrefs = profile?.culture_preferences 
-          ? { culture_preferences: profile.culture_preferences }
+        // Get candidate's profile data for match calculation
+        const candidateProfile = profile
+          ? {
+              skills: profile.skills as string[] | null,
+              culture_preferences: (profile.culture_preferences as unknown) as Record<string, number> | null,
+              synergy_scores: (profile.synergy_scores as unknown) as Record<string, number> | null,
+            }
           : null;
 
-        // Fetch real jobs from database with preferences
-        let query = supabase.from("jobs").select("*");
+        // Fetch real jobs from database with employer profiles
+        let query = supabase.from("jobs").select(`
+          *,
+          hiring_manager:hiring_team_members(id, name, avatar_url)
+        `);
         if (role) query = query.eq("role_id", role);
         if (city) query = query.eq("city_id", city);
 
         const { data: dbJobs } = await query;
 
-        // Combine with sample jobs (sample jobs don't have cityId, so only filter by role)
+        // Fetch employer profiles for synergy comparison
+        const employerUserIds = [...new Set((dbJobs || []).map((j) => j.user_id).filter(Boolean))];
+        let employerProfiles: Record<string, any> = {};
+
+        if (employerUserIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, culture_preferences, synergy_scores")
+            .in("user_id", employerUserIds);
+
+          profiles?.forEach((p) => {
+            employerProfiles[p.user_id] = p;
+          });
+        }
+
+        // Combine with sample jobs
         const sampleJobs = SAMPLE_JOBS.filter(
           (j) => !role || j.roleId === role
         );
 
         const allJobs: JobWithScore[] = [
           ...(dbJobs || []).map((job) => {
-            // Calculate match score based on preferences
-            const matchScore = calculateJobMatchScore(
-              candidatePrefs,
+            const employerProfile = job.user_id ? employerProfiles[job.user_id] : null;
+
+            // Calculate real match breakdown
+            const matchBreakdown = calculateMatchScore(
+              candidateProfile,
+              employerProfile
+                ? {
+                    culture_preferences: employerProfile.culture_preferences as Record<string, number> | null,
+                    synergy_scores: employerProfile.synergy_scores as Record<string, number> | null,
+                  }
+                : null,
               {
-                culture_preferences: job.culture_preferences as Record<string, string> | null,
-                skills_preferences: job.skills_preferences as Record<string, string> | null,
+                requirements: job.requirements as string[] | null,
+                culture_preferences: job.culture_preferences as Record<string, number> | null,
+                skills_preferences: job.skills_preferences as Record<string, number> | null,
               }
             );
 
-            const cityInfo = CITIES.find(c => c.id === job.city_id);
+            const cityInfo = CITIES.find((c) => c.id === job.city_id);
+            const hiringManager = Array.isArray(job.hiring_manager) ? job.hiring_manager[0] : job.hiring_manager;
+
             return {
               id: job.id,
               title: job.title,
@@ -100,22 +145,36 @@ const CandidateSwipe = () => {
               remote: job.remote || false,
               benefits: job.benefits as string[] | undefined,
               requirements: job.requirements as string[] | undefined,
-              matchScore,
+              matchScore: matchBreakdown.totalScore,
+              matchBreakdown,
+              cultureCompatibility: matchBreakdown.cultureScore,
               employerId: job.user_id || undefined,
+              hiringManagerName: hiringManager?.name,
+              hiringManagerAvatar: hiringManager?.avatar_url,
             };
           }),
-          ...sampleJobs.map((job) => ({
-            id: job.id,
-            title: job.title,
-            company: job.company,
-            description: job.description,
-            location: job.location,
-            salary: job.salary,
-            remote: job.remote === "Remote",
-            // Sample jobs don't have preferences, so use base score with slight randomization
-            matchScore: 65 + Math.floor(Math.random() * 15),
-            employerId: "sample",
-          })),
+          ...sampleJobs.map((job) => {
+            // Sample jobs get estimated scores
+            const estimatedScore = 65 + Math.floor(Math.random() * 15);
+            return {
+              id: job.id,
+              title: job.title,
+              company: job.company,
+              description: job.description,
+              location: job.location,
+              salary: job.salary,
+              remote: job.remote === "Remote",
+              matchScore: estimatedScore,
+              matchBreakdown: {
+                skillScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
+                cultureScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
+                synergyScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
+                totalScore: estimatedScore,
+              },
+              cultureCompatibility: estimatedScore + Math.floor(Math.random() * 10) - 5,
+              employerId: "sample",
+            };
+          }),
         ].filter((j) => !swipedIds.includes(j.id));
 
         // Prioritize test employer jobs for test candidate
@@ -139,7 +198,7 @@ const CandidateSwipe = () => {
     };
 
     fetchJobs();
-  }, [user, role, city]);
+  }, [user, profile, role, city]);
 
   // Handle match detection
   useEffect(() => {
@@ -162,7 +221,7 @@ const CandidateSwipe = () => {
   ) => {
     if (direction !== "pass" && job.employerId && job.employerId !== "sample") {
       const result = await recordSwipe(job.employerId, direction);
-      
+
       // Demo: Show match celebration randomly
       if (result && Math.random() < 0.3) {
         setMatchedJob(job);
@@ -179,6 +238,12 @@ const CandidateSwipe = () => {
     } else {
       navigate("/matches");
     }
+  };
+
+  // Create isMatchedFn for SwipeStack
+  const isMatchedFn = (jobId: string) => {
+    const job = jobs.find((j) => j.id === jobId);
+    return job?.employerId ? checkIsMatched(job.employerId) : false;
   };
 
   if (isLoading) {
@@ -242,6 +307,7 @@ const CandidateSwipe = () => {
           onEmpty={() => {
             toast.success("You've reviewed all jobs!");
           }}
+          isMatchedFn={isMatchedFn}
         />
       </div>
 
