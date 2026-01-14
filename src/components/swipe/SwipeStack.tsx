@@ -1,14 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from "framer-motion";
-import SwipeableProfileCard, { CandidateData, JobData } from "./SwipeableProfileCard";
-import SwipeControls from "./SwipeControls";
-import ExtendedProfileModal from "./ExtendedProfileModal";
+import FullProfileCard, { CandidateData, JobData } from "./FullProfileCard";
 
 interface SwipeStackProps<T> {
   items: T[];
   type: "candidate" | "job";
   onSwipe: (item: T, direction: "like" | "pass" | "super_like") => void;
   onEmpty?: () => void;
+  isMatchedFn?: (itemId: string) => boolean;
 }
 
 const SwipeStack = <T extends { id: string; matchScore: number }>({
@@ -16,24 +15,22 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   type,
   onSwipe,
   onEmpty,
+  isMatchedFn,
 }: SwipeStackProps<T>) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [swipeHistory, setSwipeHistory] = useState<{ item: T; direction: "like" | "pass" | "super_like" }[]>([]);
-  const [expandedProfile, setExpandedProfile] = useState<T | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-15, 15]);
-  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
+  const rotate = useTransform(x, [-200, 200], [-10, 10]);
+  const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.7, 1, 1, 1, 0.7]);
 
   const currentItem = items[currentIndex];
   const nextItem = items[currentIndex + 1];
 
   const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
     if (!currentItem) return;
-
-    // Close modal if open
-    setExpandedProfile(null);
 
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
@@ -65,23 +62,8 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
     setCurrentIndex(prev => Math.max(0, prev - 1));
   }, [swipeHistory.length]);
 
-  const handleExpandProfile = useCallback(() => {
-    if (currentItem) {
-      setExpandedProfile(currentItem);
-    }
-  }, [currentItem]);
-
-  const handleCloseModal = useCallback(() => {
-    setExpandedProfile(null);
-  }, []);
-
-  const handleModalLike = useCallback(() => {
-    handleSwipe("like");
-  }, [handleSwipe]);
-
-  const handleModalPass = useCallback(() => {
-    handleSwipe("pass");
-  }, [handleSwipe]);
+  // Check if current item is matched
+  const isCurrentMatched = currentItem && isMatchedFn ? isMatchedFn(currentItem.id) : false;
 
   if (!currentItem) {
     return (
@@ -100,7 +82,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Progress indicator */}
-      <div className="px-6 py-4">
+      <div className="px-6 py-4 flex-shrink-0">
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
           <span>{currentIndex + 1} of {items.length}</span>
           <span>{items.length - currentIndex - 1} remaining</span>
@@ -117,10 +99,10 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
 
       {/* Card Stack */}
       <div className="flex-1 relative px-4 pb-4 overflow-hidden min-h-0">
-        {/* Next card (background) */}
+        {/* Next card (background) - simplified preview */}
         {nextItem && (
-          <div className="absolute inset-4 transform scale-95 opacity-50">
-            <SwipeableProfileCard data={nextItem as unknown as CandidateData | JobData} type={type} />
+          <div className="absolute inset-4 transform scale-95 opacity-30 pointer-events-none">
+            <div className="w-full h-full bg-card rounded-3xl shadow-card" />
           </div>
         )}
 
@@ -142,36 +124,21 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
               transition: { duration: 0.2 }
             }}
           >
-            <SwipeableProfileCard
+            <FullProfileCard
+              ref={cardRef}
               data={currentItem as unknown as CandidateData | JobData}
               type={type}
+              isMatched={isCurrentMatched}
               dragX={x.get()}
-              onExpand={handleExpandProfile}
+              onPass={() => handleSwipe("pass")}
+              onLike={() => handleSwipe("like")}
+              onSuperLike={() => handleSwipe("super_like")}
+              onUndo={handleUndo}
+              canUndo={swipeHistory.length > 0}
             />
           </motion.div>
         </AnimatePresence>
       </div>
-
-      {/* Controls */}
-      <div className="p-6 pt-2">
-        <SwipeControls
-          onPass={() => handleSwipe("pass")}
-          onLike={() => handleSwipe("like")}
-          onSuperLike={() => handleSwipe("super_like")}
-          onUndo={handleUndo}
-          canUndo={swipeHistory.length > 0}
-        />
-      </div>
-
-      {/* Extended Profile Modal */}
-      <ExtendedProfileModal
-        isOpen={!!expandedProfile}
-        data={expandedProfile as unknown as CandidateData | JobData | null}
-        type={type}
-        onClose={handleCloseModal}
-        onLike={handleModalLike}
-        onPass={handleModalPass}
-      />
     </div>
   );
 };
