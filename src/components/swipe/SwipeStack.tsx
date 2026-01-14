@@ -98,7 +98,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1 min-h-0">
       {/* Progress indicator */}
       <div className="px-6 py-4">
         <div className="flex justify-between text-sm text-muted-foreground mb-2">
@@ -116,7 +116,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
       </div>
 
       {/* Card Stack */}
-      <div className="flex-1 relative px-4 pb-4 overflow-hidden">
+      <div className="flex-1 relative px-4 pb-4 overflow-hidden min-h-0">
         {/* Next card (background) */}
         {nextItem && (
           <div className="absolute inset-4 transform scale-95 opacity-50">
