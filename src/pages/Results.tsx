@@ -217,7 +217,7 @@ const Results = () => {
       </motion.header>
 
       {/* Swipe Stack */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <SwipeStack
           items={jobs}
           type="job"
