@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Users, Eye, TrendingUp, Plus, Loader2 } from "lucide-react";
+import { Briefcase, Users, Eye, TrendingUp, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmployerStats } from "@/hooks/useEmployerStats";
 import { useEmployerJobs } from "@/hooks/useEmployerJobs";
@@ -15,6 +15,7 @@ import { ActivityItem } from "@/components/dashboard/ActivityItem";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
+import { CreateJobDialog } from "@/components/dashboard/CreateJobDialog";
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
 import { Button } from "@/components/ui/button";
@@ -133,13 +134,7 @@ export default function EmployerDashboard() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Your Job Postings</h3>
-                <Button 
-                  size="sm" 
-                  onClick={() => navigate("/roles?type=employer")}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  New Job
-                </Button>
+                <CreateJobDialog onJobCreated={() => window.location.reload()} />
               </div>
 
               {jobsLoading ? (
@@ -150,13 +145,9 @@ export default function EmployerDashboard() {
                 <div className="text-center py-8">
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
                   <p className="text-muted-foreground">No jobs posted yet</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => navigate("/roles?type=employer")}
-                  >
-                    Post Your First Job
-                  </Button>
+                  <div className="mt-4">
+                    <CreateJobDialog onJobCreated={() => window.location.reload()} />
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">

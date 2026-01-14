@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Sparkles, Users, Briefcase, X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Sparkles, Users, Briefcase, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +7,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { MatchScoreBreakdown, getScoreColor, getScoreBgColor, getMatchLabel } from "@/lib/matchScoreUtils";
+import { MatchScoreBreakdown, getScoreColor, getMatchLabel } from "@/lib/matchScoreUtils";
+import { DualRadarChart } from "@/components/culture/DualRadarChart";
 
 interface MatchBreakdownModalProps {
   open: boolean;
@@ -16,6 +18,8 @@ interface MatchBreakdownModalProps {
   breakdown: MatchScoreBreakdown;
   candidateName?: string;
   employerName?: string;
+  candidateCulturePrefs?: Record<string, string> | null;
+  employerCulturePrefs?: Record<string, string> | null;
 }
 
 export function MatchBreakdownModal({
@@ -24,7 +28,11 @@ export function MatchBreakdownModal({
   breakdown,
   candidateName,
   employerName,
+  candidateCulturePrefs,
+  employerCulturePrefs,
 }: MatchBreakdownModalProps) {
+  const [showCultureChart, setShowCultureChart] = useState(false);
+
   const scores = useMemo(() => [
     {
       label: "Skill Match",
@@ -49,9 +57,11 @@ export function MatchBreakdownModal({
     },
   ], [breakdown]);
 
+  const hasCultureData = candidateCulturePrefs || employerCulturePrefs;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
@@ -130,6 +140,40 @@ export function MatchBreakdownModal({
               </div>
             ))}
           </div>
+
+          {/* Culture Comparison Chart (Expandable) */}
+          {hasCultureData && (
+            <div className="border-t border-border pt-4">
+              <Button
+                variant="ghost"
+                className="w-full justify-between"
+                onClick={() => setShowCultureChart(!showCultureChart)}
+              >
+                <span className="flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Culture Comparison
+                </span>
+                {showCultureChart ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+              
+              {showCultureChart && (
+                <div className="mt-4">
+                  <DualRadarChart
+                    userPreferences={candidateCulturePrefs}
+                    otherPreferences={employerCulturePrefs}
+                    userLabel={candidateName || "Candidate"}
+                    otherLabel={employerName || "Company"}
+                    userColor="hsl(var(--primary))"
+                    otherColor="hsl(var(--accent))"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Legend */}
           <div className="pt-4 border-t border-border">
