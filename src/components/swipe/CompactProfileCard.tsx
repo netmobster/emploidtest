@@ -1,4 +1,4 @@
-import { MapPin, Wifi, Star, ChevronUp, Sparkles } from "lucide-react";
+import { MapPin, Wifi, Star, ChevronUp, Sparkles, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ interface CandidateData {
   coverImageUrl?: string;
   hasSynergyScore?: boolean;
   synergyBadge?: string;
+  cultureCompatibility?: number;
 }
 
 interface JobData {
@@ -35,6 +36,9 @@ interface JobData {
   benefits?: string[];
   requirements?: string[];
   matchScore: number;
+  cultureCompatibility?: number;
+  hiringManagerName?: string;
+  hiringManagerAvatar?: string;
 }
 
 interface CompactProfileCardProps {
@@ -116,14 +120,26 @@ const CompactProfileCard = ({ data, type, dragX = 0, onExpand }: CompactProfileC
       )}
 
       {/* Match Score Badge - Top Right */}
-      <div className={cn(
-        "absolute top-4 right-4 z-10 flex items-center gap-1 px-3 py-1.5 rounded-full border",
-        getScoreBg(matchScore)
-      )}>
-        <Star className={cn("w-4 h-4", getScoreColor(matchScore))} />
-        <span className={cn("text-sm font-bold", getScoreColor(matchScore))}>
-          {matchScore}%
-        </span>
+      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+        <div className={cn(
+          "flex items-center gap-1 px-3 py-1.5 rounded-full border",
+          getScoreBg(matchScore)
+        )}>
+          <Star className={cn("w-4 h-4", getScoreColor(matchScore))} />
+          <span className={cn("text-sm font-bold", getScoreColor(matchScore))}>
+            {matchScore}%
+          </span>
+        </div>
+        
+        {/* Culture Compatibility Badge */}
+        {data.cultureCompatibility && data.cultureCompatibility > 0 && (
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 border border-primary/20">
+            <Heart className="w-3 h-3 text-primary" />
+            <span className="text-xs font-medium text-primary">
+              {data.cultureCompatibility}% Culture
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
