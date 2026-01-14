@@ -35,6 +35,48 @@ export type Database = {
         }
         Relationships: []
       }
+      hiring_team_members: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_order: number | null
+          email: string | null
+          employer_id: string
+          id: string
+          is_primary: boolean | null
+          linkedin_url: string | null
+          name: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_order?: number | null
+          email?: string | null
+          employer_id: string
+          id?: string
+          is_primary?: boolean | null
+          linkedin_url?: string | null
+          name: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_order?: number | null
+          email?: string | null
+          employer_id?: string
+          id?: string
+          is_primary?: boolean | null
+          linkedin_url?: string | null
+          name?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_applications: {
         Row: {
           applied_at: string | null
@@ -94,6 +136,7 @@ export type Database = {
           created_at: string
           culture_preferences: Json | null
           description: string | null
+          hiring_manager_id: string | null
           id: string
           remote: boolean | null
           requirements: string[] | null
@@ -111,6 +154,7 @@ export type Database = {
           created_at?: string
           culture_preferences?: Json | null
           description?: string | null
+          hiring_manager_id?: string | null
           id?: string
           remote?: boolean | null
           requirements?: string[] | null
@@ -128,6 +172,7 @@ export type Database = {
           created_at?: string
           culture_preferences?: Json | null
           description?: string | null
+          hiring_manager_id?: string | null
           id?: string
           remote?: boolean | null
           requirements?: string[] | null
@@ -138,7 +183,15 @@ export type Database = {
           type?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "jobs_hiring_manager_id_fkey"
+            columns: ["hiring_manager_id"]
+            isOneToOne: false
+            referencedRelation: "hiring_team_members"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {

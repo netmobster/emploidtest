@@ -40,7 +40,7 @@ export interface CultureCategory {
 }
 
 // Map culture question IDs to readable labels and icons
-const cultureQuestionMap: Record<string, { label: string; icon: LucideIcon; category: string }> = {
+export const cultureQuestionMap: Record<string, { label: string; icon: LucideIcon; category: string }> = {
   "work-life-balance": { label: "Work-Life Balance", icon: Scale, category: "Work Environment" },
   "office-vibe": { label: "Office Vibe", icon: Coffee, category: "Work Environment" },
   "meeting-culture": { label: "Meeting Culture", icon: MessageSquare, category: "Work Environment" },

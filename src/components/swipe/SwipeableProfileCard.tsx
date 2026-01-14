@@ -18,6 +18,7 @@ export interface CandidateData {
   remotePreference?: string;
   resumeUrl?: string;
   coverImageUrl?: string;
+  cultureCompatibility?: number;
 }
 
 export interface JobData {
@@ -31,6 +32,9 @@ export interface JobData {
   benefits?: string[];
   requirements?: string[];
   matchScore: number;
+  cultureCompatibility?: number;
+  hiringManagerName?: string;
+  hiringManagerAvatar?: string;
 }
 
 interface SwipeableProfileCardProps {
