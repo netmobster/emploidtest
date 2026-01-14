@@ -7,6 +7,7 @@ import MatchScoreSection from "./MatchScoreSection";
 import GatedBioSection from "./GatedBioSection";
 import LockedSection from "./LockedSection";
 import SwipeControls from "./SwipeControls";
+import MatchedBadge from "./MatchedBadge";
 
 export interface CandidateData {
   id: string;
@@ -111,6 +112,12 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
             <span className="text-4xl font-black text-red-500 border-4 border-red-500 px-4 py-2 rounded-lg bg-background/80">
               PASS
             </span>
+          </div>
+        )}
+        {/* Matched Badge */}
+        {isMatched && (
+          <div className="absolute top-4 left-4 z-30">
+            <MatchedBadge />
           </div>
         )}
 

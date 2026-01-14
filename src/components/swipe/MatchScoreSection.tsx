@@ -8,6 +8,8 @@ interface MatchScoreSectionProps {
   breakdown: MatchScoreBreakdown;
   candidateName?: string;
   employerName?: string;
+  candidateCulturePrefs?: Record<string, string> | null;
+  employerCulturePrefs?: Record<string, string> | null;
   className?: string;
 }
 
@@ -15,6 +17,8 @@ const MatchScoreSection = ({
   breakdown,
   candidateName,
   employerName,
+  candidateCulturePrefs,
+  employerCulturePrefs,
   className,
 }: MatchScoreSectionProps) => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -92,6 +96,8 @@ const MatchScoreSection = ({
         breakdown={breakdown}
         candidateName={candidateName}
         employerName={employerName}
+        candidateCulturePrefs={candidateCulturePrefs}
+        employerCulturePrefs={employerCulturePrefs}
       />
     </>
   );

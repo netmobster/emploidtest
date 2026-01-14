@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, User, Briefcase, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -26,9 +31,14 @@ interface ChatInterfaceProps {
     avatar?: string;
     type: string;
   };
+  jobInfo?: {
+    id: string;
+    title: string;
+  };
   isOtherUserOnline?: boolean;
   isOtherUserTyping?: boolean;
   onTyping?: (isTyping: boolean) => void;
+  onUnmatch?: () => void;
 }
 
 const TypingIndicator = () => (
@@ -51,31 +61,103 @@ const TypingIndicator = () => (
   </div>
 );
 
+interface AvatarWithPopoverProps {
+  user?: {
+    id: string;
+    name: string;
+    avatar?: string;
+    type: string;
+  };
+  jobInfo?: {
+    id: string;
+    title: string;
+  };
+  onUnmatch?: () => void;
+}
+
+const AvatarWithPopover = ({ user, jobInfo, onUnmatch }: AvatarWithPopoverProps) => {
+  const navigate = useNavigate();
+
+  if (!user) return null;
+
+  const handleViewProfile = () => {
+    const profilePath = user.type === "employer"
+      ? `/company/${user.id}`
+      : `/candidate/${user.id}`;
+    navigate(profilePath);
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer">
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt=""
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            user.name?.charAt(0) || "?"
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-48 p-1">
+        <div className="flex flex-col">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="justify-start"
+            onClick={handleViewProfile}
+          >
+            <User className="w-4 h-4 mr-2" />
+            View Profile
+          </Button>
+          {jobInfo && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start"
+              onClick={() => navigate(`/results?role=${jobInfo.id}`)}
+            >
+              <Briefcase className="w-4 h-4 mr-2" />
+              View Role Info
+            </Button>
+          )}
+          {onUnmatch && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="justify-start text-destructive hover:text-destructive"
+              onClick={onUnmatch}
+            >
+              <UserX className="w-4 h-4 mr-2" />
+              Unmatch
+            </Button>
+          )}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const ChatInterface = ({
   messages,
   onSendMessage,
   isSending,
   isLoading,
   otherUser,
+  jobInfo,
   isOtherUserOnline = false,
   isOtherUserTyping = false,
   onTyping,
+  onUnmatch,
 }: ChatInterfaceProps) => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleAvatarClick = () => {
-    if (otherUser) {
-      const profilePath = otherUser.type === 'employer' 
-        ? `/company/${otherUser.id}` 
-        : `/candidate/${otherUser.id}`;
-      navigate(profilePath);
-    }
-  };
 
   // Scroll to bottom on new messages or typing
   useEffect(() => {
@@ -213,20 +295,11 @@ const ChatInterface = ({
                         className={cn("flex items-end gap-2", isOwn ? "justify-end" : "justify-start")}
                       >
                         {!isOwn && showAvatar && (
-                          <button
-                            onClick={handleAvatarClick}
-                            className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
-                          >
-                            {otherUser?.avatar ? (
-                              <img
-                                src={otherUser.avatar}
-                                alt=""
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              otherUser?.name?.charAt(0) || "?"
-                            )}
-                          </button>
+                          <AvatarWithPopover
+                            user={otherUser}
+                            jobInfo={jobInfo}
+                            onUnmatch={onUnmatch}
+                          />
                         )}
                         {!isOwn && !showAvatar && <div className="w-8" />}
 
@@ -264,20 +337,11 @@ const ChatInterface = ({
                   exit={{ opacity: 0, y: -10 }}
                   className="flex items-end gap-2"
                 >
-                  <button
-                    onClick={handleAvatarClick}
-                    className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-sm font-medium flex-shrink-0 hover:ring-2 hover:ring-primary/50 transition-all cursor-pointer"
-                  >
-                    {otherUser?.avatar ? (
-                      <img
-                        src={otherUser.avatar}
-                        alt=""
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      otherUser?.name?.charAt(0) || "?"
-                    )}
-                  </button>
+                  <AvatarWithPopover
+                    user={otherUser}
+                    jobInfo={jobInfo}
+                    onUnmatch={onUnmatch}
+                  />
                   <div className="bg-secondary rounded-2xl rounded-bl-md">
                     <TypingIndicator />
                   </div>

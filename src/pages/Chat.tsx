@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -48,12 +48,19 @@ interface OtherUser {
   synergy_scores?: Record<string, number>;
 }
 
+interface JobInfo {
+  id: string;
+  title: string;
+  roleId: string;
+}
+
 const Chat = () => {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [match, setMatch] = useState<MatchDetails | null>(null);
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
+  const [jobInfo, setJobInfo] = useState<JobInfo | null>(null);
   const [isLoadingMatch, setIsLoadingMatch] = useState(true);
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
@@ -109,6 +116,23 @@ const Chat = () => {
           if (userSynergyScores && otherSynergyScores) {
             const compatibility = calculateSynergyCompatibility(userSynergyScores, otherSynergyScores);
             setSynergyCompatibility(compatibility > 0 ? compatibility : null);
+          }
+        }
+
+        // Fetch job info if there's a job_id
+        if (matchData.job_id) {
+          const { data: jobData } = await supabase
+            .from("jobs")
+            .select("id, title, role_id")
+            .eq("id", matchData.job_id)
+            .single();
+          
+          if (jobData) {
+            setJobInfo({
+              id: jobData.id,
+              title: jobData.title,
+              roleId: jobData.role_id,
+            });
           }
         }
       } catch (error) {
@@ -244,6 +268,14 @@ const Chat = () => {
                   <User className="w-4 h-4 mr-2" />
                   View Profile
                 </DropdownMenuItem>
+                {jobInfo && (
+                  <DropdownMenuItem
+                    onClick={() => navigate(`/results?role=${jobInfo.roleId}`)}
+                  >
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    View Role: {jobInfo.title}
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => setShowUnmatchDialog(true)}
@@ -286,9 +318,11 @@ const Chat = () => {
           isSending={isSending}
           isLoading={isLoading}
           otherUser={otherUser ? { id: otherUser.id, name: otherUser.name, avatar: otherUser.avatar, type: otherUser.type } : undefined}
+          jobInfo={jobInfo ? { id: jobInfo.id, title: jobInfo.title } : undefined}
           isOtherUserOnline={isOtherUserOnline}
           isOtherUserTyping={isOtherUserTyping}
           onTyping={setTyping}
+          onUnmatch={() => setShowUnmatchDialog(true)}
         />
       </div>
 
