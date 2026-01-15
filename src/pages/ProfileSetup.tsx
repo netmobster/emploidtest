@@ -12,13 +12,18 @@ import { toast } from "sonner";
 import { Loader2, Upload, User, Building2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import OnboardingProgress from "@/components/OnboardingProgress";
+import LinkedInImportSection from "@/components/profile/LinkedInImportSection";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { getCompletionMessage, LinkedInProfileData } from "@/lib/linkedInImport";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading, refreshProfile } = useAuth();
+  const profileCompletion = useProfileCompletion(profile as any);
   
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [importCompletionMessage, setImportCompletionMessage] = useState<string | null>(null);
   
   // Form state
   const [fullName, setFullName] = useState("");
@@ -31,6 +36,29 @@ const ProfileSetup = () => {
   const [companySize, setCompanySize] = useState("");
   const [companyIndustry, setCompanyIndustry] = useState("");
   const [companyLocation, setCompanyLocation] = useState("");
+
+  const handleLinkedInImport = (data: LinkedInProfileData) => {
+    // Auto-fill form fields with imported data
+    if (data.fullName) setFullName(data.fullName);
+    if (data.summary) setBio(data.summary);
+    if (data.companyName) setCompanyName(data.companyName);
+    if (data.industry) setCompanyIndustry(data.industry);
+    if (data.location) setCompanyLocation(data.location);
+    
+    // Calculate completion message
+    const incompleteItems = profileCompletion.items
+      .filter(item => !item.completed && !item.comingSoon)
+      .map(item => item.label);
+    
+    const message = getCompletionMessage(
+      profileCompletion.percentage,
+      "employer",
+      incompleteItems
+    );
+    setImportCompletionMessage(message);
+    
+    toast.success("Profile data imported! Review and save your changes.");
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -173,6 +201,18 @@ const ProfileSetup = () => {
               : "Let candidates know who you are"}
           </p>
         </div>
+
+        {/* LinkedIn Import Section - Always visible */}
+        {isEmployer && (
+          <div className="mb-6">
+            <LinkedInImportSection
+              userType="employer"
+              onImportSuccess={handleLinkedInImport}
+              completionPercentage={profileCompletion.percentage}
+              completionMessage={importCompletionMessage || undefined}
+            />
+          </div>
+        )}
 
         <div className="bg-card rounded-2xl p-6 shadow-elegant">
           <form onSubmit={handleSubmit} className="space-y-6">

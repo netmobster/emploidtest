@@ -27,6 +27,9 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import LinkedInImportSection from "@/components/profile/LinkedInImportSection";
+import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { getCompletionMessage, LinkedInProfileData } from "@/lib/linkedInImport";
 
 const formSchema = z.object({
   linkedin_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
@@ -66,6 +69,7 @@ const remoteOptions = [
 const CandidateExtendedProfile = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
+  const profileCompletion = useProfileCompletion(profile as any);
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState("");
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -74,6 +78,34 @@ const CandidateExtendedProfile = () => {
   const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [importCompletionMessage, setImportCompletionMessage] = useState<string | null>(null);
+
+  const handleLinkedInImport = (data: LinkedInProfileData) => {
+    // Auto-fill form fields with imported data
+    if (data.headline) form.setValue("job_title", data.headline);
+    if (data.location) form.setValue("location", data.location);
+    if (data.skills && data.skills.length > 0) {
+      setSkills(prev => {
+        const combined = [...new Set([...prev, ...data.skills])];
+        return combined.slice(0, 15); // Max 15 skills
+      });
+    }
+    if (data.yearsOfExperience) form.setValue("years_of_experience", data.yearsOfExperience);
+    
+    // Calculate completion message
+    const incompleteItems = profileCompletion.items
+      .filter(item => !item.completed && !item.comingSoon)
+      .map(item => item.label);
+    
+    const message = getCompletionMessage(
+      profileCompletion.percentage,
+      "candidate",
+      incompleteItems
+    );
+    setImportCompletionMessage(message);
+    
+    toast.success("Profile data imported! Review and save your changes.");
+  };
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -263,6 +295,14 @@ const CandidateExtendedProfile = () => {
               Add more details to help employers find you and understand your expertise.
             </p>
           </div>
+
+          {/* LinkedIn Import Section - Always visible */}
+          <LinkedInImportSection
+            userType="candidate"
+            onImportSuccess={handleLinkedInImport}
+            completionPercentage={profileCompletion.percentage}
+            completionMessage={importCompletionMessage || undefined}
+          />
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
