@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
 import ProfileHeader from "@/components/ProfileHeader";
+import MainLayout from "@/components/layout/MainLayout";
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
@@ -48,10 +49,10 @@ export default function CandidateDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <MainLayout variant="default">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Logo size="sm" />
@@ -67,7 +68,7 @@ export default function CandidateDashboard() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="px-4 sm:px-6 py-8">
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -348,6 +349,6 @@ export default function CandidateDashboard() {
           </div>
         </div>
       </main>
-    </div>
+    </MainLayout>
   );
 }
