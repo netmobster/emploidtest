@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { LogIn, LogOut, LayoutDashboard, Settings } from "lucide-react";
+import { LogIn, LogOut, LayoutDashboard, Settings, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import ChatsDropdown from "@/components/ChatsDropdown";
 
@@ -20,6 +21,7 @@ interface ProfileHeaderProps {
 const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { isSuperAdmin } = useAdminAccess();
 
   const handleSignOut = async () => {
     await signOut();
@@ -90,6 +92,15 @@ const ProfileHeader = ({ className = "" }: ProfileHeaderProps) => {
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </DropdownMenuItem>
+          {isSuperAdmin && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate("/admin")}>
+                <Shield className="w-4 h-4 mr-2" />
+                Super Admin
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOut className="w-4 h-4 mr-2" />
