@@ -14,6 +14,7 @@ import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils"
 import { toast } from "sonner";
 import ProfileHeader from "@/components/ProfileHeader";
 import { AdminMatchButton } from "@/components/testing/AdminMatchButton";
+import MainLayout from "@/components/layout/MainLayout";
 
 interface JobWithScore {
   id: string;
@@ -255,78 +256,80 @@ const CandidateSwipe = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <motion.header
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border"
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-
-          <div className="text-center">
-            <h1 className="font-bold text-foreground">
-              {roleInfo?.title || "Jobs"}
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Swipe to find your dream job
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
+    <MainLayout variant="default" showCard>
+      <div className="min-h-screen flex flex-col">
+        {/* Header */}
+        <motion.header
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border"
+        >
+          <div className="flex items-center justify-between px-4 py-3">
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/matches")}
+              onClick={() => navigate(-1)}
             >
-              <MessageCircle className="w-5 h-5" />
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-            <ProfileHeader />
+
+            <div className="text-center">
+              <h1 className="font-bold text-foreground">
+                {roleInfo?.title || "Jobs"}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Swipe to find your dream job
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate("/matches")}
+              >
+                <MessageCircle className="w-5 h-5" />
+              </Button>
+              <ProfileHeader />
+            </div>
           </div>
+
+          {/* Testing Button */}
+          <div className="px-4 pb-2">
+            <AdminMatchButton className="w-full border-dashed border-yellow-500/50 text-yellow-600 hover:text-yellow-700" />
+          </div>
+        </motion.header>
+
+        {/* Swipe Stack */}
+        <div className="flex-1 flex flex-col min-h-0">
+          <SwipeStack
+            items={jobs}
+            type="job"
+            onSwipe={handleSwipe}
+            onEmpty={() => {
+              toast.success("You've reviewed all jobs!");
+            }}
+            isMatchedFn={isMatchedFn}
+          />
         </div>
 
-        {/* Testing Button */}
-        <div className="px-4 pb-2">
-          <AdminMatchButton className="w-full border-dashed border-yellow-500/50 text-yellow-600 hover:text-yellow-700" />
-        </div>
-      </motion.header>
-
-      {/* Swipe Stack */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <SwipeStack
-          items={jobs}
-          type="job"
-          onSwipe={handleSwipe}
-          onEmpty={() => {
-            toast.success("You've reviewed all jobs!");
+        {/* Match Celebration */}
+        <MatchCelebration
+          isOpen={showMatch}
+          onClose={() => setShowMatch(false)}
+          onStartChat={handleStartChat}
+          matchedProfile={{
+            name: matchedJob?.company || "",
+            title: matchedJob?.title,
           }}
-          isMatchedFn={isMatchedFn}
+          currentUser={{
+            name: profile?.full_name || "You",
+            avatar: profile?.avatar_url || undefined,
+          }}
+          matchScore={matchedJob?.matchScore}
         />
       </div>
-
-      {/* Match Celebration */}
-      <MatchCelebration
-        isOpen={showMatch}
-        onClose={() => setShowMatch(false)}
-        onStartChat={handleStartChat}
-        matchedProfile={{
-          name: matchedJob?.company || "",
-          title: matchedJob?.title,
-        }}
-        currentUser={{
-          name: profile?.full_name || "You",
-          avatar: profile?.avatar_url || undefined,
-        }}
-        matchScore={matchedJob?.matchScore}
-      />
-    </div>
+    </MainLayout>
   );
 };
 

@@ -15,6 +15,7 @@ import OnboardingProgress from "@/components/OnboardingProgress";
 import LinkedInImportSection from "@/components/profile/LinkedInImportSection";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { getCompletionMessage, LinkedInProfileData } from "@/lib/linkedInImport";
+import MainLayout from "@/components/layout/MainLayout";
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -183,12 +184,13 @@ const ProfileSetup = () => {
   const isEmployer = profile?.user_type === 'employer';
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-lg mx-auto"
-      >
+    <MainLayout variant="default">
+      <div className="py-8 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-lg mx-auto"
+        >
         <div className="text-center mb-6">
           <Logo size="md" className="mx-auto mb-4" />
           <OnboardingProgress currentStep="profile" className="mb-6" />
@@ -354,6 +356,7 @@ const ProfileSetup = () => {
         </div>
       </motion.div>
     </div>
+    </MainLayout>
   );
 };
 
