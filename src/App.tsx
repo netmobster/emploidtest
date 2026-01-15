@@ -4,8 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
+import { TestModeBanner } from "@/components/admin/TestModeBanner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import ProfileSetup from "./pages/ProfileSetup";
 import CandidateOnboarding from "./pages/CandidateOnboarding";
 import OnboardingComplete from "./pages/OnboardingComplete";
@@ -38,42 +41,46 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
-            <Route path="/onboarding-complete" element={<OnboardingComplete />} />
-            <Route path="/city" element={<CitySelection />} />
-            <Route path="/roles" element={<RoleSelection />} />
-            <Route path="/game/skills" element={<SkillsGame />} />
-            <Route path="/game/culture" element={<CultureGame />} />
-            <Route path="/results" element={<Results />} />
-            <Route path="/employer-results" element={<EmployerResults />} />
-            <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
-            <Route path="/employer-dashboard" element={<EmployerDashboard />} />
-            <Route path="/culture-edit" element={<CultureEdit />} />
-            <Route path="/culture-confirmation" element={<CultureConfirmation />} />
-            <Route path="/swipe/employer" element={<EmployerSwipe />} />
-            <Route path="/swipe/candidate" element={<CandidateSwipe />} />
-            <Route path="/candidate-extended-profile" element={<CandidateExtendedProfile />} />
-            <Route path="/matches" element={<Matches />} />
-            <Route path="/chat/:matchId" element={<Chat />} />
-            <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-            <Route path="/company/:userId" element={<CompanyProfile />} />
-            <Route path="/candidate/:userId" element={<CandidateProfile />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
-            <Route path="/saved-jobs" element={<SavedJobs />} />
-            <Route path="/applications" element={<ApplicationTracker />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <FeatureToggleProvider>
+        <TooltipProvider>
+          <TestModeBanner />
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin/*" element={<Admin />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
+              <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+              <Route path="/onboarding-complete" element={<OnboardingComplete />} />
+              <Route path="/city" element={<CitySelection />} />
+              <Route path="/roles" element={<RoleSelection />} />
+              <Route path="/game/skills" element={<SkillsGame />} />
+              <Route path="/game/culture" element={<CultureGame />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/employer-results" element={<EmployerResults />} />
+              <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
+              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+              <Route path="/culture-edit" element={<CultureEdit />} />
+              <Route path="/culture-confirmation" element={<CultureConfirmation />} />
+              <Route path="/swipe/employer" element={<EmployerSwipe />} />
+              <Route path="/swipe/candidate" element={<CandidateSwipe />} />
+              <Route path="/candidate-extended-profile" element={<CandidateExtendedProfile />} />
+              <Route path="/matches" element={<Matches />} />
+              <Route path="/chat/:matchId" element={<Chat />} />
+              <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+              <Route path="/company/:userId" element={<CompanyProfile />} />
+              <Route path="/candidate/:userId" element={<CandidateProfile />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
+              <Route path="/saved-jobs" element={<SavedJobs />} />
+              <Route path="/applications" element={<ApplicationTracker />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </FeatureToggleProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
