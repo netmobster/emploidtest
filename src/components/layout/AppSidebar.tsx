@@ -1,7 +1,8 @@
 import { useLocation } from "react-router-dom";
-import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
 import {
@@ -39,6 +40,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { profile, user } = useAuth();
+  const { isSuperAdmin } = useAdminAccess();
 
   const isEmployer = profile?.user_type === "employer";
   const navItems = isEmployer ? employerNavItems : candidateNavItems;
@@ -86,6 +88,24 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isSuperAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive("/admin")}
+                    tooltip="Super Admin"
+                  >
+                    <NavLink
+                      to="/admin"
+                      className="flex items-center gap-3"
+                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                    >
+                      <Shield className="h-5 w-5" />
+                      {!collapsed && <span>Super Admin</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
