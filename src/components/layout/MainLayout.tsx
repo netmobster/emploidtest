@@ -36,13 +36,15 @@ const MainLayout = ({
     <div
       className={cn(
         "min-h-screen bg-muted/30",
+        "overflow-x-hidden",
         className
       )}
     >
       <div
         className={cn(
-          // Base: full width on mobile
-          "w-full mx-auto",
+          // Base: full width on mobile with proper padding
+          "w-full min-w-0 mx-auto",
+          "px-4 md:px-6",
           // Desktop: constrained width with card styling
           maxWidthClasses[variant],
           // Card styling on desktop only (when enabled)
@@ -53,6 +55,8 @@ const MainLayout = ({
           ],
           // Ensure minimum height fills viewport
           "min-h-screen",
+          // Overflow protection
+          "overflow-x-hidden",
           containerClassName
         )}
       >

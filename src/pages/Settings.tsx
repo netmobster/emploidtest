@@ -33,7 +33,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlock } from "@/hooks/useBlock";
 import { toast } from "sonner";
-import ProfileHeader from "@/components/ProfileHeader";
 
 interface BlockedUser {
   blocked_id: string;
@@ -146,7 +145,7 @@ const Settings = () => {
             </Button>
             <h1 className="text-xl font-bold">Settings</h1>
           </div>
-          <ProfileHeader />
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
       </motion.header>
 

@@ -13,8 +13,6 @@ import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { toast } from "sonner";
-import ProfileHeader from "@/components/ProfileHeader";
-import MainLayout from "@/components/layout/MainLayout";
 
 interface CandidateWithScore {
   id: string;
@@ -315,64 +313,59 @@ const EmployerSwipe = () => {
   }
 
   return (
-    <MainLayout variant="default" showCard>
-      <div className="min-h-screen flex flex-col">
-        {/* Header */}
-        <motion.header
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border"
-        >
-          <div className="flex items-center justify-between px-4 py-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+    <div className="min-h-screen flex flex-col">
+      {/* Header */}
+      <motion.header
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="sticky top-0 z-40 bg-background/80 backdrop-blur-lg border-b border-border"
+      >
+        <div className="flex items-center justify-between px-4 py-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
 
-            <div className="text-center">
-              <h1 className="font-bold text-foreground">{roleInfo?.title || "Candidates"}</h1>
-              <p className="text-xs text-muted-foreground">Swipe to find your match</p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
-                <MessageCircle className="w-5 h-5" />
-              </Button>
-              <ProfileHeader />
-            </div>
+          <div className="text-center">
+            <h1 className="font-bold text-foreground">{roleInfo?.title || "Candidates"}</h1>
+            <p className="text-xs text-muted-foreground">Swipe to find your match</p>
           </div>
-        </motion.header>
 
-        {/* Swipe Stack */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <SwipeStack
-            items={candidates}
-            type="candidate"
-            onSwipe={handleSwipe}
-            onEmpty={() => {
-              toast.success("You've reviewed all candidates!");
-            }}
-            isMatchedFn={isMatchedFn}
-          />
+          <Button variant="ghost" size="icon" onClick={() => navigate("/matches")}>
+            <MessageCircle className="w-5 h-5" />
+          </Button>
         </div>
+      </motion.header>
 
-        {/* Match Celebration */}
-        <MatchCelebration
-          isOpen={showMatch}
-          onClose={() => setShowMatch(false)}
-          onStartChat={handleStartChat}
-          matchedProfile={{
-            name: matchedCandidate?.name || "",
-            avatar: matchedCandidate?.avatar,
-            title: matchedCandidate?.title,
+      {/* Swipe Stack */}
+      <div className="flex-1 flex flex-col min-h-0">
+        <SwipeStack
+          items={candidates}
+          type="candidate"
+          onSwipe={handleSwipe}
+          onEmpty={() => {
+            toast.success("You've reviewed all candidates!");
           }}
-          currentUser={{
-            name: profile?.full_name || "You",
-            avatar: profile?.avatar_url || undefined,
-          }}
-          matchScore={matchedCandidate?.matchScore}
+          isMatchedFn={isMatchedFn}
         />
       </div>
-    </MainLayout>
+
+      {/* Match Celebration */}
+      <MatchCelebration
+        isOpen={showMatch}
+        onClose={() => setShowMatch(false)}
+        onStartChat={handleStartChat}
+        matchedProfile={{
+          name: matchedCandidate?.name || "",
+          avatar: matchedCandidate?.avatar,
+          title: matchedCandidate?.title,
+        }}
+        currentUser={{
+          name: profile?.full_name || "You",
+          avatar: profile?.avatar_url || undefined,
+        }}
+        matchScore={matchedCandidate?.matchScore}
+      />
+    </div>
   );
 };
 

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { TestModeBanner } from "@/components/admin/TestModeBanner";
+import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -48,11 +49,15 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public routes - no layout wrapper */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin/*" element={<Admin />} />
+              
+              {/* Onboarding routes - no sidebar yet */}
               <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+              <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
               <Route path="/onboarding-complete" element={<OnboardingComplete />} />
               <Route path="/city" element={<CitySelection />} />
               <Route path="/roles" element={<RoleSelection />} />
@@ -60,22 +65,26 @@ const App = () => (
               <Route path="/game/culture" element={<CultureGame />} />
               <Route path="/results" element={<Results />} />
               <Route path="/employer-results" element={<EmployerResults />} />
-              <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
-              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
               <Route path="/culture-edit" element={<CultureEdit />} />
               <Route path="/culture-confirmation" element={<CultureConfirmation />} />
-              <Route path="/swipe/employer" element={<EmployerSwipe />} />
-              <Route path="/swipe/candidate" element={<CandidateSwipe />} />
-              <Route path="/candidate-extended-profile" element={<CandidateExtendedProfile />} />
-              <Route path="/matches" element={<Matches />} />
-              <Route path="/chat/:matchId" element={<Chat />} />
-              <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-              <Route path="/company/:userId" element={<CompanyProfile />} />
-              <Route path="/candidate/:userId" element={<CandidateProfile />} />
-              <Route path="/settings" element={<Settings />} />
               <Route path="/synergy-score-quiz" element={<SynergyScoreQuiz />} />
-              <Route path="/saved-jobs" element={<SavedJobs />} />
-              <Route path="/applications" element={<ApplicationTracker />} />
+              
+              {/* App routes - wrapped in AppLayout with sidebar */}
+              <Route element={<AppLayout />}>
+                <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+                <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+                <Route path="/swipe/employer" element={<EmployerSwipe />} />
+                <Route path="/swipe/candidate" element={<CandidateSwipe />} />
+                <Route path="/candidate-extended-profile" element={<CandidateExtendedProfile />} />
+                <Route path="/matches" element={<Matches />} />
+                <Route path="/chat/:matchId" element={<Chat />} />
+                <Route path="/company/:userId" element={<CompanyProfile />} />
+                <Route path="/candidate/:userId" element={<CandidateProfile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/saved-jobs" element={<SavedJobs />} />
+                <Route path="/applications" element={<ApplicationTracker />} />
+              </Route>
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

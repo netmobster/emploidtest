@@ -17,8 +17,6 @@ import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
-import ProfileHeader from "@/components/ProfileHeader";
-import MainLayout from "@/components/layout/MainLayout";
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
@@ -49,11 +47,11 @@ export default function CandidateDashboard() {
   };
 
   return (
-    <MainLayout variant="default">
+    <div className="min-h-screen">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-4">
               <Logo size="sm" />
               <div className="hidden sm:block">
@@ -62,8 +60,6 @@ export default function CandidateDashboard() {
                 </h1>
               </div>
             </div>
-            
-            <ProfileHeader />
           </div>
         </div>
       </header>
@@ -349,6 +345,6 @@ export default function CandidateDashboard() {
           </div>
         </div>
       </main>
-    </MainLayout>
+    </div>
   );
 }

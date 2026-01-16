@@ -30,7 +30,6 @@ import { toast } from "sonner";
 import LinkedInImportSection from "@/components/profile/LinkedInImportSection";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { getCompletionMessage, LinkedInProfileData } from "@/lib/linkedInImport";
-import MainLayout from "@/components/layout/MainLayout";
 
 const formSchema = z.object({
   linkedin_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
@@ -272,7 +271,7 @@ const CandidateExtendedProfile = () => {
   };
 
   return (
-    <MainLayout variant="default">
+    <div className="min-h-screen">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
@@ -584,7 +583,7 @@ const CandidateExtendedProfile = () => {
           </Form>
         </motion.div>
       </main>
-    </MainLayout>
+    </div>
   );
 };
 

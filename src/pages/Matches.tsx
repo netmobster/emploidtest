@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { useMatches } from "@/hooks/useMatches";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import ProfileHeader from "@/components/ProfileHeader";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
 import { SynergyScoreModal } from "@/components/SynergyScoreModal";
 import { MatchScoreBadge } from "@/components/MatchScoreBadge";
@@ -57,7 +56,7 @@ const Matches = () => {
 
           <h1 className="font-bold text-foreground">Messages</h1>
 
-          <ProfileHeader />
+          <div className="w-10" /> {/* Spacer for centering */}
         </div>
       </motion.header>
 
