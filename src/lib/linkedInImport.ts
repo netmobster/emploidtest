@@ -16,7 +16,8 @@ export interface ImportResult {
   success: boolean;
   data?: LinkedInProfileData;
   error?: string;
-  isMock?: boolean;
+  requiresManualEntry?: boolean;
+  linkedinUrl?: string;
   message?: string;
 }
 
@@ -37,11 +38,10 @@ export function extractLinkedInUsername(url: string): string | null {
 }
 
 /**
- * Imports a LinkedIn profile using the edge function
+ * Validates the LinkedIn URL and returns a result for manual entry
  */
-export async function importLinkedInProfile(
-  linkedinUrl: string,
-  userType: "candidate" | "employer"
+export async function validateLinkedInUrl(
+  linkedinUrl: string
 ): Promise<ImportResult> {
   // Validate URL format
   if (!isValidLinkedInUrl(linkedinUrl)) {
@@ -55,7 +55,6 @@ export async function importLinkedInProfile(
     const { data, error } = await supabase.functions.invoke("linkedin-import", {
       body: {
         linkedinUrl: linkedinUrl.trim(),
-        userType,
       },
     });
 
@@ -63,7 +62,7 @@ export async function importLinkedInProfile(
       console.error("Edge function error:", error);
       return {
         success: false,
-        error: error.message || "Failed to import profile. Please try again.",
+        error: error.message || "Failed to validate URL. Please try again.",
       };
     }
 
@@ -76,17 +75,36 @@ export async function importLinkedInProfile(
 
     return {
       success: true,
-      data: data.data,
-      isMock: data.isMock,
+      requiresManualEntry: data.requiresManualEntry,
+      linkedinUrl: data.linkedinUrl,
       message: data.message,
     };
   } catch (err) {
-    console.error("Import error:", err);
+    console.error("Validation error:", err);
     return {
       success: false,
       error: "Network error. Please check your connection and try again.",
     };
   }
+}
+
+/**
+ * Creates profile data from manual entry
+ */
+export function createManualProfileData(
+  formData: Partial<LinkedInProfileData>
+): LinkedInProfileData {
+  return {
+    fullName: formData.fullName || null,
+    headline: formData.headline || null,
+    location: formData.location || null,
+    summary: formData.summary || null,
+    skills: formData.skills || [],
+    profilePictureUrl: formData.profilePictureUrl || null,
+    companyName: formData.companyName || null,
+    industry: formData.industry || null,
+    yearsOfExperience: formData.yearsOfExperience || null,
+  };
 }
 
 /**
