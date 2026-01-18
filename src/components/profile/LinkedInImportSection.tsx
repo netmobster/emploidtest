@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Linkedin, Copy, Loader2, CheckCircle2, AlertCircle, ExternalLink, Plus, X } from "lucide-react";
+import { Linkedin, Copy, Loader2, CheckCircle2, AlertCircle, ExternalLink, Plus, X, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,13 +44,13 @@ const LinkedInImportSection = ({
 
   const handleValidateUrl = async () => {
     if (!linkedInUrl.trim()) {
-      setErrorMessage("Please enter a LinkedIn URL");
+      setErrorMessage("Please enter your LinkedIn profile URL to continue");
       setImportState("error");
       return;
     }
 
     if (!isValidLinkedInUrl(linkedInUrl)) {
-      setErrorMessage("Invalid LinkedIn URL. Please use format: https://linkedin.com/in/yourprofile");
+      setErrorMessage("That doesn't look like a valid LinkedIn URL. Please use the format: linkedin.com/in/your-profile");
       setImportState("error");
       return;
     }
@@ -58,21 +58,49 @@ const LinkedInImportSection = ({
     setImportState("validating");
     setErrorMessage("");
 
-    const result = await validateLinkedInUrl(linkedInUrl);
+    try {
+      const result = await validateLinkedInUrl(linkedInUrl);
 
-    if (result.success && result.requiresManualEntry) {
-      setImportState("manual-entry");
-    } else if (!result.success) {
+      if (result.success && result.requiresManualEntry) {
+        setImportState("manual-entry");
+      } else if (!result.success) {
+        setImportState("error");
+        setErrorMessage(result.error || "We couldn't validate your LinkedIn URL. Please try again or skip to enter manually.");
+      }
+    } catch (error) {
       setImportState("error");
-      setErrorMessage(result.error || "Failed to validate URL");
+      setErrorMessage("Something went wrong while validating your URL. Please try again or skip to enter manually.");
+    }
+  };
+
+  const handleSkipToManualEntry = () => {
+    setImportState("manual-entry");
+    setErrorMessage("");
+  };
+
+  const parseAndAddSkills = (input: string) => {
+    // Split by comma, semicolon, or newline and clean up
+    const newSkills = input
+      .split(/[,;\n]+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !skills.includes(s));
+    
+    if (newSkills.length > 0) {
+      setSkills([...skills, ...newSkills]);
+      setSkillInput("");
     }
   };
 
   const handleAddSkill = () => {
     const trimmedSkill = skillInput.trim();
-    if (trimmedSkill && !skills.includes(trimmedSkill)) {
-      setSkills([...skills, trimmedSkill]);
-      setSkillInput("");
+    if (trimmedSkill) {
+      // Check if input contains separators (comma, semicolon)
+      if (trimmedSkill.includes(',') || trimmedSkill.includes(';')) {
+        parseAndAddSkills(trimmedSkill);
+      } else if (!skills.includes(trimmedSkill)) {
+        setSkills([...skills, trimmedSkill]);
+        setSkillInput("");
+      }
     }
   };
 
@@ -87,9 +115,16 @@ const LinkedInImportSection = ({
     }
   };
 
+  const handleSkillInputBlur = () => {
+    // Auto-add skills when user clicks away
+    if (skillInput.trim()) {
+      handleAddSkill();
+    }
+  };
+
   const handleSubmitManualEntry = () => {
     if (!fullName.trim()) {
-      setErrorMessage("Please enter your full name");
+      setErrorMessage("Please enter your full name to continue");
       return;
     }
 
@@ -155,7 +190,7 @@ const LinkedInImportSection = ({
                 />
                 {!isValidUrl && (
                   <p className="text-sm text-destructive">
-                    Please enter a valid LinkedIn URL
+                    Please enter a valid LinkedIn URL (e.g., linkedin.com/in/your-profile)
                   </p>
                 )}
               </div>
@@ -167,6 +202,24 @@ const LinkedInImportSection = ({
                 <Copy className="w-4 h-4" />
                 Start Import
               </Button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or</span>
+                </div>
+              </div>
+              
+              <Button
+                variant="ghost"
+                onClick={handleSkipToManualEntry}
+                className="w-full gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <SkipForward className="w-4 h-4" />
+                Skip and enter manually
+              </Button>
             </motion.div>
           )}
 
@@ -176,11 +229,14 @@ const LinkedInImportSection = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="py-8 text-center space-y-3"
+              className="py-8 text-center space-y-4"
             >
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-              <div>
-                <p className="font-medium text-foreground">Validating URL...</p>
+              <div className="relative">
+                <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">Validating your LinkedIn URL...</p>
+                <p className="text-sm text-muted-foreground">This will only take a moment</p>
               </div>
             </motion.div>
           )}
@@ -193,20 +249,22 @@ const LinkedInImportSection = ({
               exit={{ opacity: 0 }}
               className="space-y-4"
             >
-              <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-                <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <AlertDescription className="text-blue-800 dark:text-blue-200">
-                  <a 
-                    href={linkedInUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="underline hover:no-underline font-medium"
-                  >
-                    Open your LinkedIn profile
-                  </a>
-                  {" "}and copy the information below.
-                </AlertDescription>
-              </Alert>
+              {linkedInUrl && (
+                <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                  <ExternalLink className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <AlertDescription className="text-blue-800 dark:text-blue-200">
+                    <a 
+                      href={linkedInUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="underline hover:no-underline font-medium"
+                    >
+                      Open your LinkedIn profile
+                    </a>
+                    {" "}and copy the information below.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -280,13 +338,17 @@ const LinkedInImportSection = ({
 
                 <div className="space-y-2">
                   <Label htmlFor="skills">Skills</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Add one at a time or paste multiple skills separated by commas
+                  </p>
                   <div className="flex gap-2">
                     <Input
                       id="skills"
-                      placeholder="Type a skill and press Enter"
+                      placeholder="e.g., React, TypeScript, Node.js"
                       value={skillInput}
                       onChange={(e) => setSkillInput(e.target.value)}
                       onKeyDown={handleKeyDown}
+                      onBlur={handleSkillInputBlur}
                     />
                     <Button type="button" variant="outline" size="icon" onClick={handleAddSkill}>
                       <Plus className="w-4 h-4" />
@@ -311,7 +373,10 @@ const LinkedInImportSection = ({
                 </div>
 
                 {errorMessage && (
-                  <p className="text-sm text-destructive">{errorMessage}</p>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                  </Alert>
                 )}
 
                 <div className="flex gap-2 pt-2">
@@ -338,6 +403,7 @@ const LinkedInImportSection = ({
                 <CheckCircle2 className="w-6 h-6" />
                 <div>
                   <p className="font-medium">Profile data imported successfully!</p>
+                  <p className="text-sm text-muted-foreground">Your information has been added to the form below</p>
                 </div>
               </div>
               
@@ -363,13 +429,20 @@ const LinkedInImportSection = ({
               exit={{ opacity: 0 }}
               className="space-y-4"
             >
-              <div className="flex items-center gap-3 text-destructive">
-                <AlertCircle className="w-6 h-6" />
-                <p className="font-medium">{errorMessage}</p>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+              
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleReset} className="flex-1">
+                  Try Again
+                </Button>
+                <Button variant="secondary" onClick={handleSkipToManualEntry} className="flex-1 gap-2">
+                  <SkipForward className="w-4 h-4" />
+                  Enter Manually
+                </Button>
               </div>
-              <Button variant="outline" onClick={handleReset} className="w-full">
-                Try Again
-              </Button>
             </motion.div>
           )}
         </AnimatePresence>

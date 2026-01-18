@@ -104,29 +104,29 @@ export function ProfileCompletionCard({
             </div>
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium text-foreground/80">
+            <p className="text-sm font-medium text-foreground">
               {message}
             </p>
             <div className="mt-2 space-y-1">
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-foreground/70">Basic:</span>
+                <span className="text-muted-foreground font-medium">Basic:</span>
                 <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{ width: `${basicPercentage}%` }}
                   />
                 </div>
-                <span className="font-medium">{basicPercentage}%</span>
+                <span className="font-medium text-foreground">{basicPercentage}%</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-foreground/70">Extended:</span>
+                <span className="text-muted-foreground font-medium">Extended:</span>
                 <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                   <div
                     className="h-full bg-accent transition-all"
                     style={{ width: `${extendedPercentage}%` }}
                   />
                 </div>
-                <span className="font-medium">{extendedPercentage}%</span>
+                <span className="font-medium text-foreground">{extendedPercentage}%</span>
               </div>
             </div>
           </div>
@@ -135,7 +135,7 @@ export function ProfileCompletionCard({
         {/* Basic Items */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Basic
             </span>
             <Badge variant="secondary" className="text-[10px] h-4">
@@ -156,7 +156,7 @@ export function ProfileCompletionCard({
               {item.completed ? (
                 <Check className="h-4 w-4 text-primary flex-shrink-0" />
               ) : (
-                <Circle className="h-4 w-4 text-foreground/40 flex-shrink-0" />
+                <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               )}
               <span className="text-sm flex-1">{item.label}</span>
             </button>
@@ -166,7 +166,7 @@ export function ProfileCompletionCard({
         {/* Extended Items */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Extended
             </span>
             <Badge variant="outline" className="text-[10px] h-4">
@@ -191,7 +191,7 @@ export function ProfileCompletionCard({
                   {item.completed ? (
                     <Check className="h-4 w-4 text-accent flex-shrink-0" />
                   ) : (
-                    <Circle className="h-4 w-4 text-foreground/40 flex-shrink-0" />
+                    <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   )}
                   <span className="text-sm flex-1">{item.label}</span>
                   {item.comingSoon && (
