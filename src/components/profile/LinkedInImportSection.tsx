@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Linkedin, Copy, Loader2, CheckCircle2, AlertCircle, ExternalLink, Plus, X, SkipForward } from "lucide-react";
+import { Linkedin, Copy, Loader2, CheckCircle2, AlertCircle, ExternalLink, Plus, X, SkipForward, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,22 @@ interface LinkedInImportSectionProps {
 
 type ImportState = "idle" | "validating" | "manual-entry" | "success" | "error";
 
+interface DraftData {
+  linkedInUrl: string;
+  fullName: string;
+  headline: string;
+  location: string;
+  summary: string;
+  companyName: string;
+  skills: string[];
+  yearsOfExperience: string;
+  importState: ImportState;
+  savedAt: number;
+}
+
+const DRAFT_STORAGE_KEY = "linkedin_import_draft";
+const DRAFT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 const LinkedInImportSection = ({
   userType,
   onImportSuccess,
@@ -29,6 +45,8 @@ const LinkedInImportSection = ({
   const [linkedInUrl, setLinkedInUrl] = useState("");
   const [importState, setImportState] = useState<ImportState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [hasDraft, setHasDraft] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
   // Manual entry form state
   const [fullName, setFullName] = useState("");
@@ -39,6 +57,76 @@ const LinkedInImportSection = ({
   const [skillInput, setSkillInput] = useState("");
   const [skills, setSkills] = useState<string[]>([]);
   const [yearsOfExperience, setYearsOfExperience] = useState("");
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      if (savedDraft) {
+        const draft: DraftData = JSON.parse(savedDraft);
+        // Check if draft is still valid (not expired)
+        if (Date.now() - draft.savedAt < DRAFT_EXPIRY_MS) {
+          setLinkedInUrl(draft.linkedInUrl || "");
+          setFullName(draft.fullName || "");
+          setHeadline(draft.headline || "");
+          setLocation(draft.location || "");
+          setSummary(draft.summary || "");
+          setCompanyName(draft.companyName || "");
+          setSkills(draft.skills || []);
+          setYearsOfExperience(draft.yearsOfExperience || "");
+          // Only restore to manual-entry if there was meaningful data
+          if (draft.importState === "manual-entry" && (draft.fullName || draft.headline || draft.skills.length > 0)) {
+            setImportState("manual-entry");
+          }
+          setHasDraft(true);
+          setLastSaved(new Date(draft.savedAt));
+        } else {
+          // Clear expired draft
+          localStorage.removeItem(DRAFT_STORAGE_KEY);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load draft:", e);
+    }
+  }, []);
+
+  // Auto-save draft when form data changes
+  const saveDraft = useCallback(() => {
+    // Only save if there's something to save
+    if (importState === "manual-entry" || fullName || headline || skills.length > 0 || summary) {
+      const draft: DraftData = {
+        linkedInUrl,
+        fullName,
+        headline,
+        location,
+        summary,
+        companyName,
+        skills,
+        yearsOfExperience,
+        importState: importState === "success" ? "idle" : importState,
+        savedAt: Date.now(),
+      };
+      try {
+        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+        setLastSaved(new Date());
+        setHasDraft(true);
+      } catch (e) {
+        console.error("Failed to save draft:", e);
+      }
+    }
+  }, [linkedInUrl, fullName, headline, location, summary, companyName, skills, yearsOfExperience, importState]);
+
+  // Debounced auto-save
+  useEffect(() => {
+    const timeoutId = setTimeout(saveDraft, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [saveDraft]);
+
+  const clearDraft = () => {
+    localStorage.removeItem(DRAFT_STORAGE_KEY);
+    setHasDraft(false);
+    setLastSaved(null);
+  };
 
   const isValidUrl = linkedInUrl.trim() === "" || isValidLinkedInUrl(linkedInUrl);
 
@@ -139,6 +227,7 @@ const LinkedInImportSection = ({
     });
 
     setImportState("success");
+    clearDraft(); // Clear draft on successful submission
     onImportSuccess(profileData);
   };
 
@@ -154,21 +243,32 @@ const LinkedInImportSection = ({
     setSkillInput("");
     setSkills([]);
     setYearsOfExperience("");
+    clearDraft(); // Clear draft on reset
   };
 
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <div className="p-1.5 rounded-lg bg-[#0A66C2]/10">
-            <Linkedin className="w-5 h-5 text-[#0A66C2]" />
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <div className="p-1.5 rounded-lg bg-[#0A66C2]/10">
+                <Linkedin className="w-5 h-5 text-[#0A66C2]" />
+              </div>
+              <Copy className="w-4 h-4 text-muted-foreground" />
+              Import from LinkedIn
+            </CardTitle>
+            <CardDescription>
+              Copy your LinkedIn info to quickly fill your profile
+            </CardDescription>
           </div>
-          <Copy className="w-4 h-4 text-muted-foreground" />
-          Import from LinkedIn
-        </CardTitle>
-        <CardDescription>
-          Copy your LinkedIn info to quickly fill your profile
-        </CardDescription>
+          {hasDraft && lastSaved && importState !== "success" && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Save className="w-3 h-3" />
+              <span>Draft saved</span>
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <AnimatePresence mode="wait">
