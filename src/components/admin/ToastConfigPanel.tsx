@@ -23,9 +23,36 @@ interface ToastConfig {
 }
 
 const TOAST_TYPES = [
-  { id: "match_success", label: "Match Success", description: "When a new match is created" },
-  { id: "message_sent", label: "Message Sent", description: "After sending a message" },
-  { id: "profile_updated", label: "Profile Updated", description: "After profile changes are saved" },
+  // Match & Swipe Actions
+  { id: "match_success", label: "Match Success", description: "When a new match is created", category: "Matches" },
+  { id: "swipe_right", label: "Swipe Right", description: "When user swipes right on a profile", category: "Matches" },
+  { id: "swipe_left", label: "Swipe Left", description: "When user swipes left on a profile", category: "Matches" },
+  { id: "mutual_match", label: "Mutual Match", description: "When both parties match each other", category: "Matches" },
+  
+  // Messages
+  { id: "message_sent", label: "Message Sent", description: "After sending a message", category: "Messages" },
+  { id: "message_received", label: "New Message", description: "When receiving a new message", category: "Messages" },
+  
+  // Profile
+  { id: "profile_updated", label: "Profile Updated", description: "After profile changes are saved", category: "Profile" },
+  { id: "profile_milestone_25", label: "25% Profile Complete", description: "First profile completion milestone", category: "Profile" },
+  { id: "profile_milestone_50", label: "50% Profile Complete", description: "Halfway profile completion", category: "Profile" },
+  { id: "profile_milestone_75", label: "75% Profile Complete", description: "Almost complete profile", category: "Profile" },
+  { id: "profile_milestone_100", label: "100% Profile Complete", description: "Full profile completion", category: "Profile" },
+  
+  // Jobs
+  { id: "job_created", label: "Job Created", description: "When employer creates a new job", category: "Jobs" },
+  { id: "job_application", label: "Application Received", description: "When employer receives an application", category: "Jobs" },
+  { id: "job_saved", label: "Job Saved", description: "When candidate saves a job", category: "Jobs" },
+  
+  // Errors
+  { id: "error_network", label: "Network Error", description: "When network request fails", category: "Errors" },
+  { id: "error_validation", label: "Validation Error", description: "When form validation fails", category: "Errors" },
+  { id: "error_permission", label: "Permission Denied", description: "When user lacks permission", category: "Errors" },
+  
+  // System
+  { id: "data_saved", label: "Data Saved", description: "Generic save confirmation", category: "System" },
+  { id: "copied_to_clipboard", label: "Copied to Clipboard", description: "When content is copied", category: "System" },
 ];
 
 const VARIANTS = [
@@ -123,25 +150,30 @@ export function ToastConfigPanel() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Toast Type Selection */}
-          <div className="space-y-2">
+          {/* Toast Type Selection - Grouped by Category */}
+          <div className="space-y-4">
             <Label>Toast Type</Label>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {TOAST_TYPES.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setActiveToast(type.id)}
-                  className={`p-4 border rounded-lg text-left transition-all ${
-                    activeToast === type.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/50"
-                  }`}
-                >
-                  <p className="font-medium">{type.label}</p>
-                  <p className="text-sm text-muted-foreground">{type.description}</p>
-                </button>
-              ))}
-            </div>
+            {Array.from(new Set(TOAST_TYPES.map(t => t.category))).map((category) => (
+              <div key={category} className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {TOAST_TYPES.filter(t => t.category === category).map((type) => (
+                    <button
+                      key={type.id}
+                      onClick={() => setActiveToast(type.id)}
+                      className={`p-3 border rounded-lg text-left transition-all ${
+                        activeToast === type.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground/50"
+                      }`}
+                    >
+                      <p className="font-medium text-sm">{type.label}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{type.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           {currentConfig && (
