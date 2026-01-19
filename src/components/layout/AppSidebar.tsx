@@ -3,7 +3,9 @@ import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield } from 
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
+import { useSidebarCounts } from "@/hooks/useSidebarCounts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import Logo from "@/components/Logo";
 import {
   Sidebar,
@@ -22,17 +24,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const candidateNavItems = [
-  { title: "Dashboard", url: "/candidate-dashboard", icon: LayoutDashboard },
-  { title: "Swipe", url: "/swipe/candidate", icon: Heart },
-  { title: "Matches", url: "/matches", icon: MessageCircle },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/candidate-dashboard", icon: LayoutDashboard, countKey: null },
+  { title: "Swipe", url: "/swipe/candidate", icon: Heart, countKey: null },
+  { title: "Matches", url: "/matches", icon: MessageCircle, countKey: "unreadMatches" as const },
+  { title: "Settings", url: "/settings", icon: Settings, countKey: null },
 ];
 
 const employerNavItems = [
-  { title: "Dashboard", url: "/employer-dashboard", icon: LayoutDashboard },
-  { title: "Swipe", url: "/swipe/employer", icon: Heart },
-  { title: "Matches", url: "/matches", icon: MessageCircle },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Dashboard", url: "/employer-dashboard", icon: LayoutDashboard, countKey: null },
+  { title: "Swipe", url: "/swipe/employer", icon: Heart, countKey: null },
+  { title: "Matches", url: "/matches", icon: MessageCircle, countKey: "unreadMatches" as const },
+  { title: "Settings", url: "/settings", icon: Settings, countKey: null },
 ];
 
 export function AppSidebar() {
@@ -41,17 +43,23 @@ export function AppSidebar() {
   const location = useLocation();
   const { profile, user } = useAuth();
   const { isSuperAdmin } = useAdminAccess();
+  const { counts } = useSidebarCounts();
 
   const isEmployer = profile?.user_type === "employer";
   const navItems = isEmployer ? employerNavItems : candidateNavItems;
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + "/");
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Failed to log out");
     }
+  };
+
+  const getCount = (countKey: "unreadMatches" | null) => {
+    if (!countKey) return 0;
+    return counts[countKey] || 0;
   };
 
   return (
@@ -69,25 +77,42 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="flex items-center gap-3"
-                      activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+              {navItems.map((item) => {
+                const count = getCount(item.countKey);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(item.url)}
+                      tooltip={item.title}
                     >
-                      <item.icon className="h-5 w-5" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <NavLink
+                        to={item.url}
+                        end
+                        className="flex items-center gap-3 relative"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      >
+                        <div className="relative">
+                          <item.icon className="h-5 w-5" />
+                          {count > 0 && collapsed && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                              {count > 9 ? "9+" : count}
+                            </span>
+                          )}
+                        </div>
+                        {!collapsed && (
+                          <span className="flex-1">{item.title}</span>
+                        )}
+                        {!collapsed && count > 0 && (
+                          <Badge variant="destructive" className="h-5 min-w-5 px-1.5 text-[10px] font-bold">
+                            {count > 99 ? "99+" : count}
+                          </Badge>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
               {isSuperAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
