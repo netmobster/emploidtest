@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useJobApplication } from "./useJobApplication";
+import { useToastNotifications } from "./useToastNotifications";
 
 interface SwipeResult {
   swipeId: string;
@@ -18,6 +19,7 @@ export const useSwipe = (jobId?: string) => {
     matchedUserId: string;
   } | null>(null);
   const { createApplication } = useJobApplication();
+  const { showToast } = useToastNotifications();
 
   // Subscribe to new matches
   useEffect(() => {
@@ -126,6 +128,15 @@ export const useSwipe = (jobId?: string) => {
           }
         }
 
+        // Show appropriate toast based on swipe direction
+        if (isMatch) {
+          showToast("new_match");
+        } else if (direction === "super_like") {
+          showToast("like_sent", "Super Like sent! ⭐");
+        } else if (direction === "like") {
+          showToast("like_sent");
+        }
+
         return {
           swipeId: swipe.id,
           isMatch,
@@ -136,11 +147,11 @@ export const useSwipe = (jobId?: string) => {
         toast.error("Failed to record swipe");
         return null;
       } finally {
-      setIsLoading(false);
-    }
-  },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, jobId]
+        setIsLoading(false);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, jobId, showToast]
   );
 
   const clearLatestMatch = useCallback(() => {

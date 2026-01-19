@@ -4,7 +4,8 @@ import { motion } from "framer-motion";
 import { ROLES, UserType } from "@/lib/gameData";
 import RoleCard from "@/components/RoleCard";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, ArrowRight, Sparkles, Loader2, Briefcase, FlaskConical } from "lucide-react";
 import ProfileHeader from "@/components/ProfileHeader";
 import { useRoleAvailability } from "@/hooks/useRoleAvailability";
 import { toast } from "sonner";
@@ -19,13 +20,35 @@ const RoleSelection = () => {
 
   const { availability, isLoading: isLoadingAvailability } = useRoleAvailability(cityId);
 
+  // Filter roles to only show those with open jobs (for candidates)
   const filteredRoles = useMemo(() => {
-    return ROLES.filter((role) => role.cityId === cityId);
-  }, [cityId]);
+    const cityRoles = ROLES.filter((role) => role.cityId === cityId);
+    
+    if (isLoadingAvailability) return cityRoles;
+    
+    if (userType === "candidate") {
+      // Only show roles with jobs for candidates
+      return cityRoles.filter(role => {
+        const roleAvail = availability[role.id];
+        return roleAvail?.hasJobs || !roleAvail;
+      });
+    }
+    
+    // For employers, show all roles
+    return cityRoles;
+  }, [cityId, availability, isLoadingAvailability, userType]);
+
+  // Identify sample roles (roles without real candidates for employers)
+  const isSampleRole = (roleId: string) => {
+    if (userType !== "employer") return false;
+    const roleAvail = availability[roleId];
+    return roleAvail && !roleAvail.hasCandidates;
+  };
 
   const handleContinue = () => {
     if (selectedRole) {
-      navigate(`/game/skills?type=${userType}&role=${selectedRole}&city=${cityId}`);
+      const isSample = isSampleRole(selectedRole);
+      navigate(`/game/skills?type=${userType}&role=${selectedRole}&city=${cityId}${isSample ? "&sample=true" : ""}`);
     }
   };
 
@@ -60,12 +83,8 @@ const RoleSelection = () => {
       if (!roleAvail.hasJobs) {
         return { isDisabled: true, reason: "No jobs available" };
       }
-    } else {
-      // Employers can still select - we'll show the sample button
-      if (!roleAvail.hasCandidates) {
-        return { isDisabled: false, reason: "" };
-      }
     }
+    // Employers can always select - sample roles will be marked
 
     return { isDisabled: false, reason: "" };
   };
@@ -117,21 +136,62 @@ const RoleSelection = () => {
           </div>
         )}
 
+        {/* No roles available message */}
+        {!isLoadingAvailability && filteredRoles.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12"
+          >
+            <Briefcase className="w-16 h-16 text-muted-foreground/30 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-foreground mb-2">No roles available</h2>
+            <p className="text-muted-foreground mb-6">
+              There are currently no open roles in {cityName}. Check back later or try another city!
+            </p>
+            <Button onClick={() => navigate(`/city?type=${userType}`)}>
+              Choose Another City
+            </Button>
+          </motion.div>
+        )}
+
         {/* Role Grid */}
-        {!isLoadingAvailability && (
+        {!isLoadingAvailability && filteredRoles.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
             {filteredRoles.map((role, index) => {
               const { isDisabled, reason } = getRoleDisabledStatus(role.id);
+              const isSample = isSampleRole(role.id);
+              const roleAvail = availability[role.id];
+              
               return (
-                <RoleCard
-                  key={role.id}
-                  role={role}
-                  isSelected={selectedRole === role.id}
-                  onClick={() => setSelectedRole(role.id)}
-                  delay={index * 0.05}
-                  isDisabled={isDisabled}
-                  disabledReason={reason}
-                />
+                <div key={role.id} className="relative">
+                  <RoleCard
+                    role={role}
+                    isSelected={selectedRole === role.id}
+                    onClick={() => setSelectedRole(role.id)}
+                    delay={index * 0.05}
+                    isDisabled={isDisabled}
+                    disabledReason={reason}
+                  />
+                  {/* Sample badge for employer view */}
+                  {isSample && (
+                    <Badge 
+                      variant="outline" 
+                      className="absolute top-3 right-3 bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                    >
+                      <FlaskConical className="w-3 h-3 mr-1" />
+                      Sample
+                    </Badge>
+                  )}
+                  {/* Job count badge for candidates */}
+                  {userType === "candidate" && roleAvail?.jobCount && roleAvail.jobCount > 0 && (
+                    <Badge 
+                      variant="secondary" 
+                      className="absolute top-3 right-3"
+                    >
+                      {roleAvail.jobCount} {roleAvail.jobCount === 1 ? "job" : "jobs"}
+                    </Badge>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -164,21 +224,23 @@ const RoleSelection = () => {
         )}
 
         {/* Continue Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="flex justify-center"
-        >
-          <Button
-            variant="hero"
-            size="xl"
-            onClick={handleContinue}
-            disabled={!selectedRole}
+        {filteredRoles.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="flex justify-center"
           >
-            Continue to Skills Game <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </motion.div>
+            <Button
+              variant="hero"
+              size="xl"
+              onClick={handleContinue}
+              disabled={!selectedRole}
+            >
+              Continue to Skills Game <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </motion.div>
+        )}
       </div>
     </div>
   );
