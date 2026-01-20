@@ -20,20 +20,20 @@ export function StatsCard({ title, value, icon: Icon, trend, delay = 0, onClick 
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
       onClick={onClick}
-      className={`bg-card rounded-xl p-6 shadow-card border border-border hover-lift ${onClick ? "cursor-pointer" : ""}`}
+      className={`bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border hover-lift overflow-hidden ${onClick ? "cursor-pointer" : ""}`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
-          <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{title}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground mt-1 sm:mt-2 truncate">{value}</p>
           {trend && (
-            <p className={`text-sm mt-1 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
-              {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}% from last week
+            <p className={`text-xs sm:text-sm mt-1 truncate ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
+              {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
             </p>
           )}
         </div>
-        <div className="p-3 rounded-lg bg-primary/10">
-          <Icon className="w-6 h-6 text-primary" />
+        <div className="p-2 sm:p-3 rounded-lg bg-primary/10 flex-shrink-0">
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         </div>
       </div>
     </motion.div>

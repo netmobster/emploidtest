@@ -131,6 +131,99 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_availability: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          employer_id: string
+          end_time: string
+          id: string
+          start_time: string
+          timezone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          employer_id: string
+          end_time: string
+          id?: string
+          start_time: string
+          timezone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          employer_id?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          timezone?: string | null
+        }
+        Relationships: []
+      }
+      interviews: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          created_by: string
+          duration_minutes: number | null
+          employer_id: string
+          id: string
+          job_id: string | null
+          match_id: string | null
+          meeting_link: string | null
+          notes: string | null
+          scheduled_at: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          created_by: string
+          duration_minutes?: number | null
+          employer_id: string
+          id?: string
+          job_id?: string | null
+          match_id?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          created_by?: string
+          duration_minutes?: number | null
+          employer_id?: string
+          id?: string
+          job_id?: string | null
+          match_id?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applied_at: string | null
