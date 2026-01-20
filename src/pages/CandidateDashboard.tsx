@@ -14,6 +14,7 @@ import { JobRecommendationCard } from "@/components/dashboard/JobRecommendationC
 import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidateProfileDialog";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
+import { GettingStartedBanner } from "@/components/dashboard/GettingStartedBanner";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -52,10 +53,10 @@ export default function CandidateDashboard() {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="px-4 sm:px-6">
           <div className="flex items-center justify-between h-14">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 min-w-0">
               <Logo size="sm" />
-              <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold text-foreground">
+              <div className="hidden sm:block min-w-0">
+                <h1 className="text-lg font-semibold text-foreground truncate">
                   Job Dashboard
                 </h1>
               </div>
@@ -64,23 +65,28 @@ export default function CandidateDashboard() {
         </div>
       </header>
 
-      <main className="px-4 sm:px-6 py-8">
+      <main className="px-4 sm:px-6 py-4 sm:py-8">
+        {/* Getting Started Banner */}
+        {profile && !profileCompletion.isComplete && (
+          <GettingStartedBanner profile={profile} />
+        )}
+
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
             Welcome back, {profile?.full_name?.split(" ")[0] || "there"}!
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Here's an overview of your job search activity.
           </p>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatsCard
             title="Saved Jobs"
             value={stats.savedJobs}
@@ -89,7 +95,7 @@ export default function CandidateDashboard() {
             onClick={() => navigate("/saved-jobs")}
           />
           <StatsCard
-            title="Total Matches"
+            title="Matches"
             value={stats.totalMatches}
             icon={Users}
             delay={0.15}
@@ -112,21 +118,22 @@ export default function CandidateDashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Job Recommendations */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Job Recommendations */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-card rounded-xl p-6 shadow-card border border-border"
+              className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Job Recommendations</h3>
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Job Recommendations</h3>
                 <Button 
                   size="sm" 
                   onClick={() => navigate("/swipe/candidate")}
+                  className="flex-shrink-0"
                 >
                   Browse All
                 </Button>
@@ -167,14 +174,15 @@ export default function CandidateDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="bg-card rounded-xl p-6 shadow-card border border-border"
+              className="bg-card rounded-xl p-4 sm:p-6 shadow-card border border-border overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-foreground">Recent Matches</h3>
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Recent Matches</h3>
                 <Button 
                   variant="ghost"
                   size="sm" 
                   onClick={() => navigate("/matches")}
+                  className="flex-shrink-0"
                 >
                   See All
                 </Button>
@@ -197,10 +205,10 @@ export default function CandidateDashboard() {
                 {matches.slice(0, 5).map((match) => (
                     <div 
                       key={match.id} 
-                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer overflow-hidden"
                       onClick={() => navigate(`/chat/${match.id}`)}
                     >
-                      <Avatar className="w-10 h-10">
+                      <Avatar className="w-10 h-10 flex-shrink-0">
                         <AvatarImage src={match.other_user?.avatar_url || undefined} />
                         <AvatarFallback className="text-xs bg-primary/10 text-primary">
                           {match.other_user?.full_name?.slice(0, 2).toUpperCase() || "??"}
@@ -211,7 +219,7 @@ export default function CandidateDashboard() {
                           {match.other_user?.full_name || "Unknown"}
                         </p>
                       </div>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" className="flex-shrink-0">
                         Chat
                       </Button>
                     </div>
@@ -222,7 +230,7 @@ export default function CandidateDashboard() {
           </div>
 
           {/* Right Column - Quick Actions & Profile Completion */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <ProfileCompletionCard {...profileCompletion} />
             
             {/* Synergy Score Chart */}
@@ -234,41 +242,41 @@ export default function CandidateDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-card rounded-xl p-5 shadow-card border border-border"
+              className="bg-card rounded-xl p-4 sm:p-5 shadow-card border border-border overflow-hidden"
             >
-              <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
+              <h3 className="font-semibold text-foreground mb-4 text-sm sm:text-base">Quick Actions</h3>
               <div className="space-y-2">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm"
                   onClick={() => navigate("/swipe/candidate")}
                 >
-                  <Briefcase className="w-4 h-4 mr-2" />
-                  Browse Jobs
+                  <Briefcase className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Browse Jobs</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm"
                   onClick={() => navigate("/matches")}
                 >
-                  <Users className="w-4 h-4 mr-2" />
-                  View Matches
+                  <Users className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">View Matches</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm"
                   onClick={() => navigate("/applications")}
                 >
-                  <ClipboardList className="w-4 h-4 mr-2" />
-                  Track Applications
+                  <ClipboardList className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Track Applications</span>
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start text-sm"
                   onClick={() => navigate("/game/culture")}
                 >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Update Preferences
+                  <TrendingUp className="w-4 h-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">Update Preferences</span>
                 </Button>
               </div>
             </motion.div>
@@ -278,39 +286,41 @@ export default function CandidateDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
-              className="bg-card rounded-xl p-5 shadow-card border border-border"
+              className="bg-card rounded-xl p-4 sm:p-5 shadow-card border border-border overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-foreground">Your Profile</h3>
-                <div className="flex items-center gap-1">
+              <div className="flex items-center justify-between mb-4 gap-2">
+                <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">Your Profile</h3>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Button 
                     variant="ghost" 
                     size="sm"
                     onClick={() => setPreviewOpen(true)}
+                    className="text-xs px-2"
                   >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Preview
+                    <Eye className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Preview</span>
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="sm"
                     onClick={() => setEditProfileOpen(true)}
+                    className="text-xs px-2"
                   >
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit
+                    <Pencil className="w-4 h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Edit</span>
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 mb-4">
-                <Avatar className="w-14 h-14">
+              <div className="flex items-center gap-3 mb-4 overflow-hidden">
+                <Avatar className="w-12 sm:w-14 h-12 sm:h-14 flex-shrink-0">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                  <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg">
                     {profile?.full_name?.slice(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">{profile?.full_name || "Your Name"}</p>
-                  <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+                  <p className="font-medium text-foreground truncate text-sm sm:text-base">{profile?.full_name || "Your Name"}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{profile?.email}</p>
                   {profile?.bio && (
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
                   )}

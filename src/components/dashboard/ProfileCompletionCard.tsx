@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Circle, Sparkles } from "lucide-react";
+import { Check, Circle, Sparkles, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CompletionItem } from "@/hooks/useProfileCompletion";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
+  TooltipProvider,
 } from "@/components/ui/tooltip";
 
 interface ProfileCompletionCardProps {
@@ -34,7 +35,7 @@ export function ProfileCompletionCard({
   const location = useLocation();
 
   // Calculate stroke dasharray for circular progress
-  const radius = 40;
+  const radius = 36;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
@@ -46,27 +47,27 @@ export function ProfileCompletionCard({
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          Profile Completion
+      <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+        <CardTitle className="text-base sm:text-lg flex items-center gap-2 flex-wrap">
+          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+          <span className="truncate">Profile</span>
           {isComplete && (
-            <Badge className="bg-green-500/20 text-green-600 border-green-500/30 ml-auto">
+            <Badge className="bg-green-500/20 text-green-600 border-green-500/30 ml-auto text-[10px] sm:text-xs">
               <Check className="w-3 h-3 mr-1" />
-              Complete
+              Done
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Circular Progress */}
-        <div className="flex items-center gap-4">
-          <div className="relative w-24 h-24 flex-shrink-0">
-            <svg className="w-24 h-24 transform -rotate-90">
+      <CardContent className="space-y-4 px-3 sm:px-6 pb-3 sm:pb-6">
+        {/* Circular Progress - stacked on mobile */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 88 88">
               {/* Background circle */}
               <circle
-                cx="48"
-                cy="48"
+                cx="44"
+                cy="44"
                 r={radius}
                 stroke="currentColor"
                 strokeWidth="8"
@@ -75,8 +76,8 @@ export function ProfileCompletionCard({
               />
               {/* Progress circle */}
               <circle
-                cx="48"
-                cy="48"
+                cx="44"
+                cy="44"
                 r={radius}
                 stroke="url(#progressGradient)"
                 strokeWidth="8"
@@ -100,54 +101,51 @@ export function ProfileCompletionCard({
               </defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-bold">{percentage}%</span>
+              <span className="text-lg sm:text-2xl font-bold">{percentage}%</span>
             </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-foreground">
+          <div className="flex-1 min-w-0 w-full text-center sm:text-left">
+            <p className="text-xs sm:text-sm font-medium text-foreground line-clamp-2">
               {message}
             </p>
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 space-y-1.5">
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Basic:</span>
-                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <span className="text-muted-foreground font-medium w-10 flex-shrink-0 text-left">Basic</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden min-w-0">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{ width: `${basicPercentage}%` }}
                   />
                 </div>
-                <span className="font-medium text-foreground">{basicPercentage}%</span>
+                <span className="font-medium text-foreground w-8 text-right flex-shrink-0">{basicPercentage}%</span>
               </div>
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-muted-foreground font-medium">Extended:</span>
-                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <span className="text-muted-foreground font-medium w-10 flex-shrink-0 text-left">Extra</span>
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden min-w-0">
                   <div
                     className="h-full bg-accent transition-all"
                     style={{ width: `${extendedPercentage}%` }}
                   />
                 </div>
-                <span className="font-medium text-foreground">{extendedPercentage}%</span>
+                <span className="font-medium text-foreground w-8 text-right flex-shrink-0">{extendedPercentage}%</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Basic Items */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Basic
-            </span>
-            <Badge variant="secondary" className="text-[10px] h-4">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Required
-            </Badge>
+            </span>
           </div>
           {basicItems.map((item) => (
             <button
               key={item.id}
               onClick={() => handleItemClick(item)}
               className={cn(
-                "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors",
+                "w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg text-left transition-colors",
                 item.completed
                   ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
                   : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
@@ -158,56 +156,57 @@ export function ProfileCompletionCard({
               ) : (
                 <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               )}
-              <span className="text-sm flex-1">{item.label}</span>
+              <span className="text-xs sm:text-sm flex-1 min-w-0 truncate">{item.label}</span>
             </button>
           ))}
         </div>
 
         {/* Extended Items */}
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Extended
-            </span>
-            <Badge variant="outline" className="text-[10px] h-4">
+            <span className="text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Optional
-            </Badge>
+            </span>
           </div>
-          {extendedItems.map((item) => (
-            <Tooltip key={item.id}>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => handleItemClick(item)}
-                  disabled={item.comingSoon}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors",
-                    item.comingSoon
-                      ? "bg-muted/50 text-muted-foreground cursor-not-allowed"
-                      : item.completed
-                      ? "bg-accent/10 text-accent-foreground hover:bg-accent/20 cursor-pointer"
-                      : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
-                  )}
-                >
-                  {item.completed ? (
-                    <Check className="h-4 w-4 text-accent flex-shrink-0" />
-                  ) : (
-                    <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  )}
-                  <span className="text-sm flex-1">{item.label}</span>
-                  {item.comingSoon && (
-                    <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
-                      Soon
-                    </span>
-                  )}
-                </button>
-              </TooltipTrigger>
-              {item.comingSoon && (
-                <TooltipContent>
-                  <p>This feature is coming soon!</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          ))}
+          <TooltipProvider>
+            {extendedItems.map((item) => (
+              <Tooltip key={item.id}>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => handleItemClick(item)}
+                    disabled={item.comingSoon}
+                    className={cn(
+                      "w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg text-left transition-colors",
+                      item.comingSoon
+                        ? "bg-muted/50 text-muted-foreground cursor-not-allowed opacity-60"
+                        : item.completed
+                        ? "bg-accent/10 text-accent-foreground hover:bg-accent/20 cursor-pointer"
+                        : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
+                    )}
+                  >
+                    {item.completed ? (
+                      <Check className="h-4 w-4 text-accent flex-shrink-0" />
+                    ) : item.comingSoon ? (
+                      <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    )}
+                    <span className="text-xs sm:text-sm flex-1 min-w-0 truncate">{item.label}</span>
+                    {item.comingSoon && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
+                        Soon
+                      </Badge>
+                    )}
+                  </button>
+                </TooltipTrigger>
+                {item.comingSoon && (
+                  <TooltipContent>
+                    <p>This feature is coming soon!</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            ))}
+          </TooltipProvider>
         </div>
       </CardContent>
     </Card>
