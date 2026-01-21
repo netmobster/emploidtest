@@ -448,6 +448,7 @@ export type Database = {
           availability: string | null
           avatar_url: string | null
           bio: string | null
+          calendly_url: string | null
           company_industry: string | null
           company_location: string | null
           company_name: string | null
@@ -484,6 +485,7 @@ export type Database = {
           availability?: string | null
           avatar_url?: string | null
           bio?: string | null
+          calendly_url?: string | null
           company_industry?: string | null
           company_location?: string | null
           company_name?: string | null
@@ -520,6 +522,7 @@ export type Database = {
           availability?: string | null
           avatar_url?: string | null
           bio?: string | null
+          calendly_url?: string | null
           company_industry?: string | null
           company_location?: string | null
           company_name?: string | null

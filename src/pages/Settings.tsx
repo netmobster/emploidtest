@@ -33,7 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlock } from "@/hooks/useBlock";
 import { toast } from "sonner";
-import { AvailabilityEditor } from "@/components/interviews/AvailabilityEditor";
+import { CalendlyUrlInput } from "@/components/interviews/CalendlyUrlInput";
 
 interface BlockedUser {
   blocked_id: string;
@@ -272,7 +272,7 @@ const Settings = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
-            <AvailabilityEditor />
+            <CalendlyUrlInput />
           </motion.div>
         )}
 
