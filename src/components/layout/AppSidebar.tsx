@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield, User } from "lucide-react";
+import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield, User, Star } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -41,6 +41,7 @@ const employerNavItems = [
   { title: "Dashboard", url: "/employer-dashboard", icon: LayoutDashboard, countKey: null },
   { title: "Swipe", url: "/swipe/employer", icon: Heart, countKey: null },
   { title: "Matches", url: "/matches", icon: MessageCircle, countKey: "unreadMatches" as const },
+  { title: "Shortlists", url: "/shortlists", icon: Star, countKey: null },
   { title: "Settings", url: "/settings", icon: Settings, countKey: null },
 ];
 
