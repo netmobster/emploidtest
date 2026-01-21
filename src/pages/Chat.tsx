@@ -37,7 +37,7 @@ import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 import Logo from "@/components/Logo";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
-import { InterviewScheduler } from "@/components/interviews/InterviewScheduler";
+import { CalendlyScheduler } from "@/components/interviews/CalendlyScheduler";
 
 interface MatchDetails {
   id: string;
@@ -400,7 +400,7 @@ const Chat = () => {
             <DialogTitle>Schedule Interview with {otherUser?.name}</DialogTitle>
           </DialogHeader>
           {match && otherUser && (
-            <InterviewScheduler
+            <CalendlyScheduler
               matchId={match.id}
               jobId={jobInfo?.id}
               employerId={match.employer_id}
