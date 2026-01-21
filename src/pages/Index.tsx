@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Building2, User, ArrowRight } from "lucide-react";
+import { Building2, User, ArrowRight, Loader2 } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSmartRedirect } from "@/hooks/useSmartRedirect";
 import Logo from "@/components/Logo";
 import HowItWorks from "@/components/HowItWorks";
 import ProfileHeader from "@/components/ProfileHeader";
@@ -11,8 +12,37 @@ import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading } = useAuth();
+  const { getLoginRedirect } = useSmartRedirect();
   const [hoveredType, setHoveredType] = useState<UserType | null>(null);
+
+  // Smart redirect for logged-in users
+  useEffect(() => {
+    if (!isLoading && user && profile) {
+      const destination = getLoginRedirect();
+      if (destination) {
+        navigate(destination, { replace: true });
+      }
+    }
+  }, [isLoading, user, profile, getLoginRedirect, navigate]);
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If user is logged in, they'll be redirected - show loading
+  if (user && profile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const handleSelect = (type: UserType) => {
     if (!user) {
