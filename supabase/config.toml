@@ -1,1 +1,4 @@
 project_id = "twvgkepbpapgowvdgife"
+
+[functions.calendly-webhook]
+verify_jwt = false
