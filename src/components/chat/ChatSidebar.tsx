@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { SidebarInterviewSection } from "./SidebarInterviewSection";
+import { useInterviews, Interview } from "@/hooks/useInterviews";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatMatch {
   id: string;
@@ -24,6 +28,21 @@ interface ChatMatch {
     sender_id: string;
     created_at: string;
   }>;
+  job?: {
+    id: string;
+    title: string;
+    company: string;
+  } | null;
+  employer?: {
+    full_name: string | null;
+    avatar_url: string | null;
+    company_name: string | null;
+  } | null;
+  hiringManager?: {
+    name: string;
+    title: string | null;
+    avatar_url: string | null;
+  } | null;
 }
 
 interface ChatSidebarProps {
@@ -34,10 +53,30 @@ interface ChatSidebarProps {
 
 export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarProps) {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [previewMatchId, setPreviewMatchId] = useState<string | null>(null);
+  const { interviews } = useInterviews();
 
   const previewMatch = matches.find((m) => m.id === previewMatchId);
+  const isCandidate = profile?.user_type === "candidate";
+
+  // Get interviews for the preview match
+  const previewInterviews = useMemo(() => {
+    if (!previewMatchId) return [];
+    return interviews.filter((i) => i.match_id === previewMatchId);
+  }, [previewMatchId, interviews]);
+
+  // Build match context for sidebar
+  const matchContext = useMemo(() => {
+    if (!previewMatch) return undefined;
+    return {
+      id: previewMatch.id,
+      job: previewMatch.job,
+      employer: previewMatch.employer,
+      hiringManager: previewMatch.hiringManager,
+    };
+  }, [previewMatch]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -219,9 +258,24 @@ export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarP
               </Button>
             </div>
 
+            {/* Context & Interviews Section */}
+            {isCandidate && (matchContext || previewInterviews.length > 0) && (
+              <>
+                <SidebarInterviewSection
+                  interviews={previewInterviews}
+                  matchContext={matchContext}
+                  isCandidate={isCandidate}
+                />
+                <Separator />
+              </>
+            )}
+
             {/* Recent Messages */}
             <ScrollArea className="flex-1 p-2">
               <div className="space-y-2">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  Recent Messages
+                </p>
                 {previewMatch.messages && previewMatch.messages.length > 0 ? (
                   previewMatch.messages.slice(-5).map((msg) => (
                     <div

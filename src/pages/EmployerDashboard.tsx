@@ -19,6 +19,7 @@ import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionC
 import { CreateJobDialog } from "@/components/dashboard/CreateJobDialog";
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
+import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -204,6 +205,8 @@ export default function EmployerDashboard() {
 
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
+            {/* Upcoming Interviews */}
+            <UpcomingInterviewsCard maxItems={3} />
             <ProfileCompletionCard {...profileCompletion} />
             
             {/* Synergy Score Chart */}
