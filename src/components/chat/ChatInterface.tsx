@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/popover";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { ChatActionsMenu } from "./ChatActionsMenu";
 
 interface Message {
   id: string;
@@ -35,10 +36,18 @@ interface ChatInterfaceProps {
     id: string;
     title: string;
   };
+  matchId?: string;
   isOtherUserOnline?: boolean;
   isOtherUserTyping?: boolean;
   onTyping?: (isTyping: boolean) => void;
   onUnmatch?: () => void;
+  onScheduleInterview?: () => void;
+  onQuickQuestion?: () => void;
+  onRequestDocument?: () => void;
+  onAddToShortlist?: () => void;
+  onAddNote?: () => void;
+  hasCalendly?: boolean;
+  isInShortlist?: boolean;
 }
 
 const TypingIndicator = () => (
@@ -148,10 +157,18 @@ const ChatInterface = ({
   isLoading,
   otherUser,
   jobInfo,
+  matchId,
   isOtherUserOnline = false,
   isOtherUserTyping = false,
   onTyping,
   onUnmatch,
+  onScheduleInterview,
+  onQuickQuestion,
+  onRequestDocument,
+  onAddToShortlist,
+  onAddNote,
+  hasCalendly = false,
+  isInShortlist = false,
 }: ChatInterfaceProps) => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -354,7 +371,20 @@ const ChatInterface = ({
 
       {/* Input */}
       <form onSubmit={handleSubmit} className="p-4 border-t border-border">
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Actions Menu */}
+          {onScheduleInterview && (
+            <ChatActionsMenu
+              onScheduleInterview={onScheduleInterview}
+              onQuickQuestion={onQuickQuestion || (() => {})}
+              onRequestDocument={onRequestDocument || (() => {})}
+              onAddToShortlist={onAddToShortlist || (() => {})}
+              onAddNote={onAddNote || (() => {})}
+              hasCalendly={hasCalendly}
+              isInShortlist={isInShortlist}
+              jobId={jobInfo?.id}
+            />
+          )}
           <Input
             ref={inputRef}
             value={inputValue}
