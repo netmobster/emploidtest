@@ -1,5 +1,5 @@
-import { useLocation } from "react-router-dom";
-import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield, User } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -20,6 +20,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -41,6 +48,7 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
   const { profile, user } = useAuth();
   const { isSuperAdmin } = useAdminAccess();
   const { counts } = useSidebarCounts();
@@ -55,6 +63,13 @@ export function AppSidebar() {
     if (error) {
       toast.error("Failed to log out");
     }
+  };
+
+  const getViewProfileRoute = () => {
+    if (profile?.user_type === "employer") {
+      return `/company/${user?.id}`;
+    }
+    return `/candidate/${user?.id}`;
   };
 
   const getCount = (countKey: "unreadMatches" | null) => {
@@ -138,34 +153,43 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {user && (
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={profile?.avatar_url || undefined} />
-              <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                {profile?.full_name?.slice(0, 2).toUpperCase() || "??"}
-              </AvatarFallback>
-            </Avatar>
-            {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-sidebar-foreground truncate">
-                  {profile?.full_name || "User"}
-                </p>
-                <p className="text-xs text-sidebar-foreground/60 truncate">
-                  {profile?.email}
-                </p>
-              </div>
-            )}
-            {!collapsed && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground"
-                onClick={handleLogout}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-3 w-full hover:bg-sidebar-accent/50 rounded-lg p-1 -m-1 transition-colors">
+                <Avatar className="h-9 w-9">
+                  <AvatarImage src={profile?.avatar_url || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                    {profile?.full_name?.slice(0, 2).toUpperCase() || "??"}
+                  </AvatarFallback>
+                </Avatar>
+                {!collapsed && (
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">
+                      {profile?.full_name || "User"}
+                    </p>
+                    <p className="text-xs text-sidebar-foreground/60 truncate">
+                      {profile?.email}
+                    </p>
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-48">
+              <DropdownMenuItem onClick={() => navigate(getViewProfileRoute())}>
+                <User className="h-4 w-4 mr-2" />
+                View Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                <LogOut className="h-4 w-4 mr-2" />
+                Log Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </SidebarFooter>
     </Sidebar>

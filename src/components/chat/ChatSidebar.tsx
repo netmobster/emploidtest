@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, MessageCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 
 interface ChatMatch {
   id: string;
@@ -19,6 +18,12 @@ interface ChatMatch {
     created_at: string;
   };
   unread_count?: number;
+  messages?: Array<{
+    id: string;
+    content: string;
+    sender_id: string;
+    created_at: string;
+  }>;
 }
 
 interface ChatSidebarProps {
@@ -30,6 +35,9 @@ interface ChatSidebarProps {
 export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarProps) {
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [previewMatchId, setPreviewMatchId] = useState<string | null>(null);
+
+  const previewMatch = matches.find((m) => m.id === previewMatchId);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -46,114 +54,218 @@ export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarP
     return date.toLocaleDateString();
   };
 
+  const formatMessageTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
     <motion.div
       initial={false}
-      animate={{ width: isCollapsed ? 56 : 280 }}
+      animate={{ width: isCollapsed ? 56 : previewMatchId ? 480 : 280 }}
       transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="h-full border-r border-border bg-sidebar flex flex-col"
+      className="h-full border-r border-border bg-sidebar flex"
     >
-      {/* Header */}
-      <div className="p-3 border-b border-border flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <MessageCircle className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sidebar-foreground">Chats</span>
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
-
       {/* Chat List */}
-      <ScrollArea className="flex-1">
-        <div className="p-2">
-          <AnimatePresence mode="popLayout">
-            {matches.map((match) => {
-              const isActive = match.id === currentMatchId;
-              const hasUnread = (match.unread_count || 0) > 0;
-
-              return (
-                <motion.button
-                  key={match.id}
-                  layout
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  onClick={() => navigate(`/chat/${match.id}`)}
-                  className={cn(
-                    "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "hover:bg-sidebar-accent/50"
-                  )}
-                >
-                  {/* Avatar */}
-                  <div className="relative flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
-                      {match.other_user?.avatar_url ? (
-                        <img
-                          src={match.other_user.avatar_url}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        match.other_user?.full_name?.charAt(0) || "?"
-                      )}
-                    </div>
-                    {hasUnread && (
-                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
-                        {match.unread_count! > 9 ? "9+" : match.unread_count}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Info - hidden when collapsed */}
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0 text-left">
-                      <div className="flex items-center justify-between">
-                        <span className={cn(
-                          "font-medium truncate text-sm",
-                          hasUnread && "font-semibold"
-                        )}>
-                          {match.other_user?.full_name || "Unknown"}
-                        </span>
-                        {match.last_message && (
-                          <span className="text-xs text-muted-foreground flex-shrink-0">
-                            {formatTime(match.last_message.created_at)}
-                          </span>
-                        )}
-                      </div>
-                      <p className={cn(
-                        "text-xs truncate mt-0.5",
-                        hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
-                      )}>
-                        {match.last_message?.content || "Start chatting!"}
-                      </p>
-                    </div>
-                  )}
-                </motion.button>
-              );
-            })}
-          </AnimatePresence>
-
-          {matches.length === 0 && !isLoading && !isCollapsed && (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              No chats yet
+      <div className={cn("flex flex-col", isCollapsed ? "w-14" : "w-[280px]")}>
+        {/* Header */}
+        <div className="p-3 border-b border-border flex items-center justify-between">
+          {!isCollapsed && (
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-sidebar-foreground">Chats</span>
             </div>
           )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => {
+              setIsCollapsed(!isCollapsed);
+              if (!isCollapsed) setPreviewMatchId(null);
+            }}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
         </div>
-      </ScrollArea>
+
+        {/* Chat List */}
+        <ScrollArea className="flex-1">
+          <div className="p-2">
+            <AnimatePresence mode="popLayout">
+              {matches.map((match) => {
+                const isActive = match.id === currentMatchId;
+                const hasUnread = (match.unread_count || 0) > 0;
+                const isPreview = match.id === previewMatchId;
+
+                return (
+                  <motion.button
+                    key={match.id}
+                    layout
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    onClick={() => navigate(`/chat/${match.id}`)}
+                    onMouseEnter={() => !isCollapsed && setPreviewMatchId(match.id)}
+                    className={cn(
+                      "w-full flex items-center gap-3 p-2 rounded-lg transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : isPreview
+                        ? "bg-sidebar-accent/50"
+                        : "hover:bg-sidebar-accent/50"
+                    )}
+                  >
+                    {/* Avatar */}
+                    <div className="relative flex-shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                        {match.other_user?.avatar_url ? (
+                          <img
+                            src={match.other_user.avatar_url}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          match.other_user?.full_name?.charAt(0) || "?"
+                        )}
+                      </div>
+                      {hasUnread && (
+                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+                          {match.unread_count! > 9 ? "9+" : match.unread_count}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Info - hidden when collapsed */}
+                    {!isCollapsed && (
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="flex items-center justify-between">
+                          <span className={cn(
+                            "font-medium truncate text-sm",
+                            hasUnread && "font-semibold"
+                          )}>
+                            {match.other_user?.full_name || "Unknown"}
+                          </span>
+                          {match.last_message && (
+                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                              {formatTime(match.last_message.created_at)}
+                            </span>
+                          )}
+                        </div>
+                        <p className={cn(
+                          "text-xs truncate mt-0.5",
+                          hasUnread ? "text-foreground font-medium" : "text-muted-foreground"
+                        )}>
+                          {match.last_message?.content || "Start chatting!"}
+                        </p>
+                      </div>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </AnimatePresence>
+
+            {matches.length === 0 && !isLoading && !isCollapsed && (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No chats yet
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* Preview Panel */}
+      <AnimatePresence>
+        {previewMatchId && previewMatch && !isCollapsed && (
+          <motion.div
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: 200 }}
+            exit={{ opacity: 0, width: 0 }}
+            className="border-l border-border flex flex-col bg-background overflow-hidden"
+            onMouseLeave={() => setPreviewMatchId(null)}
+          >
+            {/* Preview Header */}
+            <div className="p-3 border-b border-border flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-xs font-bold text-primary overflow-hidden flex-shrink-0">
+                  {previewMatch.other_user?.avatar_url ? (
+                    <img
+                      src={previewMatch.other_user.avatar_url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    previewMatch.other_user?.full_name?.charAt(0) || "?"
+                  )}
+                </div>
+                <span className="text-sm font-medium truncate">
+                  {previewMatch.other_user?.full_name || "Unknown"}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 flex-shrink-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewMatchId(null);
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+
+            {/* Recent Messages */}
+            <ScrollArea className="flex-1 p-2">
+              <div className="space-y-2">
+                {previewMatch.messages && previewMatch.messages.length > 0 ? (
+                  previewMatch.messages.slice(-5).map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="text-xs p-2 rounded bg-muted/50"
+                    >
+                      <p className="text-muted-foreground line-clamp-2">
+                        {msg.content}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground/60 mt-1">
+                        {formatMessageTime(msg.created_at)}
+                      </p>
+                    </div>
+                  ))
+                ) : previewMatch.last_message ? (
+                  <div className="text-xs p-2 rounded bg-muted/50">
+                    <p className="text-muted-foreground line-clamp-3">
+                      {previewMatch.last_message.content}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1">
+                      {formatMessageTime(previewMatch.last_message.created_at)}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground text-center py-4">
+                    No messages yet
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+
+            {/* Open Chat Button */}
+            <div className="p-2 border-t border-border">
+              <Button
+                size="sm"
+                className="w-full text-xs"
+                onClick={() => navigate(`/chat/${previewMatch.id}`)}
+              >
+                Open Chat
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

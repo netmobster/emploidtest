@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Bell, UserX, Mail, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, Bell, UserX, Mail, ChevronRight, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -33,6 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBlock } from "@/hooks/useBlock";
 import { toast } from "sonner";
+import { AvailabilityEditor } from "@/components/interviews/AvailabilityEditor";
 
 interface BlockedUser {
   blocked_id: string;
@@ -263,6 +264,17 @@ const Settings = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Interview Availability - Employers Only */}
+        {profile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <AvailabilityEditor />
+          </motion.div>
+        )}
 
         {/* Blocked Users */}
         <motion.div
