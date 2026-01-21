@@ -33,11 +33,17 @@ import { useChat } from "@/hooks/useChat";
 import { useUnmatch } from "@/hooks/useUnmatch";
 import { useBlock } from "@/hooks/useBlock";
 import { useChatPresence } from "@/hooks/useChatPresence";
+import { useShortlist } from "@/hooks/useShortlist";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 import Logo from "@/components/Logo";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
 import { CalendlyScheduler } from "@/components/interviews/CalendlyScheduler";
+import { QuickQuestionsDialog } from "@/components/chat/QuickQuestionsDialog";
+import { RequestDocumentDialog } from "@/components/chat/RequestDocumentDialog";
+import { AddNoteDialog } from "@/components/chat/AddNoteDialog";
+import { AddToShortlistDialog } from "@/components/chat/AddToShortlistDialog";
+import { CalendlyPromptDialog } from "@/components/chat/CalendlyPromptDialog";
 
 interface MatchDetails {
   id: string;
@@ -72,12 +78,20 @@ const Chat = () => {
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [showQuickQuestionsDialog, setShowQuickQuestionsDialog] = useState(false);
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false);
+  const [showNoteDialog, setShowNoteDialog] = useState(false);
+  const [showShortlistDialog, setShowShortlistDialog] = useState(false);
+  const [showCalendlyPrompt, setShowCalendlyPrompt] = useState(false);
+  const [hasCalendly, setHasCalendly] = useState(false);
+  const [isInShortlist, setIsInShortlist] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
   const { blockUser, isBlocking } = useBlock();
   const { isOtherUserOnline, isOtherUserTyping, setTyping } = useChatPresence(matchId || "");
+  const { isInShortlist: checkShortlist } = useShortlist();
 
   // Fetch match and other user details
   useEffect(() => {
@@ -141,7 +155,31 @@ const Chat = () => {
               title: jobData.title,
               roleId: jobData.role_id,
             });
+
+            // Check if candidate is in shortlist for this job (employer only)
+            if (isEmployer && otherUserId) {
+              const inShortlist = await checkShortlist(jobData.id, otherUserId);
+              setIsInShortlist(inShortlist);
+            }
           }
+        }
+
+        // Check if employer has Calendly configured
+        if (isEmployer) {
+          const { data: myProfile } = await supabase
+            .from("profiles")
+            .select("calendly_url")
+            .eq("user_id", user.id)
+            .single();
+          setHasCalendly(!!myProfile?.calendly_url);
+        } else {
+          // For candidates, check employer's Calendly
+          const { data: employerProfile } = await supabase
+            .from("profiles")
+            .select("calendly_url")
+            .eq("user_id", matchData.employer_id)
+            .single();
+          setHasCalendly(!!employerProfile?.calendly_url);
         }
       } catch (error) {
         console.error("Error fetching match details:", error);
@@ -151,7 +189,7 @@ const Chat = () => {
     };
 
     fetchMatchDetails();
-  }, [matchId, user, profile]);
+  }, [matchId, user, profile, checkShortlist]);
 
   const handleUnmatch = async () => {
     if (!matchId) return;
@@ -333,10 +371,18 @@ const Chat = () => {
           isLoading={isLoading}
           otherUser={otherUser ? { id: otherUser.id, name: otherUser.name, avatar: otherUser.avatar, type: otherUser.type } : undefined}
           jobInfo={jobInfo ? { id: jobInfo.id, title: jobInfo.title } : undefined}
+          matchId={matchId}
           isOtherUserOnline={isOtherUserOnline}
           isOtherUserTyping={isOtherUserTyping}
           onTyping={setTyping}
           onUnmatch={() => setShowUnmatchDialog(true)}
+          onScheduleInterview={() => hasCalendly ? setShowScheduleDialog(true) : setShowCalendlyPrompt(true)}
+          onQuickQuestion={() => setShowQuickQuestionsDialog(true)}
+          onRequestDocument={() => setShowDocumentDialog(true)}
+          onAddToShortlist={() => setShowShortlistDialog(true)}
+          onAddNote={() => setShowNoteDialog(true)}
+          hasCalendly={hasCalendly}
+          isInShortlist={isInShortlist}
         />
       </div>
 
@@ -410,6 +456,55 @@ const Chat = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Calendly Prompt Dialog */}
+      <CalendlyPromptDialog
+        isOpen={showCalendlyPrompt}
+        onClose={() => setShowCalendlyPrompt(false)}
+        onSuccess={() => {
+          setShowCalendlyPrompt(false);
+          setHasCalendly(true);
+          setShowScheduleDialog(true);
+        }}
+      />
+
+      {/* Quick Questions Dialog */}
+      <QuickQuestionsDialog
+        isOpen={showQuickQuestionsDialog}
+        onClose={() => setShowQuickQuestionsDialog(false)}
+        onSelectQuestion={(question) => sendMessage(question)}
+      />
+
+      {/* Request Document Dialog */}
+      {matchId && (
+        <RequestDocumentDialog
+          isOpen={showDocumentDialog}
+          onClose={() => setShowDocumentDialog(false)}
+          matchId={matchId}
+          candidateName={otherUser?.name}
+        />
+      )}
+
+      {/* Add Note Dialog */}
+      {matchId && (
+        <AddNoteDialog
+          isOpen={showNoteDialog}
+          onClose={() => setShowNoteDialog(false)}
+          matchId={matchId}
+          candidateName={otherUser?.name}
+        />
+      )}
+
+      {/* Add to Shortlist Dialog */}
+      {otherUser && (
+        <AddToShortlistDialog
+          isOpen={showShortlistDialog}
+          onClose={() => setShowShortlistDialog(false)}
+          candidateId={otherUser.id}
+          candidateName={otherUser.name}
+          defaultJobId={jobInfo?.id}
+        />
+      )}
     </div>
   );
 };
