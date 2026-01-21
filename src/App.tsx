@@ -35,6 +35,7 @@ import Settings from "./pages/Settings";
 import SynergyScoreQuiz from "./pages/SynergyScoreQuiz";
 import SavedJobs from "./pages/SavedJobs";
 import ApplicationTracker from "./pages/ApplicationTracker";
+import Shortlists from "./pages/Shortlists";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -83,6 +84,7 @@ const App = () => (
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/saved-jobs" element={<SavedJobs />} />
                 <Route path="/applications" element={<ApplicationTracker />} />
+                <Route path="/shortlists" element={<Shortlists />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />

@@ -173,15 +173,26 @@ export function ShortlistsSettings() {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-          <Star className="w-5 h-5 text-primary" />
-          Shortlists by Role
-          {totalShortlisted > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {totalShortlisted} candidate{totalShortlisted !== 1 ? "s" : ""}
-            </Badge>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <Star className="w-5 h-5 text-primary" />
+            Shortlists by Role
+            {totalShortlisted > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {totalShortlisted} candidate{totalShortlisted !== 1 ? "s" : ""}
+              </Badge>
+            )}
+          </CardTitle>
+          {totalShortlisted >= 2 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/shortlists")}
+            >
+              Compare Candidates
+            </Button>
           )}
-        </CardTitle>
+        </div>
         <p className="text-sm text-muted-foreground">
           View and manage candidates you've shortlisted for each role
         </p>
