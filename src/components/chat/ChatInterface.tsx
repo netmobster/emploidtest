@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { ChatActionsMenu } from "./ChatActionsMenu";
+import { DocumentRequestBanner } from "./DocumentRequestBanner";
 
 interface Message {
   id: string;
@@ -263,6 +264,14 @@ const ChatInterface = ({
 
   return (
     <div className="flex flex-col h-full">
+      {/* Document Request Banner for Candidates */}
+      {matchId && (
+        <DocumentRequestBanner
+          matchId={matchId}
+          currentUserId={user?.id || ""}
+        />
+      )}
+
       {/* Online Status Bar */}
       <div className="px-4 py-2 border-b border-border flex items-center gap-2">
         <span

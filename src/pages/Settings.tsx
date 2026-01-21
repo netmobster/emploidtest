@@ -34,6 +34,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBlock } from "@/hooks/useBlock";
 import { toast } from "sonner";
 import { CalendlyUrlInput } from "@/components/interviews/CalendlyUrlInput";
+import { QuickQuestionsSettings } from "@/components/settings/QuickQuestionsSettings";
+import { ShortlistsSettings } from "@/components/settings/ShortlistsSettings";
 
 interface BlockedUser {
   blocked_id: string;
@@ -273,6 +275,28 @@ const Settings = () => {
             transition={{ delay: 0.15 }}
           >
             <CalendlyUrlInput />
+          </motion.div>
+        )}
+
+        {/* Quick Questions - Employers Only */}
+        {profile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <QuickQuestionsSettings />
+          </motion.div>
+        )}
+
+        {/* Shortlists - Employers Only */}
+        {profile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <ShortlistsSettings />
           </motion.div>
         )}
 
