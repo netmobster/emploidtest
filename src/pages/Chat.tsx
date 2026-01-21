@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -21,6 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat } from "@/hooks/useChat";
@@ -31,6 +37,7 @@ import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 import Logo from "@/components/Logo";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
+import { InterviewScheduler } from "@/components/interviews/InterviewScheduler";
 
 interface MatchDetails {
   id: string;
@@ -64,6 +71,7 @@ const Chat = () => {
   const [isLoadingMatch, setIsLoadingMatch] = useState(true);
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
@@ -276,6 +284,12 @@ const Chat = () => {
                     View Role: {jobInfo.title}
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  onClick={() => setShowScheduleDialog(true)}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule Interview
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => setShowUnmatchDialog(true)}
@@ -378,6 +392,24 @@ const Chat = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Schedule Interview Dialog */}
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Interview with {otherUser?.name}</DialogTitle>
+          </DialogHeader>
+          {match && otherUser && (
+            <InterviewScheduler
+              matchId={match.id}
+              jobId={jobInfo?.id}
+              employerId={match.employer_id}
+              candidateId={match.candidate_id}
+              onScheduled={() => setShowScheduleDialog(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { useCandidateStats } from "@/hooks/useCandidateStats";
 import { useJobRecommendations } from "@/hooks/useJobRecommendations";
 import { useMatches } from "@/hooks/useMatches";
 import { useProfileCompletion } from "@/hooks/useProfileCompletion";
+import { useProfileMilestones } from "@/hooks/useProfileMilestones";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { SynergyScoreChart } from "@/components/dashboard/SynergyScoreChart";
 import { Category } from "@/data/questions";
@@ -28,6 +29,9 @@ export default function CandidateDashboard() {
   const profileCompletion = useProfileCompletion(profile);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  
+  // Track profile completion milestones
+  useProfileMilestones(profileCompletion.percentage);
 
   useEffect(() => {
     if (!authLoading && !user) {

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface Notification {
   id: string;
@@ -51,7 +52,7 @@ export const useNotifications = () => {
 
     fetchNotifications();
 
-    // Subscribe to new notifications
+    // Subscribe to new notifications - real-time for likes and messages
     const channel = supabase
       .channel(`notifications-${user.id}`)
       .on(
@@ -66,6 +67,24 @@ export const useNotifications = () => {
           const newNotification = payload.new as Notification;
           setNotifications((prev) => [newNotification, ...prev]);
           setUnreadCount((prev) => prev + 1);
+
+          // Show real-time toast for important notifications
+          if (newNotification.type === "new_match") {
+            toast.success(newNotification.title, {
+              description: newNotification.body || "You have a new match!",
+              icon: "💜",
+            });
+          } else if (newNotification.type === "new_message") {
+            toast(newNotification.title, {
+              description: newNotification.body || "You have a new message",
+              icon: "💬",
+            });
+          } else if (newNotification.type === "like_received") {
+            toast(newNotification.title, {
+              description: newNotification.body || "Someone liked your profile!",
+              icon: "👀",
+            });
+          }
         }
       )
       .subscribe();
