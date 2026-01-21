@@ -16,6 +16,7 @@ import { EditCandidateProfileDialog } from "@/components/dashboard/EditCandidate
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { GettingStartedBanner } from "@/components/dashboard/GettingStartedBanner";
+import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -235,6 +236,8 @@ export default function CandidateDashboard() {
 
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-4 sm:space-y-6">
+            {/* Upcoming Interviews */}
+            <UpcomingInterviewsCard maxItems={3} />
             <ProfileCompletionCard {...profileCompletion} />
             
             {/* Synergy Score Chart */}
