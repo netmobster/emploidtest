@@ -13,6 +13,7 @@ import { SynergyScoreChart } from "@/components/dashboard/SynergyScoreChart";
 import { Category } from "@/data/questions";
 import { JobCard } from "@/components/dashboard/JobCard";
 import { ActivityItem } from "@/components/dashboard/ActivityItem";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { QuickActionsPanel } from "@/components/dashboard/QuickActionsPanel";
 import { CompanyDetailsPanel } from "@/components/dashboard/CompanyDetailsPanel";
 import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionCard";
@@ -73,10 +74,20 @@ export default function EmployerDashboard() {
       </header>
 
       <main className="px-4 sm:px-6 py-8">
+        {/* Activity Digest */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6"
+        >
+          <ActivityFeed userType="employer" />
+        </motion.div>
+
         {/* Welcome Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="mb-8"
         >
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground">

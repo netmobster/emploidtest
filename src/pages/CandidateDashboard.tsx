@@ -17,6 +17,7 @@ import { ProfileCompletionCard } from "@/components/dashboard/ProfileCompletionC
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { GettingStartedBanner } from "@/components/dashboard/GettingStartedBanner";
 import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -71,6 +72,15 @@ export default function CandidateDashboard() {
       </header>
 
       <main className="px-4 sm:px-6 py-4 sm:py-8">
+        {/* Activity Digest */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 sm:mb-6"
+        >
+          <ActivityFeed userType="candidate" />
+        </motion.div>
+
         {/* Getting Started Banner */}
         {profile && !profileCompletion.isComplete && (
           <GettingStartedBanner profile={profile} />
@@ -80,6 +90,7 @@ export default function CandidateDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="mb-6 sm:mb-8"
         >
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">

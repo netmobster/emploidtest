@@ -89,6 +89,80 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_card_preferences: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          employer_id: string
+          field_key: string
+          id: string
+          is_pinned: boolean | null
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          employer_id: string
+          field_key: string
+          id?: string
+          is_pinned?: boolean | null
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          employer_id?: string
+          field_key?: string
+          id?: string
+          is_pinned?: boolean | null
+        }
+        Relationships: []
+      }
+      document_requests: {
+        Row: {
+          created_at: string
+          custom_label: string | null
+          document_type: string
+          file_url: string | null
+          id: string
+          match_id: string
+          notes: string | null
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_label?: string | null
+          document_type: string
+          file_url?: string | null
+          id?: string
+          match_id: string
+          notes?: string | null
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_label?: string | null
+          document_type?: string
+          file_url?: string | null
+          id?: string
+          match_id?: string
+          notes?: string | null
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requests_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hiring_team_members: {
         Row: {
           avatar_url: string | null
@@ -130,6 +204,41 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      internal_notes: {
+        Row: {
+          content: string
+          created_at: string
+          employer_id: string
+          id: string
+          match_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          match_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          match_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_notes_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       interview_availability: {
         Row: {
@@ -468,9 +577,11 @@ export type Database = {
           has_completed_work_love_language: boolean | null
           id: string
           job_title: string | null
+          last_login_at: string | null
           linkedin_url: string | null
           location: string | null
           portfolio_url: string | null
+          previous_login_at: string | null
           remote_preference: string | null
           resume_url: string | null
           skills: string[] | null
@@ -505,9 +616,11 @@ export type Database = {
           has_completed_work_love_language?: boolean | null
           id?: string
           job_title?: string | null
+          last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           portfolio_url?: string | null
+          previous_login_at?: string | null
           remote_preference?: string | null
           resume_url?: string | null
           skills?: string[] | null
@@ -542,9 +655,11 @@ export type Database = {
           has_completed_work_love_language?: boolean | null
           id?: string
           job_title?: string | null
+          last_login_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           portfolio_url?: string | null
+          previous_login_at?: string | null
           remote_preference?: string | null
           resume_url?: string | null
           skills?: string[] | null
@@ -554,6 +669,36 @@ export type Database = {
           user_type?: string
           website_url?: string | null
           years_of_experience?: string | null
+        }
+        Relationships: []
+      }
+      quick_question_templates: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          employer_id: string | null
+          id: string
+          is_default: boolean | null
+          question_text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          employer_id?: string | null
+          id?: string
+          is_default?: boolean | null
+          question_text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          employer_id?: string | null
+          id?: string
+          is_default?: boolean | null
+          question_text?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -579,6 +724,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shortlists: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          employer_id: string
+          id: string
+          job_id: string
+          notes: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          job_id: string
+          notes?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shortlists_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
