@@ -8,7 +8,7 @@ import {
   Star,
   StickyNote,
   X,
-  Settings,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,12 +20,20 @@ interface ChatActionsMenuProps {
   onRequestDocument: () => void;
   onAddToShortlist: () => void;
   onAddNote: () => void;
+  onGetToKnow: () => void;
   hasCalendly?: boolean;
   isInShortlist?: boolean;
   jobId?: string;
 }
 
 const actions = [
+  {
+    id: "gettoknow",
+    icon: Sparkles,
+    label: "Get to Know Candidate",
+    color: "bg-violet-500",
+    employerOnly: true,
+  },
   {
     id: "schedule",
     icon: Calendar,
@@ -69,6 +77,7 @@ export function ChatActionsMenu({
   onRequestDocument,
   onAddToShortlist,
   onAddNote,
+  onGetToKnow,
   hasCalendly = false,
   isInShortlist = false,
   jobId,
@@ -81,6 +90,9 @@ export function ChatActionsMenu({
   const handleAction = (actionId: string) => {
     setIsOpen(false);
     switch (actionId) {
+      case "gettoknow":
+        onGetToKnow();
+        break;
       case "schedule":
         onScheduleInterview();
         break;

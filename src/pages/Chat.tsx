@@ -34,6 +34,8 @@ import { useUnmatch } from "@/hooks/useUnmatch";
 import { useBlock } from "@/hooks/useBlock";
 import { useChatPresence } from "@/hooks/useChatPresence";
 import { useShortlist } from "@/hooks/useShortlist";
+import { useQuizRequests } from "@/hooks/useQuizRequests";
+import { useInterviewInsights } from "@/hooks/useInterviewInsights";
 import ChatInterface from "@/components/chat/ChatInterface";
 import ProfileHeader from "@/components/ProfileHeader";
 import Logo from "@/components/Logo";
@@ -44,6 +46,11 @@ import { RequestDocumentDialog } from "@/components/chat/RequestDocumentDialog";
 import { AddNoteDialog } from "@/components/chat/AddNoteDialog";
 import { AddToShortlistDialog } from "@/components/chat/AddToShortlistDialog";
 import { CalendlyPromptDialog } from "@/components/chat/CalendlyPromptDialog";
+import { GetToKnowDialog } from "@/components/chat/GetToKnowDialog";
+import { QuizChatbot } from "@/components/chat/QuizChatbot";
+import { QuizMessageCard } from "@/components/chat/QuizMessageCard";
+import { QuizSummaryCard } from "@/components/chat/QuizSummaryCard";
+import { toast } from "sonner";
 
 interface MatchDetails {
   id: string;
@@ -83,6 +90,13 @@ const Chat = () => {
   const [showNoteDialog, setShowNoteDialog] = useState(false);
   const [showShortlistDialog, setShowShortlistDialog] = useState(false);
   const [showCalendlyPrompt, setShowCalendlyPrompt] = useState(false);
+  const [showGetToKnowDialog, setShowGetToKnowDialog] = useState(false);
+  const [showQuizChatbot, setShowQuizChatbot] = useState(false);
+  const [activeQuiz, setActiveQuiz] = useState<{
+    id: string;
+    questions: { id: string; question: string; category: string }[];
+    employerName: string;
+  } | null>(null);
   const [hasCalendly, setHasCalendly] = useState(false);
   const [isInShortlist, setIsInShortlist] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
@@ -92,6 +106,8 @@ const Chat = () => {
   const { blockUser, isBlocking } = useBlock();
   const { isOtherUserOnline, isOtherUserTyping, setTyping } = useChatPresence(matchId || "");
   const { isInShortlist: checkShortlist } = useShortlist();
+  const { pendingQuizzes, sendQuiz, completeQuiz } = useQuizRequests(matchId);
+  const { insights, saveInsights } = useInterviewInsights(matchId);
 
   // Fetch match and other user details
   useEffect(() => {
@@ -207,6 +223,33 @@ const Chat = () => {
       navigate("/matches");
     }
     setShowBlockDialog(false);
+  };
+
+  const handleSendQuiz = async (questions: { id: string; question: string; category: string }[]) => {
+    if (!match || !otherUser || !profile) return;
+    const result = await sendQuiz(otherUser.id, profile.full_name || "Employer", questions);
+    if (result) {
+      await sendMessage(`📋 I've sent you a quick Get-to-Know-You quiz! Check below to start.`);
+    }
+  };
+
+  const handleQuizComplete = async (responses: { questionId: string; question: string; answer: string }[]) => {
+    if (!match || !activeQuiz || !user) return;
+    
+    await saveInsights(
+      match.id,
+      match.candidate_id,
+      match.employer_id,
+      activeQuiz.questions,
+      responses
+    );
+    
+    await completeQuiz(activeQuiz.id);
+    await sendMessage(`✅ I've completed the Get-to-Know-You quiz! Check the summary above.`);
+    
+    setShowQuizChatbot(false);
+    setActiveQuiz(null);
+    toast.success("Quiz completed!");
   };
 
   if (isLoadingMatch) {
@@ -381,6 +424,7 @@ const Chat = () => {
           onRequestDocument={() => setShowDocumentDialog(true)}
           onAddToShortlist={() => setShowShortlistDialog(true)}
           onAddNote={() => setShowNoteDialog(true)}
+          onGetToKnow={() => setShowGetToKnowDialog(true)}
           hasCalendly={hasCalendly}
           isInShortlist={isInShortlist}
         />
@@ -503,6 +547,25 @@ const Chat = () => {
           candidateId={otherUser.id}
           candidateName={otherUser.name}
           defaultJobId={jobInfo?.id}
+        />
+      )}
+
+      {/* Get to Know Dialog */}
+      <GetToKnowDialog
+        isOpen={showGetToKnowDialog}
+        onClose={() => setShowGetToKnowDialog(false)}
+        onSendQuiz={handleSendQuiz}
+        candidateName={otherUser?.name}
+      />
+
+      {/* Quiz Chatbot */}
+      {activeQuiz && (
+        <QuizChatbot
+          isOpen={showQuizChatbot}
+          onClose={() => setShowQuizChatbot(false)}
+          employerName={activeQuiz.employerName}
+          questions={activeQuiz.questions}
+          onComplete={handleQuizComplete}
         />
       )}
     </div>
