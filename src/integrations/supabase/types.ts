@@ -270,6 +270,47 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_insights: {
+        Row: {
+          candidate_id: string
+          completed_at: string
+          created_at: string
+          employer_id: string
+          id: string
+          match_id: string
+          questions: Json
+          responses: Json
+        }
+        Insert: {
+          candidate_id: string
+          completed_at?: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          match_id: string
+          questions: Json
+          responses: Json
+        }
+        Update: {
+          candidate_id?: string
+          completed_at?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          match_id?: string
+          questions?: Json
+          responses?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_insights_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           candidate_id: string
@@ -701,6 +742,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      quiz_requests: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          employer_id: string
+          employer_name: string
+          id: string
+          match_id: string
+          questions: Json
+          status: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          employer_id: string
+          employer_name: string
+          id?: string
+          match_id: string
+          questions: Json
+          status?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          employer_id?: string
+          employer_name?: string
+          id?: string
+          match_id?: string
+          questions?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_requests_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_jobs: {
         Row: {

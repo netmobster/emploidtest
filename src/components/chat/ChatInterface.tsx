@@ -47,6 +47,7 @@ interface ChatInterfaceProps {
   onRequestDocument?: () => void;
   onAddToShortlist?: () => void;
   onAddNote?: () => void;
+  onGetToKnow?: () => void;
   hasCalendly?: boolean;
   isInShortlist?: boolean;
 }
@@ -168,6 +169,7 @@ const ChatInterface = ({
   onRequestDocument,
   onAddToShortlist,
   onAddNote,
+  onGetToKnow,
   hasCalendly = false,
   isInShortlist = false,
 }: ChatInterfaceProps) => {
@@ -389,6 +391,7 @@ const ChatInterface = ({
               onRequestDocument={onRequestDocument || (() => {})}
               onAddToShortlist={onAddToShortlist || (() => {})}
               onAddNote={onAddNote || (() => {})}
+              onGetToKnow={onGetToKnow || (() => {})}
               hasCalendly={hasCalendly}
               isInShortlist={isInShortlist}
               jobId={jobInfo?.id}
