@@ -29,13 +29,16 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const currentItem = items[currentIndex];
   const nextItem = items[currentIndex + 1];
 
-  const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
+  const handleSwipe = useCallback(async (direction: "like" | "pass" | "super_like") => {
     if (!currentItem) return;
 
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
+    
+    // Call onSwipe (may be async) but don't await - let UI advance immediately
     onSwipe(currentItem, direction);
 
+    // Advance to next card after animation
     setTimeout(() => {
       setCurrentIndex(prev => prev + 1);
       setExitDirection(null);
@@ -44,7 +47,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
       if (currentIndex + 1 >= items.length && onEmpty) {
         onEmpty();
       }
-    }, 200);
+    }, 300); // Slightly longer to let exit animation complete
   }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
