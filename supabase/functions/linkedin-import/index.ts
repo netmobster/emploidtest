@@ -7,19 +7,20 @@ const corsHeaders = {
 };
 
 interface ApifyProfileData {
-  fullName?: string;
-  firstName?: string;
-  lastName?: string;
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
   headline?: string;
-  location?: string;
+  city?: string;
+  country?: string;
   summary?: string;
   skills?: string[];
-  profilePicUrl?: string;
+  profile_pic_url?: string;
   company?: string;
   industry?: string;
   positions?: Array<{
     title?: string;
-    companyName?: string;
+    company_name?: string;
     duration?: string;
   }>;
 }
@@ -42,7 +43,6 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
   // Calculate years of experience from positions if available
   let yearsOfExperience: string | null = null;
   if (apifyData.positions && apifyData.positions.length > 0) {
-    // Rough estimate based on number and duration of positions
     const positionCount = apifyData.positions.length;
     if (positionCount >= 5) {
       yearsOfExperience = "10+";
@@ -55,10 +55,14 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
     }
   }
 
-  // Create full name from first/last or use provided fullName
-  const fullName = apifyData.fullName || 
-    [apifyData.firstName, apifyData.lastName].filter(Boolean).join(" ") || 
+  // Create full name from first/last or use provided full_name
+  const fullName = apifyData.full_name || 
+    [apifyData.first_name, apifyData.last_name].filter(Boolean).join(" ") || 
     null;
+
+  // Build location from city + country
+  const locationParts = [apifyData.city, apifyData.country].filter(Boolean);
+  const location = locationParts.length > 0 ? locationParts.join(", ") : null;
 
   // Extract first 100 chars for teaser bio
   const teaserBio = apifyData.summary 
@@ -67,17 +71,20 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
 
   // Get company from current position or direct field
   const companyName = apifyData.company || 
-    (apifyData.positions?.[0]?.companyName) || 
+    (apifyData.positions?.[0]?.company_name) || 
     null;
+
+  // Extract first 5 skills for vibe tags
+  const skills = (apifyData.skills || []).slice(0, 5);
 
   return {
     fullName,
     headline: apifyData.headline || null,
-    location: apifyData.location || null,
+    location,
     summary: apifyData.summary || null,
     teaserBio,
-    skills: apifyData.skills || [],
-    profilePictureUrl: apifyData.profilePicUrl || null,
+    skills,
+    profilePictureUrl: apifyData.profile_pic_url || null,
     companyName,
     industry: apifyData.industry || null,
     yearsOfExperience,
@@ -161,9 +168,9 @@ serve(async (req) => {
       );
     }
 
-    const APIFY_API_KEY = Deno.env.get("APIFY_API_KEY");
-    if (!APIFY_API_KEY) {
-      console.error("APIFY_API_KEY not configured");
+    const APIFY_TOKEN = Deno.env.get("APIFY_TOKEN");
+    if (!APIFY_TOKEN) {
+      console.error("APIFY_TOKEN not configured");
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -176,10 +183,9 @@ serve(async (req) => {
 
     console.log("Starting Apify LinkedIn scraper for:", linkedinUrl);
 
-    // Call Apify's LinkedIn Profile Scraper Actor
-    // Using the synchronous run endpoint which waits for completion
-    const actorId = "2SyF0bVxmgGr8IVCZ"; // LinkedIn Profile Scraper actor ID
-    const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_API_KEY}`;
+    // Call Apify's LinkedIn Profile Scraper Actor (user-confirmed Actor ID)
+    const actorId = "AgfKk0sQQxkpQJ1Dt";
+    const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
 
     const apifyResponse = await fetch(apifyUrl, {
       method: "POST",
@@ -187,11 +193,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        startUrls: [{ url: linkedinUrl }],
-        proxy: {
-          useApifyProxy: true,
-          apifyProxyGroups: ["RESIDENTIAL"],
-        },
+        urls: [linkedinUrl],
       }),
     });
 
