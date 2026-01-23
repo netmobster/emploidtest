@@ -29,35 +29,40 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const currentItem = items[currentIndex];
   const nextItem = items[currentIndex + 1];
 
-  const handleSwipe = useCallback(async (direction: "like" | "pass" | "super_like") => {
-    if (!currentItem) return;
+  const [isAnimating, setIsAnimating] = useState(false);
 
+  const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
+    if (!currentItem || isAnimating) return;
+
+    setIsAnimating(true);
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
     
-    // Call onSwipe (may be async) but don't await - let UI advance immediately
-    onSwipe(currentItem, direction);
+    // Fire onSwipe immediately (don't await - let it process in background)
+    Promise.resolve(onSwipe(currentItem, direction)).catch(console.error);
 
-    // Advance to next card after animation
+    // Advance to next card after exit animation completes
     setTimeout(() => {
       setCurrentIndex(prev => prev + 1);
       setExitDirection(null);
       x.set(0);
+      setIsAnimating(false);
 
       if (currentIndex + 1 >= items.length && onEmpty) {
         onEmpty();
       }
-    }, 300); // Slightly longer to let exit animation complete
-  }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x]);
+    }, 350); // Increased to ensure animation fully completes
+  }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x, isAnimating]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
+    if (isAnimating) return;
     const threshold = 100;
     if (info.offset.x > threshold) {
       handleSwipe("like");
     } else if (info.offset.x < -threshold) {
       handleSwipe("pass");
     }
-  }, [handleSwipe]);
+  }, [handleSwipe, isAnimating]);
 
   const handleUndo = useCallback(() => {
     if (swipeHistory.length === 0) return;
