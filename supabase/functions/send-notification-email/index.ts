@@ -10,7 +10,7 @@ const corsHeaders = {
 };
 
 interface NotificationEmailRequest {
-  type: "new_match" | "new_message" | "job_update";
+  type: "new_match" | "new_message" | "job_update" | "quiz_completed";
   userId: string;
   data: {
     matchId?: string;
@@ -18,6 +18,8 @@ interface NotificationEmailRequest {
     messagePreview?: string;
     jobTitle?: string;
     jobCompany?: string;
+    candidateName?: string;
+    responseCount?: number;
   };
 }
 
@@ -125,6 +127,43 @@ const getEmailContent = (type: string, data: NotificationEmailRequest["data"]) =
                 <div style="text-align: center; margin-top: 32px;">
                   <a href="https://emploid.lovable.app/saved-jobs" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">
                     View Saved Jobs
+                  </a>
+                </div>
+              </div>
+              <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 24px;">
+                You're receiving this because you have email notifications enabled on Emploid.
+              </p>
+            </div>
+          </body>
+          </html>
+        `,
+      };
+
+    case "quiz_completed":
+      return {
+        subject: `✨ ${data.candidateName || "A candidate"} completed your Get-to-Know-You quiz!`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+              <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 16px 16px 0 0; padding: 32px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 28px;">✨ Quiz Completed!</h1>
+              </div>
+              <div style="background: white; border-radius: 0 0 16px 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+                  Great news! <strong>${data.candidateName || "A candidate"}</strong> has completed your Get-to-Know-You quiz with <strong>${data.responseCount || "several"} responses</strong>.
+                </p>
+                <p style="font-size: 16px; color: #374151; line-height: 1.6;">
+                  Check out their responses to learn more about them before your next conversation!
+                </p>
+                <div style="text-align: center; margin-top: 32px;">
+                  <a href="https://emploid.lovable.app/chat/${data.matchId || ""}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                    View Responses
                   </a>
                 </div>
               </div>

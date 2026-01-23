@@ -60,7 +60,8 @@ export const useInterviewInsights = (matchId?: string, candidateId?: string) => 
       candidateId: string,
       employerId: string,
       questions: { id: string; question: string; category: string }[],
-      responses: InsightResponse[]
+      responses: InsightResponse[],
+      candidateName?: string
     ) => {
       if (!user) return null;
 
@@ -80,6 +81,23 @@ export const useInterviewInsights = (matchId?: string, candidateId?: string) => 
           .single();
 
         if (error) throw error;
+        
+        // Send email notification to employer
+        try {
+          await supabase.functions.invoke("send-notification-email", {
+            body: {
+              type: "quiz_completed",
+              userId: employerId,
+              data: {
+                matchId,
+                candidateName: candidateName || "A candidate",
+                responseCount: responses.length,
+              },
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending quiz completion email:", emailError);
+        }
         
         await fetchInsights();
         return data;
