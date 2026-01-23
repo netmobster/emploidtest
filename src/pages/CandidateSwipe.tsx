@@ -221,10 +221,10 @@ const CandidateSwipe = () => {
     if (direction !== "pass" && job.employerId && job.employerId !== "sample") {
       const result = await recordSwipe(job.employerId, direction);
 
-      // Demo: Show match celebration randomly
-      if (result && Math.random() < 0.3) {
+      // Only show match celebration for REAL matches (mutual likes)
+      if (result?.isMatch && result.matchId) {
         setMatchedJob(job);
-        setMatchId(result.matchId || "demo-match");
+        setMatchId(result.matchId);
         setShowMatch(true);
       }
     }
