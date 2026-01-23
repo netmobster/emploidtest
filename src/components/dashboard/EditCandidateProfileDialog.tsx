@@ -22,9 +22,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { LinkedInImportButton } from "@/components/profile/LinkedInImportButton";
 
 const formSchema = z.object({
   full_name: z.string().min(1, "Name is required").max(100),
@@ -154,6 +156,16 @@ export function EditCandidateProfileDialog({ open, onOpenChange, onSuccess }: Ed
             Update your profile information to stand out to employers.
           </DialogDescription>
         </DialogHeader>
+
+        {/* LinkedIn Import */}
+        <LinkedInImportButton
+          userType="candidate"
+          variant="compact"
+          existingLinkedInUrl={profile?.linkedin_url || undefined}
+          onImportComplete={onSuccess}
+        />
+
+        <Separator className="my-2" />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
