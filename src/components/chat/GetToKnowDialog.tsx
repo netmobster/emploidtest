@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Sparkles, User } from "lucide-react";
-import { quickFireQuestions, categoryColors } from "@/data/quickFireQuestions";
+import { Send, Sparkles, MessageCircle } from "lucide-react";
+import { questionPacks, quickFireQuestions, getCategoryColor } from "@/data/quickFireQuestions";
 import { cn } from "@/lib/utils";
 
 interface GetToKnowDialogProps {
@@ -54,16 +54,11 @@ export function GetToKnowDialog({
     onClose();
   };
 
-  const groupedQuestions = quickFireQuestions.reduce(
-    (acc, q) => {
-      if (!acc[q.category]) {
-        acc[q.category] = { label: q.categoryLabel, questions: [] };
-      }
-      acc[q.category].questions.push(q);
-      return acc;
-    },
-    {} as Record<string, { label: string; questions: typeof quickFireQuestions }>
-  );
+  // Group questions by pack
+  const groupedByPack = questionPacks.map((pack) => ({
+    ...pack,
+    questions: quickFireQuestions.filter((q) => q.category === pack.id),
+  }));
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -89,14 +84,19 @@ export function GetToKnowDialog({
 
         <ScrollArea className="h-[400px] pr-4">
           <div className="space-y-6">
-            {Object.entries(groupedQuestions).map(([category, { label, questions }]) => (
-              <div key={category}>
-                <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  {label}
-                </h4>
+            {groupedByPack.map((pack) => (
+              <div key={pack.id}>
+                <div className="mb-3">
+                  <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-primary" />
+                    {pack.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {pack.description}
+                  </p>
+                </div>
                 <div className="space-y-2">
-                  {questions.map((q) => {
+                  {pack.questions.map((q) => {
                     const isSelected = selectedQuestions.includes(q.id);
                     const isDisabled = !isSelected && selectedQuestions.length >= 5;
                     
@@ -122,7 +122,7 @@ export function GetToKnowDialog({
                           <p className="text-sm">{q.question}</p>
                           <Badge
                             variant="outline"
-                            className={cn("mt-2 text-[10px]", categoryColors[q.category])}
+                            className={cn("mt-2 text-[10px]", getCategoryColor(q.category))}
                           >
                             {q.categoryLabel}
                           </Badge>

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "vibe-check",
+    "title": "The Vibe Check",
+    "description": "Focuses on work-style and remote culture fit.",
+    "questions": [
+      "What’s the one 'unspoken rule' for a perfect remote workday in your world?",
+      "If you had to pick a soundtrack for when you’re in deep-focus mode, what’s playing?",
+      "What’s a professional 'hill' you are willing to die on?"
+    ]
+  },
+  {
+    "id": "human-element",
+    "title": "The Human Element",
+    "description": "Discovers personality and quirks beyond the resume.",
+    "questions": [
+      "What is a hobby or interest you’ve pursued that has nothing to do with work?",
+      "You have a surprise 3-hour block of free time tomorrow. What are you doing with it?",
+      "What’s the best piece of non-career advice you’ve ever actually followed?"
+    ]
+  },
+  {
+    "id": "marketing-mindset",
+    "title": "Marketing Mindset",
+    "description": "Strategic alignment for high-level marketing roles.",
+    "questions": [
+      "What’s one marketing trend or 'growth hack' that you think is total noise right now?",
+      "If you could only use one social platform for the rest of your career, which wins?",
+      "What was the last 'win' that made you genuinely excited to get to work?"
+    ]
+  }
+]
