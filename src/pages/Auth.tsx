@@ -59,6 +59,8 @@ const Auth = () => {
     
     // Store remember me preference
     localStorage.setItem("emploid_remember_me", rememberMe.toString());
+    // Store intended user type for first-time OAuth profile creation
+    localStorage.setItem("emploid_oauth_user_type", userType);
     
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -127,6 +129,16 @@ const Auth = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If the user session exists but profile is still being created/fetched, show a stable loading UI.
+  if (user && !profile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Setting up your account…</p>
       </div>
     );
   }
