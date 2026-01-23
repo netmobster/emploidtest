@@ -116,6 +116,71 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_pack_questions: {
+        Row: {
+          created_at: string
+          display_order: number | null
+          id: string
+          pack_id: string
+          question_text: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          pack_id: string
+          question_text: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          pack_id?: string
+          question_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_pack_questions_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "custom_question_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_question_packs: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number | null
+          employer_id: string
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          employer_id: string
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number | null
+          employer_id?: string
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_requests: {
         Row: {
           created_at: string
@@ -742,6 +807,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      quiz_analytics: {
+        Row: {
+          candidate_id: string
+          completed_at: string | null
+          created_at: string
+          employer_id: string
+          id: string
+          is_custom_pack: boolean | null
+          pack_id: string
+          questions_answered: number | null
+          questions_sent: number
+          quiz_request_id: string
+          response_time_seconds: number | null
+        }
+        Insert: {
+          candidate_id: string
+          completed_at?: string | null
+          created_at?: string
+          employer_id: string
+          id?: string
+          is_custom_pack?: boolean | null
+          pack_id: string
+          questions_answered?: number | null
+          questions_sent?: number
+          quiz_request_id: string
+          response_time_seconds?: number | null
+        }
+        Update: {
+          candidate_id?: string
+          completed_at?: string | null
+          created_at?: string
+          employer_id?: string
+          id?: string
+          is_custom_pack?: boolean | null
+          pack_id?: string
+          questions_answered?: number | null
+          questions_sent?: number
+          quiz_request_id?: string
+          response_time_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_analytics_quiz_request_id_fkey"
+            columns: ["quiz_request_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_requests: {
         Row: {

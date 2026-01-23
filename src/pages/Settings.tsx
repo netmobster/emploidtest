@@ -36,6 +36,8 @@ import { toast } from "sonner";
 import { CalendlyUrlInput } from "@/components/interviews/CalendlyUrlInput";
 import { QuickQuestionsSettings } from "@/components/settings/QuickQuestionsSettings";
 import { ShortlistsSettings } from "@/components/settings/ShortlistsSettings";
+import { CustomQuestionPacksSettings } from "@/components/settings/CustomQuestionPacksSettings";
+import { QuizAnalyticsPanel } from "@/components/settings/QuizAnalyticsPanel";
 
 interface BlockedUser {
   blocked_id: string;
@@ -289,12 +291,34 @@ const Settings = () => {
           </motion.div>
         )}
 
+        {/* Custom Question Packs - Employers Only */}
+        {profile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22 }}
+          >
+            <CustomQuestionPacksSettings />
+          </motion.div>
+        )}
+
+        {/* Quiz Analytics - Employers Only */}
+        {profile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24 }}
+          >
+            <QuizAnalyticsPanel />
+          </motion.div>
+        )}
+
         {/* Shortlists - Employers Only */}
         {profile?.user_type === "employer" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+            transition={{ delay: 0.26 }}
           >
             <ShortlistsSettings />
           </motion.div>
