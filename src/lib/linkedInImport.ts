@@ -1,5 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
+export interface WorkHistoryItem {
+  title: string;
+  company: string;
+  duration: string | null;
+  description: string | null;
+  location: string | null;
+}
+
 export interface LinkedInProfileData {
   fullName: string | null;
   headline: string | null;
@@ -11,6 +19,7 @@ export interface LinkedInProfileData {
   companyName: string | null;
   industry: string | null;
   yearsOfExperience: string | null;
+  workHistory?: WorkHistoryItem[];
 }
 
 export interface ImportResult {
@@ -134,6 +143,7 @@ export function createManualProfileData(
     companyName: formData.companyName || null,
     industry: formData.industry || null,
     yearsOfExperience: formData.yearsOfExperience || null,
+    workHistory: formData.workHistory || [],
   };
 }
 
@@ -160,4 +170,25 @@ export function getCompletionMessage(
   }
   
   return `Profile ${percentage}% complete! Keep going to unlock all features.`;
+}
+
+/**
+ * Format relative time for "Last synced" display
+ */
+export function formatSyncTime(date: Date | string | null): string {
+  if (!date) return "Never synced";
+  
+  const syncDate = typeof date === "string" ? new Date(date) : date;
+  const now = new Date();
+  const diffMs = now.getTime() - syncDate.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  
+  return syncDate.toLocaleDateString();
 }

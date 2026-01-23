@@ -714,6 +714,7 @@ export type Database = {
           id: string
           job_title: string | null
           last_login_at: string | null
+          linkedin_synced_at: string | null
           linkedin_url: string | null
           location: string | null
           portfolio_url: string | null
@@ -726,6 +727,7 @@ export type Database = {
           user_id: string
           user_type: string
           website_url: string | null
+          work_history: Json | null
           years_of_experience: string | null
         }
         Insert: {
@@ -753,6 +755,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           last_login_at?: string | null
+          linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           portfolio_url?: string | null
@@ -765,6 +768,7 @@ export type Database = {
           user_id: string
           user_type?: string
           website_url?: string | null
+          work_history?: Json | null
           years_of_experience?: string | null
         }
         Update: {
@@ -792,6 +796,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           last_login_at?: string | null
+          linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
           portfolio_url?: string | null
@@ -804,6 +809,7 @@ export type Database = {
           user_id?: string
           user_type?: string
           website_url?: string | null
+          work_history?: Json | null
           years_of_experience?: string | null
         }
         Relationships: []
