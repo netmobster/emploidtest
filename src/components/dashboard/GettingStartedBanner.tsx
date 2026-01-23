@@ -90,7 +90,7 @@ export function GettingStartedBanner({ profile, onDismiss }: GettingStartedBanne
       title: "Add a profile photo",
       description: "Profiles with photos get 5x more views",
       icon: Camera,
-      path: profile.user_type === "employer" ? "/company-profile" : "/candidate-profile",
+      path: profile.user_type === "employer" ? "/employer-dashboard" : "/candidate-extended-profile",
       isComplete: !!profile.avatar_url,
     },
   ];
@@ -102,7 +102,7 @@ export function GettingStartedBanner({ profile, onDismiss }: GettingStartedBanne
       title: "Add your skills",
       description: "Match with jobs that need your expertise",
       icon: Sparkles,
-      path: "/candidate-profile",
+      path: "/candidate-extended-profile",
       isComplete: !!profile.skills && profile.skills.length >= 3,
     });
   }
