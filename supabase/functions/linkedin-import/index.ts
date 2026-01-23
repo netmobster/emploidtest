@@ -74,12 +74,17 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
     (apifyData.positions?.[0]?.company_name) || 
     null;
 
-  // Extract first 5 skills for vibe tags
-  const skills = (apifyData.skills || []).slice(0, 5);
+  // Get headline, fallback to first position title
+  const headline = apifyData.headline || 
+    (apifyData.positions?.[0]?.title) || 
+    null;
+
+  // Extract up to 15 skills for vibe tags
+  const skills = (apifyData.skills || []).slice(0, 15);
 
   return {
     fullName,
-    headline: apifyData.headline || null,
+    headline,
     location,
     summary: apifyData.summary || null,
     teaserBio,
@@ -94,7 +99,8 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
 // Upload profile picture to Supabase Storage
 async function uploadProfilePicture(
   imageUrl: string,
-  userId: string
+  userId: string,
+  userType: "candidate" | "employer" = "candidate"
 ): Promise<string | null> {
   try {
     console.log("Downloading profile picture from:", imageUrl);
@@ -115,11 +121,13 @@ async function uploadProfilePicture(
     const extension = contentType.includes("png") ? "png" : "jpg";
     const fileName = `${userId}/avatar-${Date.now()}.${extension}`;
 
-    console.log("Uploading to Supabase Storage:", fileName);
+    // Select bucket based on user type
+    const bucketName = userType === "employer" ? "company-logos" : "candidate-avatars";
+    console.log(`Uploading to ${bucketName}:`, fileName);
 
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
-      .from("candidate-avatars")
+      .from(bucketName)
       .upload(fileName, imageBlob, {
         contentType,
         upsert: true,
@@ -132,7 +140,7 @@ async function uploadProfilePicture(
 
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from("candidate-avatars")
+      .from(bucketName)
       .getPublicUrl(fileName);
 
     console.log("Profile picture uploaded:", urlData.publicUrl);
@@ -150,7 +158,7 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl, userId } = await req.json();
+    const { linkedinUrl, userId, userType = "candidate" } = await req.json();
 
     if (!linkedinUrl) {
       return new Response(
@@ -168,7 +176,8 @@ serve(async (req) => {
       );
     }
 
-    const APIFY_TOKEN = Deno.env.get("APIFY_TOKEN");
+    // Check both secret names for backwards compatibility
+    const APIFY_TOKEN = Deno.env.get("APIFY_TOKEN") || Deno.env.get("APIFY_API_KEY");
     if (!APIFY_TOKEN) {
       console.error("APIFY_TOKEN not configured");
       return new Response(
@@ -181,7 +190,7 @@ serve(async (req) => {
       );
     }
 
-    console.log("Starting Apify LinkedIn scraper for:", linkedinUrl);
+    console.log("Starting Apify LinkedIn scraper for:", linkedinUrl, "userType:", userType);
 
     // Call Apify's LinkedIn Profile Scraper Actor (user-confirmed Actor ID)
     const actorId = "AgfKk0sQQxkpQJ1Dt";
@@ -240,7 +249,8 @@ serve(async (req) => {
     if (profileData.profilePictureUrl && userId) {
       const uploadedUrl = await uploadProfilePicture(
         profileData.profilePictureUrl,
-        userId
+        userId,
+        userType
       );
 
       if (uploadedUrl) {

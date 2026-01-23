@@ -29,9 +29,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { LinkedInImportButton } from "@/components/profile/LinkedInImportButton";
 
 const formSchema = z.object({
   company_name: z.string().min(1, "Company name is required").max(100),
@@ -206,6 +208,15 @@ export function EditCompanyDialog({ open, onOpenChange, profile, onSuccess }: Ed
             Update your company information to attract the right candidates.
           </DialogDescription>
         </DialogHeader>
+
+        {/* LinkedIn Import */}
+        <LinkedInImportButton
+          userType="employer"
+          variant="compact"
+          onImportComplete={onSuccess}
+        />
+
+        <Separator className="my-2" />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

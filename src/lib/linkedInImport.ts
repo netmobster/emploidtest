@@ -44,7 +44,8 @@ export function extractLinkedInUsername(url: string): string | null {
  */
 export async function importLinkedInProfile(
   linkedinUrl: string,
-  userId?: string
+  userId?: string,
+  userType: "candidate" | "employer" = "candidate"
 ): Promise<ImportResult> {
   // Validate URL format
   if (!isValidLinkedInUrl(linkedinUrl)) {
@@ -59,6 +60,7 @@ export async function importLinkedInProfile(
       body: {
         linkedinUrl: linkedinUrl.trim(),
         userId,
+        userType,
       },
     });
 
