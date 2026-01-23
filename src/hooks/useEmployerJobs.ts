@@ -12,6 +12,7 @@ interface Job {
   created_at: string;
   type: string | null;
   matchCount: number;
+  is_complete: boolean;
 }
 
 interface UseEmployerJobsReturn {
@@ -53,6 +54,7 @@ export function useEmployerJobs(): UseEmployerJobsReturn {
           return {
             ...job,
             matchCount: count ?? 0,
+            is_complete: job.is_complete ?? false,
           };
         })
       );
