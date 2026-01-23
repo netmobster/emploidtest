@@ -91,8 +91,11 @@ const Auth = () => {
     const handleAuthRedirect = async () => {
       if (!user || authLoading || !profile) return;
 
+      // Check if this is a brand new user (just created, hasn't completed profile)
+      const isNewUser = !profile.has_completed_profile;
+      
       // If profile user_type doesn't match URL param and profile isn't complete, update it first
-      if (profile.user_type !== defaultUserType && !profile.has_completed_profile && !hasUpdatedProfile.current) {
+      if (profile.user_type !== defaultUserType && isNewUser && !hasUpdatedProfile.current) {
         hasUpdatedProfile.current = true;
         const { error } = await supabase
           .from("profiles")
@@ -105,9 +108,9 @@ const Auth = () => {
         }
       }
 
-      // Now handle redirect based on onboarding state
-      if (!profile.has_completed_profile) {
-        navigate("/profile-setup", { replace: true });
+      // For brand new users, show the welcome screen first
+      if (isNewUser) {
+        navigate("/welcome", { replace: true });
         return;
       }
       
