@@ -6,9 +6,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { FeatureToggleProvider } from "@/contexts/FeatureToggleContext";
 import { TestModeBanner } from "@/components/admin/TestModeBanner";
+import { AuthDebugPanel } from "@/components/auth/AuthDebugPanel";
 import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Welcome from "./pages/Welcome";
 import Admin from "./pages/Admin";
 import ProfileSetup from "./pages/ProfileSetup";
 import CandidateOnboarding from "./pages/CandidateOnboarding";
@@ -46,6 +48,7 @@ const App = () => (
       <FeatureToggleProvider>
         <TooltipProvider>
           <TestModeBanner />
+          <AuthDebugPanel />
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -53,6 +56,7 @@ const App = () => (
               {/* Public routes - no layout wrapper */}
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/welcome" element={<Welcome />} />
               <Route path="/admin/*" element={<Admin />} />
               
               {/* Onboarding routes - no sidebar yet */}
