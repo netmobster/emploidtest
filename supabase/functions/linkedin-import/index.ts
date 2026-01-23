@@ -224,14 +224,23 @@ serve(async (req) => {
     const actorId = "AgfKk0sQQxkpQJ1Dt";
     const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
 
+    // Build the request payload - ensure URL is properly formatted
+    const normalizedUrl = linkedinUrl.trim().replace(/\/$/, ''); // Remove trailing slash
+    const payload = {
+      urls: [normalizedUrl],
+      cookie: "", // Empty cookie - Actor should use its own session
+      minDelay: 2,
+      maxDelay: 5,
+    };
+
+    console.log("Sending to Apify:", JSON.stringify(payload));
+
     const apifyResponse = await fetch(apifyUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        urls: [linkedinUrl],
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!apifyResponse.ok) {
@@ -251,6 +260,7 @@ serve(async (req) => {
     }
 
     const apifyResults = await apifyResponse.json();
+    console.log("Apify raw response count:", apifyResults?.length || 0);
     console.log("Apify results:", JSON.stringify(apifyResults).substring(0, 500));
 
     // Check if we got any data
