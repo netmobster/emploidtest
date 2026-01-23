@@ -56,15 +56,66 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const parseUserType = (value: unknown): "employer" | "candidate" | null => {
+    return value === "employer" || value === "candidate" ? value : null;
+  };
+
+  const fetchOrCreateProfile = async (authUser: User) => {
+    // First try to fetch
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", userId)
+      .eq("user_id", authUser.id)
       .maybeSingle();
 
-    if (!error && data) {
+    if (error) {
+      console.error("Failed to fetch profile", error);
+      return;
+    }
+
+    if (data) {
       setProfile(data as Profile);
+      return;
+    }
+
+    // No profile yet: create one (common for OAuth first login if DB trigger isn't set up)
+    const intendedType = parseUserType(localStorage.getItem("emploid_oauth_user_type"));
+    const meta = (authUser.user_metadata || {}) as Record<string, unknown>;
+    const fullName = (meta.full_name as string) || (meta.name as string) || null;
+    const metaType = parseUserType(meta.user_type);
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("profiles")
+      .insert({
+        user_id: authUser.id,
+        email: authUser.email ?? null,
+        full_name: fullName,
+        user_type: intendedType ?? metaType ?? "candidate",
+      })
+      .select("*")
+      .single();
+
+    // Clear the stored type so it doesn't affect future logins
+    localStorage.removeItem("emploid_oauth_user_type");
+
+    if (insertError) {
+      // If it was created in a parallel request, just refetch
+      if ((insertError as any)?.code === "23505") {
+        const { data: refetched } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", authUser.id)
+          .maybeSingle();
+        if (refetched) setProfile(refetched as Profile);
+        return;
+      }
+
+      console.error("Failed to create profile", insertError);
+      return;
+    }
+
+    if (inserted) {
+      setProfile(inserted as Profile);
     }
   };
 
@@ -78,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchOrCreateProfile(session.user);
           }, 0);
         } else {
           setProfile(null);
@@ -91,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchOrCreateProfile(session.user);
       }
       setIsLoading(false);
     });
@@ -133,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchOrCreateProfile(user);
     }
   };
 
