@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Sparkles, User, MessageCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { categoryColors } from "@/data/quickFireQuestions";
+import { getCategoryColor } from "@/data/quickFireQuestions";
 import { cn } from "@/lib/utils";
 
 interface QuizResponse {
@@ -30,11 +30,21 @@ export function QuizSummaryCard({
     });
   };
 
-  // Determine category from question ID prefix
+  // Determine category from question ID (e.g., "vibe-check-1" → "vibe-check")
   const getCategory = (questionId: string): string => {
+    // Handle new format: "category-id-number" (e.g., "vibe-check-1", "human-element-2")
+    const parts = questionId.split("-");
+    if (parts.length >= 2) {
+      // Join all parts except the last number to get the category
+      const lastPart = parts[parts.length - 1];
+      if (!isNaN(parseInt(lastPart, 10))) {
+        return parts.slice(0, -1).join("-");
+      }
+    }
+    // Fallback for old format
     if (questionId.startsWith("vibe")) return "vibe-check";
     if (questionId.startsWith("human")) return "human-element";
-    if (questionId.startsWith("mindset")) return "mindset";
+    if (questionId.startsWith("mindset")) return "marketing-mindset";
     return "vibe-check";
   };
 
@@ -58,25 +68,34 @@ export function QuizSummaryCard({
 
       {/* Responses */}
       <div className="p-4 space-y-4">
-        {responses.map((response, idx) => (
-          <div key={response.questionId} className="space-y-2">
-            <div className="flex items-start gap-2">
-              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <span className="text-[10px] font-bold text-primary">
-                  {idx + 1}
-                </span>
+        {responses.map((response, idx) => {
+          const category = getCategory(response.questionId);
+          return (
+            <div key={response.questionId} className="space-y-2">
+              <div className="flex items-start gap-2">
+                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[10px] font-bold text-primary">
+                    {idx + 1}
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {response.question}
+                  </p>
+                  <Badge 
+                    variant="outline" 
+                    className={cn("mt-1 text-[9px]", getCategoryColor(category))}
+                  >
+                    {category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}
+                  </Badge>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  {response.question}
-                </p>
+              <div className="ml-7 p-3 bg-background/80 rounded-lg border border-border">
+                <p className="text-sm text-foreground">{response.answer}</p>
               </div>
             </div>
-            <div className="ml-7 p-3 bg-background/80 rounded-lg border border-border">
-              <p className="text-sm text-foreground">{response.answer}</p>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Footer */}
