@@ -29,10 +29,19 @@ import { CompanyCultureSection } from "@/components/culture/CompanyCultureSectio
 import { CultureCompatibilityBadge } from "@/components/culture/CultureCompatibilityBadge";
 import { ProfileCompleteBadge } from "@/components/profile/ProfileCompleteBadge";
 import { InterviewInsightsTab } from "@/components/profile/InterviewInsightsTab";
+import { WorkHistorySection } from "@/components/profile/WorkHistorySection";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
 import { calculateCultureCompatibility } from "@/lib/cultureUtils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface WorkHistoryItem {
+  title: string;
+  company: string;
+  duration: string | null;
+  description: string | null;
+  location: string | null;
+}
 
 interface CandidateProfileData {
   id: string;
@@ -57,6 +66,8 @@ interface CandidateProfileData {
   synergy_scores: Record<string, number> | null;
   culture_preferences: Record<string, string> | null;
   email: string | null;
+  work_history: WorkHistoryItem[] | null;
+  linkedin_synced_at: string | null;
 }
 
 export default function CandidateProfile() {
@@ -91,6 +102,10 @@ export default function CandidateProfile() {
           ...profileData,
           synergy_scores: profileData.synergy_scores as Record<string, number> | null,
           culture_preferences: profileData.culture_preferences as Record<string, string> | null,
+          work_history: Array.isArray(profileData.work_history) 
+            ? (profileData.work_history as unknown as WorkHistoryItem[]) 
+            : null,
+          linkedin_synced_at: profileData.linkedin_synced_at as string | null,
         };
         
         setCandidate(candidateData);
@@ -401,6 +416,17 @@ export default function CandidateProfile() {
                 </div>
               </CardContent>
             </Card>
+          </motion.div>
+        )}
+
+        {/* Work History Section */}
+        {candidate.work_history && candidate.work_history.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+          >
+            <WorkHistorySection workHistory={candidate.work_history} />
           </motion.div>
         )}
 

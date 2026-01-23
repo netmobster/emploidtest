@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, X, Plus, User, Building2, Loader2, CheckCircle2, Camera } from "lucide-react";
+import { Upload, X, Plus, User, Building2, Loader2, CheckCircle2, Camera, Briefcase } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +15,12 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { LinkedInProfileData } from "@/lib/linkedInImport";
+import { LinkedInProfileData, WorkHistoryItem } from "@/lib/linkedInImport";
 
 interface LinkedInReviewModalProps {
   open: boolean;
@@ -50,6 +51,7 @@ export function LinkedInReviewModal({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(importedData.profilePictureUrl || null);
   const [companyName, setCompanyName] = useState(importedData.companyName || "");
   const [industry, setIndustry] = useState(importedData.industry || "");
+  const [workHistory, setWorkHistory] = useState<WorkHistoryItem[]>(importedData.workHistory || []);
 
   // UI state
   const [isUploading, setIsUploading] = useState(false);
@@ -65,6 +67,7 @@ export function LinkedInReviewModal({
     setAvatarUrl(importedData.profilePictureUrl || null);
     setCompanyName(importedData.companyName || "");
     setIndustry(importedData.industry || "");
+    setWorkHistory(importedData.workHistory || []);
   }, [importedData]);
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,6 +148,8 @@ export function LinkedInReviewModal({
         skills: skills.length > 0 ? skills : null,
         linkedin_url: linkedinUrl || null,
         has_completed_profile: true,
+        work_history: workHistory.length > 0 ? workHistory : [],
+        linkedin_synced_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
@@ -336,12 +341,38 @@ export function LinkedInReviewModal({
                 </div>
               )}
             </div>
+
+            {/* Work History Section - Candidates Only */}
+            {userType === "candidate" && workHistory.length > 0 && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  Experience ({workHistory.length} positions)
+                </Label>
+                <ScrollArea className="h-32 rounded-md border p-3">
+                  <div className="space-y-3">
+                    {workHistory.map((item, index) => (
+                      <div key={index} className="text-sm">
+                        <p className="font-medium text-foreground">{item.title}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {item.company}
+                          {item.duration && ` · ${item.duration}`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <p className="text-xs text-muted-foreground">
+                  Work history will be saved to your profile
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Preview Section - 2 cols */}
           <div className="md:col-span-2">
-            <div className="sticky top-0">
-              <p className="text-sm font-medium text-muted-foreground mb-2">
+            <div className="sticky top-0 space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">
                 Profile Preview
               </p>
               <Card className="overflow-hidden">
@@ -372,26 +403,49 @@ export function LinkedInReviewModal({
                     )}
                   </div>
                   {summary && (
-                    <p className="text-xs text-muted-foreground mt-3 line-clamp-3">
+                    <p className="text-xs text-muted-foreground mt-3 line-clamp-2">
                       {summary}
                     </p>
                   )}
                   {skills.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-3">
-                      {skills.slice(0, 5).map((skill) => (
+                      {skills.slice(0, 4).map((skill) => (
                         <Badge key={skill} variant="outline" className="text-xs py-0">
                           {skill}
                         </Badge>
                       ))}
-                      {skills.length > 5 && (
+                      {skills.length > 4 && (
                         <Badge variant="outline" className="text-xs py-0">
-                          +{skills.length - 5}
+                          +{skills.length - 4}
                         </Badge>
                       )}
                     </div>
                   )}
                 </CardContent>
               </Card>
+
+              {/* Work History Preview for Candidates */}
+              {userType === "candidate" && workHistory.length > 0 && (
+                <Card className="p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Briefcase className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">Experience</span>
+                  </div>
+                  <div className="space-y-2">
+                    {workHistory.slice(0, 2).map((item, index) => (
+                      <div key={index} className="text-xs">
+                        <p className="font-medium text-foreground truncate">{item.title}</p>
+                        <p className="text-muted-foreground truncate">{item.company}</p>
+                      </div>
+                    ))}
+                    {workHistory.length > 2 && (
+                      <p className="text-xs text-muted-foreground">
+                        +{workHistory.length - 2} more
+                      </p>
+                    )}
+                  </div>
+                </Card>
+              )}
             </div>
           </div>
         </div>

@@ -6,6 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface ApifyPosition {
+  title?: string;
+  company_name?: string;
+  duration?: string;
+  description?: string;
+  location?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
 interface ApifyProfileData {
   full_name?: string;
   first_name?: string;
@@ -18,11 +28,15 @@ interface ApifyProfileData {
   profile_pic_url?: string;
   company?: string;
   industry?: string;
-  positions?: Array<{
-    title?: string;
-    company_name?: string;
-    duration?: string;
-  }>;
+  positions?: ApifyPosition[];
+}
+
+interface WorkHistoryItem {
+  title: string;
+  company: string;
+  duration: string | null;
+  description: string | null;
+  location: string | null;
 }
 
 interface LinkedInProfileData {
@@ -36,6 +50,7 @@ interface LinkedInProfileData {
   companyName: string | null;
   industry: string | null;
   yearsOfExperience: string | null;
+  workHistory: WorkHistoryItem[];
 }
 
 // Map Apify output to our Emploid fields
@@ -82,6 +97,18 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
   // Extract up to 15 skills for vibe tags
   const skills = (apifyData.skills || []).slice(0, 15);
 
+  // Extract work history from positions (up to 10)
+  const workHistory: WorkHistoryItem[] = (apifyData.positions || [])
+    .slice(0, 10)
+    .filter(pos => pos.title || pos.company_name)
+    .map(pos => ({
+      title: pos.title || "Unknown Role",
+      company: pos.company_name || "Unknown Company",
+      duration: pos.duration || null,
+      description: pos.description?.substring(0, 500) || null,
+      location: pos.location || null,
+    }));
+
   return {
     fullName,
     headline,
@@ -93,6 +120,7 @@ function mapApifyToEmploid(apifyData: ApifyProfileData): LinkedInProfileData {
     companyName,
     industry: apifyData.industry || null,
     yearsOfExperience,
+    workHistory,
   };
 }
 
@@ -244,6 +272,7 @@ serve(async (req) => {
     const profileData = mapApifyToEmploid(apifyData);
 
     console.log("Mapped profile data:", JSON.stringify(profileData));
+    console.log("Work history items:", profileData.workHistory.length);
 
     // If we have a profile picture and user ID, upload it to storage
     if (profileData.profilePictureUrl && userId) {
