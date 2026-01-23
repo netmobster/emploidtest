@@ -5,6 +5,7 @@ export interface LinkedInProfileData {
   headline: string | null;
   location: string | null;
   summary: string | null;
+  teaserBio?: string | null;
   skills: string[];
   profilePictureUrl: string | null;
   companyName: string | null;
@@ -38,10 +39,12 @@ export function extractLinkedInUsername(url: string): string | null {
 }
 
 /**
- * Validates the LinkedIn URL and returns a result for manual entry
+ * Imports LinkedIn profile data using Apify scraper
+ * This may take 10-30 seconds as it scrapes the profile in real-time
  */
-export async function validateLinkedInUrl(
-  linkedinUrl: string
+export async function importLinkedInProfile(
+  linkedinUrl: string,
+  userId?: string
 ): Promise<ImportResult> {
   // Validate URL format
   if (!isValidLinkedInUrl(linkedinUrl)) {
@@ -55,6 +58,7 @@ export async function validateLinkedInUrl(
     const { data, error } = await supabase.functions.invoke("linkedin-import", {
       body: {
         linkedinUrl: linkedinUrl.trim(),
+        userId,
       },
     });
 
@@ -62,30 +66,53 @@ export async function validateLinkedInUrl(
       console.error("Edge function error:", error);
       return {
         success: false,
-        error: error.message || "Failed to validate URL. Please try again.",
+        requiresManualEntry: true,
+        linkedinUrl,
+        message: "We couldn't grab all the details automatically. No worries—you can quickly fill them in below!",
       };
     }
 
-    if (data.error) {
+    if (data.error && !data.requiresManualEntry) {
       return {
         success: false,
         error: data.error,
       };
     }
 
+    if (data.requiresManualEntry) {
+      return {
+        success: false,
+        requiresManualEntry: true,
+        linkedinUrl: data.linkedinUrl,
+        message: data.message || "We couldn't grab all the details automatically. No worries—you can quickly fill them in below!",
+      };
+    }
+
+    // Success! Return the scraped data
     return {
       success: true,
-      requiresManualEntry: data.requiresManualEntry,
+      data: data.data as LinkedInProfileData,
       linkedinUrl: data.linkedinUrl,
-      message: data.message,
     };
   } catch (err) {
-    console.error("Validation error:", err);
+    console.error("Import error:", err);
     return {
       success: false,
-      error: "Network error. Please check your connection and try again.",
+      requiresManualEntry: true,
+      linkedinUrl,
+      message: "We couldn't grab all the details automatically. No worries—you can quickly fill them in below!",
     };
   }
+}
+
+/**
+ * Legacy function - kept for backwards compatibility
+ * Now calls importLinkedInProfile internally
+ */
+export async function validateLinkedInUrl(
+  linkedinUrl: string
+): Promise<ImportResult> {
+  return importLinkedInProfile(linkedinUrl);
 }
 
 /**
@@ -99,6 +126,7 @@ export function createManualProfileData(
     headline: formData.headline || null,
     location: formData.location || null,
     summary: formData.summary || null,
+    teaserBio: formData.summary ? formData.summary.substring(0, 100) : null,
     skills: formData.skills || [],
     profilePictureUrl: formData.profilePictureUrl || null,
     companyName: formData.companyName || null,
