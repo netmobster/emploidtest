@@ -1,26 +1,65 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, User, Building2 } from "lucide-react";
+import { Loader2, User, Building2, AlertCircle } from "lucide-react";
 import Logo from "@/components/Logo";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   
   const defaultUserType = (searchParams.get("type") as "employer" | "candidate") || "candidate";
   
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthRedirecting, setIsOAuthRedirecting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [userType, setUserType] = useState<"employer" | "candidate">(defaultUserType);
   const hasUpdatedProfile = useRef(false);
+  const hasCheckedErrors = useRef(false);
+
+  // Check for OAuth errors in URL hash on mount
+  useEffect(() => {
+    if (hasCheckedErrors.current) return;
+    hasCheckedErrors.current = true;
+
+    const hashParams = new URLSearchParams(location.hash.substring(1));
+    const error = hashParams.get("error");
+    const errorDescription = hashParams.get("error_description");
+
+    if (error) {
+      const friendlyMessages: Record<string, string> = {
+        "access_denied": "Access was denied. Please try again or use a different account.",
+        "server_error": "Google encountered an error. Please try again later.",
+        "temporarily_unavailable": "Google sign-in is temporarily unavailable. Please try again.",
+        "invalid_request": "Invalid authentication request. Please try again.",
+      };
+
+      const message = friendlyMessages[error] || errorDescription || "Authentication failed. Please try again.";
+      toast.error(message, {
+        duration: 5000,
+        icon: <AlertCircle className="w-5 h-5" />,
+      });
+
+      // Clean up the URL
+      window.history.replaceState({}, document.title, "/auth?type=" + userType);
+    }
+  }, [location.hash, userType]);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
+    setIsOAuthRedirecting(true);
+    
+    // Store remember me preference
+    localStorage.setItem("emploid_remember_me", rememberMe.toString());
+    
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -34,9 +73,11 @@ const Auth = () => {
       });
 
       if (error) {
+        setIsOAuthRedirecting(false);
         toast.error(error.message);
       }
     } catch (err) {
+      setIsOAuthRedirecting(false);
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
@@ -91,7 +132,23 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative">
+      {/* OAuth Redirecting Overlay */}
+      <AnimatePresence>
+        {isOAuthRedirecting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4"
+          >
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <p className="text-lg font-medium text-foreground">Connecting to Google...</p>
+            <p className="text-sm text-muted-foreground">You'll be redirected shortly</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -138,7 +195,7 @@ const Auth = () => {
               variant="outline"
               className="w-full h-12"
               onClick={handleGoogleSignIn}
-              disabled={isLoading}
+              disabled={isLoading || isOAuthRedirecting}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -164,6 +221,20 @@ const Auth = () => {
               )}
               Continue with Google
             </Button>
+
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              />
+              <Label 
+                htmlFor="remember-me" 
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
+                Remember me on this device
+              </Label>
+            </div>
 
             <p className="text-xs text-muted-foreground text-center">
               By continuing, you agree to our Terms of Service and Privacy Policy
