@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { validateLinkedInUrl, isValidLinkedInUrl, createManualProfileData, LinkedInProfileData } from "@/lib/linkedInImport";
+import { importLinkedInProfile, isValidLinkedInUrl, createManualProfileData, LinkedInProfileData } from "@/lib/linkedInImport";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LinkedInImportSectionProps {
   userType: "candidate" | "employer";
@@ -42,11 +43,13 @@ const LinkedInImportSection = ({
   completionPercentage,
   completionMessage,
 }: LinkedInImportSectionProps) => {
+  const { user } = useAuth();
   const [linkedInUrl, setLinkedInUrl] = useState("");
   const [importState, setImportState] = useState<ImportState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [hasDraft, setHasDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [syncProgress, setSyncProgress] = useState(0);
   
   // Manual entry form state
   const [fullName, setFullName] = useState("");
@@ -145,19 +148,48 @@ const LinkedInImportSection = ({
 
     setImportState("validating");
     setErrorMessage("");
+    setSyncProgress(0);
+
+    // Start progress animation (simulated while waiting for API)
+    const progressInterval = setInterval(() => {
+      setSyncProgress(prev => {
+        if (prev >= 90) return prev;
+        return prev + Math.random() * 15;
+      });
+    }, 500);
 
     try {
-      const result = await validateLinkedInUrl(linkedInUrl);
+      const result = await importLinkedInProfile(linkedInUrl, user?.id);
 
-      if (result.success && result.requiresManualEntry) {
+      clearInterval(progressInterval);
+      setSyncProgress(100);
+
+      if (result.success && result.data) {
+        // Auto-fill the form with scraped data
+        setFullName(result.data.fullName || "");
+        setHeadline(result.data.headline || "");
+        setLocation(result.data.location || "");
+        setSummary(result.data.summary || "");
+        setCompanyName(result.data.companyName || "");
+        setSkills(result.data.skills || []);
+        setYearsOfExperience(result.data.yearsOfExperience || "");
+        
+        // Show success briefly then go to manual entry for review
         setImportState("manual-entry");
+      } else if (result.requiresManualEntry) {
+        // Fallback to manual entry with friendly message
+        setImportState("manual-entry");
+        if (result.message) {
+          setErrorMessage(result.message);
+        }
       } else if (!result.success) {
         setImportState("error");
-        setErrorMessage(result.error || "We couldn't validate your LinkedIn URL. Please try again or skip to enter manually.");
+        setErrorMessage(result.error || result.message || "We couldn't validate your LinkedIn URL. Please try again or skip to enter manually.");
       }
     } catch (error) {
+      clearInterval(progressInterval);
       setImportState("error");
-      setErrorMessage("Something went wrong while validating your URL. Please try again or skip to enter manually.");
+      setErrorMessage("Something went wrong while syncing. Please try again or skip to enter manually.");
     }
   };
 
@@ -332,11 +364,23 @@ const LinkedInImportSection = ({
               className="py-8 text-center space-y-4"
             >
               <div className="relative">
-                <Loader2 className="w-10 h-10 animate-spin mx-auto text-primary" />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                  <Linkedin className="w-8 h-8 text-primary animate-pulse" />
+                </div>
               </div>
-              <div className="space-y-1">
-                <p className="font-medium text-foreground">Validating your LinkedIn URL...</p>
-                <p className="text-sm text-muted-foreground">This will only take a moment</p>
+              <div className="space-y-2">
+                <p className="font-medium text-foreground">Syncing with LinkedIn...</p>
+                <p className="text-sm text-muted-foreground">This may take a moment</p>
+              </div>
+              <div className="w-48 mx-auto">
+                <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-primary rounded-full"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${Math.min(syncProgress, 100)}%` }}
+                    transition={{ duration: 0.3 }}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
