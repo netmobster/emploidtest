@@ -101,14 +101,16 @@ export const useSwipe = (jobId?: string) => {
         }
 
         // Check if a match was created (by the trigger)
+        // Look for a match where both users are involved
         const { data: match } = await supabase
           .from("matches")
           .select("id")
-          .or(`employer_id.eq.${user.id},candidate_id.eq.${user.id}`)
-          .or(`employer_id.eq.${swipedUserId},candidate_id.eq.${swipedUserId}`)
+          .or(
+            `and(employer_id.eq.${user.id},candidate_id.eq.${swipedUserId}),and(employer_id.eq.${swipedUserId},candidate_id.eq.${user.id})`
+          )
           .order("matched_at", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         const isMatch = !!match;
 
