@@ -14,12 +14,40 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { ChatActionsMenu } from "./ChatActionsMenu";
 import { DocumentRequestBanner } from "./DocumentRequestBanner";
+import { QuizMessageCard } from "./QuizMessageCard";
+import { QuizSummaryCard } from "./QuizSummaryCard";
 
 interface Message {
   id: string;
   sender_id: string;
   content: string;
   created_at: string;
+}
+
+interface QuizRequest {
+  id: string;
+  match_id: string;
+  candidate_id: string;
+  employer_id: string;
+  employer_name: string;
+  questions: { id: string; question: string; category: string }[];
+  status: "pending" | "completed";
+  created_at: string;
+}
+
+interface InsightResponse {
+  questionId: string;
+  question: string;
+  answer: string;
+}
+
+interface InterviewInsight {
+  id: string;
+  match_id: string;
+  candidate_id: string;
+  employer_id: string;
+  responses: InsightResponse[];
+  completed_at: string;
 }
 
 interface ChatInterfaceProps {
@@ -50,6 +78,10 @@ interface ChatInterfaceProps {
   onGetToKnow?: () => void;
   hasCalendly?: boolean;
   isInShortlist?: boolean;
+  pendingQuizzes?: QuizRequest[];
+  completedInsights?: InterviewInsight[];
+  onStartQuiz?: (quiz: QuizRequest) => void;
+  candidateName?: string;
 }
 
 const TypingIndicator = () => (
@@ -172,6 +204,10 @@ const ChatInterface = ({
   onGetToKnow,
   hasCalendly = false,
   isInShortlist = false,
+  pendingQuizzes = [],
+  completedInsights = [],
+  onStartQuiz,
+  candidateName,
 }: ChatInterfaceProps) => {
   const { user } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -289,7 +325,7 @@ const ChatInterface = ({
 
       {/* Messages */}
       <ScrollArea ref={scrollRef} className="flex-1 p-4">
-        {messages.length === 0 ? (
+        {messages.length === 0 && pendingQuizzes.length === 0 && completedInsights.length === 0 ? (
           <div className="flex-1 flex items-center justify-center h-full min-h-[200px]">
             <div className="text-center text-muted-foreground">
               <p className="text-lg mb-1">No messages yet</p>
@@ -298,6 +334,47 @@ const ChatInterface = ({
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Pending Quiz Cards for Candidates */}
+            {pendingQuizzes.length > 0 && (
+              <div className="space-y-3">
+                {pendingQuizzes.map((quiz) => (
+                  <motion.div
+                    key={quiz.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <QuizMessageCard
+                      employerName={quiz.employer_name}
+                      questionCount={quiz.questions.length}
+                      onStart={() => onStartQuiz?.(quiz)}
+                      isCompleted={false}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Completed Quiz Summary Cards */}
+            {completedInsights.length > 0 && (
+              <div className="space-y-3">
+                {completedInsights.map((insight) => (
+                  <motion.div
+                    key={insight.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <QuizSummaryCard
+                      candidateName={candidateName || "Candidate"}
+                      responses={insight.responses}
+                      completedAt={insight.completed_at}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
             {Object.entries(groupedMessages).map(([date, dateMessages]) => (
               <div key={date}>
                 {/* Date separator */}

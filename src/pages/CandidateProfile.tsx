@@ -28,9 +28,11 @@ import { SynergyScoreModal } from "@/components/SynergyScoreModal";
 import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
 import { CultureCompatibilityBadge } from "@/components/culture/CultureCompatibilityBadge";
 import { ProfileCompleteBadge } from "@/components/profile/ProfileCompleteBadge";
+import { InterviewInsightsTab } from "@/components/profile/InterviewInsightsTab";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility, getCompatibilityLabel } from "@/lib/synergyUtils";
 import { calculateCultureCompatibility } from "@/lib/cultureUtils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CandidateProfileData {
   id: string;
@@ -516,6 +518,25 @@ export default function CandidateProfile() {
                   </Button>
                 </div>
               </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Interview Insights Tab - For Employers */}
+        {currentUserProfile?.user_type === "employer" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <Card>
+              <CardHeader className="pb-0">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Interview Insights
+                </CardTitle>
+              </CardHeader>
+              <InterviewInsightsTab candidateId={candidate.user_id} />
             </Card>
           </motion.div>
         )}

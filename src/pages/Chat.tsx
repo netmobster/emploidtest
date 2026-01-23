@@ -427,6 +427,17 @@ const Chat = () => {
           onGetToKnow={() => setShowGetToKnowDialog(true)}
           hasCalendly={hasCalendly}
           isInShortlist={isInShortlist}
+          pendingQuizzes={pendingQuizzes}
+          completedInsights={insights}
+          onStartQuiz={(quiz) => {
+            setActiveQuiz({
+              id: quiz.id,
+              questions: quiz.questions,
+              employerName: quiz.employer_name,
+            });
+            setShowQuizChatbot(true);
+          }}
+          candidateName={otherUser?.name}
         />
       </div>
 
