@@ -224,13 +224,10 @@ serve(async (req) => {
     const actorId = "AgfKk0sQQxkpQJ1Dt";
     const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
 
-    // Build the request payload - ensure URL is properly formatted
+    // Build the request payload with correct Apify structure
     const normalizedUrl = linkedinUrl.trim().replace(/\/$/, ''); // Remove trailing slash
     const payload = {
-      urls: [normalizedUrl],
-      cookie: "", // Empty cookie - Actor should use its own session
-      minDelay: 2,
-      maxDelay: 5,
+      startUrls: [{ url: normalizedUrl }],
     };
 
     console.log("Sending to Apify:", JSON.stringify(payload));
