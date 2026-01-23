@@ -134,9 +134,9 @@ export const useSwipe = (jobId?: string) => {
         if (isMatch) {
           showToast("new_match");
         } else if (direction === "super_like") {
-          showToast("like_sent", "Super Like sent! ⭐");
+          toast.success("Super Like sent! ⭐", { duration: 2000 });
         } else if (direction === "like") {
-          showToast("like_sent");
+          toast.success("Like sent! 💚", { duration: 1500 });
         }
 
         return {

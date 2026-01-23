@@ -280,10 +280,10 @@ const EmployerSwipe = () => {
     if (direction !== "pass") {
       const result = await recordSwipe(candidate.userId || candidate.id, direction);
 
-      // Demo: Show match celebration randomly (30% chance on like)
-      if (result && Math.random() < 0.3) {
+      // Only show match celebration for REAL matches (mutual likes)
+      if (result?.isMatch && result.matchId) {
         setMatchedCandidate(candidate);
-        setMatchId(result.matchId || "demo-match");
+        setMatchId(result.matchId);
         setShowMatch(true);
       }
     }
