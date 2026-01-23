@@ -43,55 +43,44 @@ const Auth = () => {
     }
   };
 
-  // Update profile with user_type from URL after OAuth callback
+  // Combined effect: update profile user_type if needed, then redirect
   useEffect(() => {
-    const updateProfileUserType = async () => {
-      if (user && profile && !hasUpdatedProfile.current) {
-        // If profile user_type doesn't match URL param and profile isn't complete, update it
-        if (profile.user_type !== defaultUserType && !profile.has_completed_profile) {
-          hasUpdatedProfile.current = true;
-          const { error } = await supabase
-            .from("profiles")
-            .update({ user_type: defaultUserType })
-            .eq("user_id", user.id);
-          
-          if (!error) {
-            await refreshProfile();
-          }
+    const handleAuthRedirect = async () => {
+      if (!user || authLoading || !profile) return;
+
+      // If profile user_type doesn't match URL param and profile isn't complete, update it first
+      if (profile.user_type !== defaultUserType && !profile.has_completed_profile && !hasUpdatedProfile.current) {
+        hasUpdatedProfile.current = true;
+        const { error } = await supabase
+          .from("profiles")
+          .update({ user_type: defaultUserType })
+          .eq("user_id", user.id);
+        
+        if (!error) {
+          await refreshProfile();
+          return; // Wait for profile refresh before redirecting
         }
       }
-    };
 
-    updateProfileUserType();
-  }, [user, profile, defaultUserType, refreshProfile]);
-
-  // Redirect if already logged in - check onboarding completion
-  useEffect(() => {
-    if (user && !authLoading && profile) {
-      // Check if profile setup is complete
+      // Now handle redirect based on onboarding state
       if (!profile.has_completed_profile) {
-        navigate("/profile-setup");
+        navigate("/profile-setup", { replace: true });
         return;
       }
       
-      // Check if culture game is complete
       if (!profile.has_completed_culture_game) {
-        if (profile.user_type === "employer") {
-          navigate("/employer-onboarding");
-        } else {
-          navigate("/candidate-onboarding");
-        }
+        const destination = profile.user_type === "employer" ? "/employer-onboarding" : "/candidate-onboarding";
+        navigate(destination, { replace: true });
         return;
       }
       
       // Fully onboarded - go to dashboard
-      if (profile.user_type === "employer") {
-        navigate("/employer-dashboard");
-      } else {
-        navigate("/candidate-dashboard");
-      }
-    }
-  }, [user, authLoading, navigate, profile]);
+      const dashboard = profile.user_type === "employer" ? "/employer-dashboard" : "/candidate-dashboard";
+      navigate(dashboard, { replace: true });
+    };
+
+    handleAuthRedirect();
+  }, [user, authLoading, profile, defaultUserType, refreshProfile, navigate]);
 
   if (authLoading) {
     return (
