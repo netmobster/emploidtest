@@ -119,10 +119,16 @@ export function JobCard({ job, onDelete, onViewCandidates, onRoleComplete, delay
                   Complete Role Details
                 </DropdownMenuItem>
               ) : (
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewCandidates?.(job.id); }}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Candidates
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onViewCandidates?.(job.id); }}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Candidates
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setShowRoleDialog(true); }}>
+                    <FileEdit className="w-4 h-4 mr-2" />
+                    Edit Role Details
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuItem 
                 onClick={(e) => { e.stopPropagation(); onDelete?.(job.id); }}

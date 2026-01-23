@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase, Calendar, MessageSquare, FileText } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase, Calendar, MessageSquare, FileText, FileEdit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -54,6 +54,7 @@ import { QuizSummaryCard } from "@/components/chat/QuizSummaryCard";
 import { ChatGateEmployer } from "@/components/chat/ChatGateEmployer";
 import { ChatGateCandidate } from "@/components/chat/ChatGateCandidate";
 import { RoleDetailsTab } from "@/components/role/RoleDetailsTab";
+import { RoleDefinitionDialog } from "@/components/role/RoleDefinitionDialog";
 import { toast } from "sonner";
 
 interface MatchDetails {
@@ -107,6 +108,7 @@ const Chat = () => {
   const [isInShortlist, setIsInShortlist] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
+  const [showRoleEditDialog, setShowRoleEditDialog] = useState(false);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
@@ -400,6 +402,14 @@ const Chat = () => {
                     View Role: {jobInfo.title}
                   </DropdownMenuItem>
                 )}
+                {isEmployer && jobInfo && (
+                  <DropdownMenuItem
+                    onClick={() => setShowRoleEditDialog(true)}
+                  >
+                    <FileEdit className="w-4 h-4 mr-2" />
+                    Edit Role Details
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   onClick={() => setShowScheduleDialog(true)}
                 >
@@ -660,6 +670,16 @@ const Chat = () => {
           employerName={activeQuiz.employerName}
           questions={activeQuiz.questions}
           onComplete={handleQuizComplete}
+        />
+      )}
+
+      {/* Role Edit Dialog (for employers) */}
+      {isEmployer && jobInfo && (
+        <RoleDefinitionDialog
+          open={showRoleEditDialog}
+          onOpenChange={setShowRoleEditDialog}
+          jobId={jobInfo.id}
+          onComplete={handleRoleComplete}
         />
       )}
     </div>
