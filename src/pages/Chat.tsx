@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase, Calendar } from "lucide-react";
+import { ArrowLeft, MoreVertical, Loader2, UserX, Ban, User, Heart, Briefcase, Calendar, MessageSquare, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -27,6 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useChat } from "@/hooks/useChat";
@@ -50,6 +51,9 @@ import { GetToKnowDialog } from "@/components/chat/GetToKnowDialog";
 import { QuizChatbot } from "@/components/chat/QuizChatbot";
 import { QuizMessageCard } from "@/components/chat/QuizMessageCard";
 import { QuizSummaryCard } from "@/components/chat/QuizSummaryCard";
+import { ChatGateEmployer } from "@/components/chat/ChatGateEmployer";
+import { ChatGateCandidate } from "@/components/chat/ChatGateCandidate";
+import { RoleDetailsTab } from "@/components/role/RoleDetailsTab";
 import { toast } from "sonner";
 
 interface MatchDetails {
@@ -72,6 +76,8 @@ interface JobInfo {
   id: string;
   title: string;
   roleId: string;
+  isComplete: boolean;
+  companyName?: string;
 }
 
 const Chat = () => {
@@ -100,6 +106,7 @@ const Chat = () => {
   const [hasCalendly, setHasCalendly] = useState(false);
   const [isInShortlist, setIsInShortlist] = useState(false);
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState("chat");
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
@@ -161,7 +168,7 @@ const Chat = () => {
         if (matchData.job_id) {
           const { data: jobData } = await supabase
             .from("jobs")
-            .select("id, title, role_id")
+            .select("id, title, role_id, is_complete, company")
             .eq("id", matchData.job_id)
             .single();
           
@@ -170,6 +177,8 @@ const Chat = () => {
               id: jobData.id,
               title: jobData.title,
               roleId: jobData.role_id,
+              isComplete: jobData.is_complete ?? false,
+              companyName: jobData.company,
             });
 
             // Check if candidate is in shortlist for this job (employer only)
@@ -270,6 +279,32 @@ const Chat = () => {
       </div>
     );
   }
+
+  // Determine if chat is gated
+  const isEmployer = profile?.user_type === "employer";
+  const isJobIncomplete = jobInfo && !jobInfo.isComplete;
+
+  // Handler for when role is completed
+  const handleRoleComplete = async () => {
+    // Refresh job info
+    if (match?.job_id) {
+      const { data: jobData } = await supabase
+        .from("jobs")
+        .select("id, title, role_id, is_complete, company")
+        .eq("id", match.job_id)
+        .single();
+      
+      if (jobData) {
+        setJobInfo({
+          id: jobData.id,
+          title: jobData.title,
+          roleId: jobData.role_id,
+          isComplete: jobData.is_complete ?? false,
+          companyName: jobData.company,
+        });
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -405,41 +440,89 @@ const Chat = () => {
         )}
       </motion.header>
 
-      {/* Chat */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <ChatInterface
-          messages={messages}
-          onSendMessage={sendMessage}
-          isSending={isSending}
-          isLoading={isLoading}
-          otherUser={otherUser ? { id: otherUser.id, name: otherUser.name, avatar: otherUser.avatar, type: otherUser.type } : undefined}
-          jobInfo={jobInfo ? { id: jobInfo.id, title: jobInfo.title } : undefined}
-          matchId={matchId}
-          isOtherUserOnline={isOtherUserOnline}
-          isOtherUserTyping={isOtherUserTyping}
-          onTyping={setTyping}
-          onUnmatch={() => setShowUnmatchDialog(true)}
-          onScheduleInterview={() => hasCalendly ? setShowScheduleDialog(true) : setShowCalendlyPrompt(true)}
-          onQuickQuestion={() => setShowQuickQuestionsDialog(true)}
-          onRequestDocument={() => setShowDocumentDialog(true)}
-          onAddToShortlist={() => setShowShortlistDialog(true)}
-          onAddNote={() => setShowNoteDialog(true)}
-          onGetToKnow={() => setShowGetToKnowDialog(true)}
-          hasCalendly={hasCalendly}
-          isInShortlist={isInShortlist}
-          pendingQuizzes={pendingQuizzes}
-          completedInsights={insights}
-          onStartQuiz={(quiz) => {
-            setActiveQuiz({
-              id: quiz.id,
-              questions: quiz.questions,
-              employerName: quiz.employer_name,
-            });
-            setShowQuizChatbot(true);
-          }}
-          candidateName={otherUser?.name}
-        />
-      </div>
+      {/* Chat Gate Logic */}
+      {isJobIncomplete ? (
+        isEmployer ? (
+          <ChatGateEmployer
+            jobId={jobInfo.id}
+            jobTitle={jobInfo.title}
+            candidateName={otherUser?.name}
+            onRoleComplete={handleRoleComplete}
+          />
+        ) : (
+          <ChatGateCandidate
+            employerName={otherUser?.name}
+            jobTitle={jobInfo.title}
+            companyName={jobInfo.companyName}
+          />
+        )
+      ) : (
+        <>
+          {/* Tabs for Chat and Role Details (candidates only when job is complete) */}
+          {!isEmployer && jobInfo && (
+            <div className="border-b border-border">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="w-full justify-start rounded-none border-none bg-transparent h-auto p-0">
+                  <TabsTrigger 
+                    value="chat" 
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3 gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Chat
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="role-details" 
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3 gap-2"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Role Details
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+          )}
+
+          {/* Chat Content */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {activeTab === "chat" ? (
+              <ChatInterface
+                messages={messages}
+                onSendMessage={sendMessage}
+                isSending={isSending}
+                isLoading={isLoading}
+                otherUser={otherUser ? { id: otherUser.id, name: otherUser.name, avatar: otherUser.avatar, type: otherUser.type } : undefined}
+                jobInfo={jobInfo ? { id: jobInfo.id, title: jobInfo.title } : undefined}
+                matchId={matchId}
+                isOtherUserOnline={isOtherUserOnline}
+                isOtherUserTyping={isOtherUserTyping}
+                onTyping={setTyping}
+                onUnmatch={() => setShowUnmatchDialog(true)}
+                onScheduleInterview={() => hasCalendly ? setShowScheduleDialog(true) : setShowCalendlyPrompt(true)}
+                onQuickQuestion={() => setShowQuickQuestionsDialog(true)}
+                onRequestDocument={() => setShowDocumentDialog(true)}
+                onAddToShortlist={() => setShowShortlistDialog(true)}
+                onAddNote={() => setShowNoteDialog(true)}
+                onGetToKnow={() => setShowGetToKnowDialog(true)}
+                hasCalendly={hasCalendly}
+                isInShortlist={isInShortlist}
+                pendingQuizzes={pendingQuizzes}
+                completedInsights={insights}
+                onStartQuiz={(quiz) => {
+                  setActiveQuiz({
+                    id: quiz.id,
+                    questions: quiz.questions,
+                    employerName: quiz.employer_name,
+                  });
+                  setShowQuizChatbot(true);
+                }}
+                candidateName={otherUser?.name}
+              />
+            ) : (
+              <RoleDetailsTab jobId={jobInfo!.id} />
+            )}
+          </div>
+        </>
+      )}
 
       {/* Footer */}
       <footer className="border-t border-border bg-background/80 backdrop-blur-sm py-2">

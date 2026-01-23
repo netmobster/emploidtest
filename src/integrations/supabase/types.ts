@@ -493,14 +493,22 @@ export type Database = {
       jobs: {
         Row: {
           benefits: string[] | null
+          big_rocks: Json | null
           city_id: string
           company: string
           created_at: string
           culture_preferences: Json | null
+          daily_stack: string[] | null
           description: string | null
           hiring_manager_id: string | null
           id: string
+          is_complete: boolean | null
+          location_text: string | null
+          mission_statement: string | null
+          pay_max: number | null
+          pay_min: number | null
           remote: boolean | null
+          reporting_to: string | null
           requirements: string[] | null
           role_id: string
           salary: string | null
@@ -508,17 +516,27 @@ export type Database = {
           title: string
           type: string | null
           user_id: string | null
+          vibe_mode: string | null
+          work_mode: string | null
         }
         Insert: {
           benefits?: string[] | null
+          big_rocks?: Json | null
           city_id: string
           company: string
           created_at?: string
           culture_preferences?: Json | null
+          daily_stack?: string[] | null
           description?: string | null
           hiring_manager_id?: string | null
           id?: string
+          is_complete?: boolean | null
+          location_text?: string | null
+          mission_statement?: string | null
+          pay_max?: number | null
+          pay_min?: number | null
           remote?: boolean | null
+          reporting_to?: string | null
           requirements?: string[] | null
           role_id: string
           salary?: string | null
@@ -526,17 +544,27 @@ export type Database = {
           title: string
           type?: string | null
           user_id?: string | null
+          vibe_mode?: string | null
+          work_mode?: string | null
         }
         Update: {
           benefits?: string[] | null
+          big_rocks?: Json | null
           city_id?: string
           company?: string
           created_at?: string
           culture_preferences?: Json | null
+          daily_stack?: string[] | null
           description?: string | null
           hiring_manager_id?: string | null
           id?: string
+          is_complete?: boolean | null
+          location_text?: string | null
+          mission_statement?: string | null
+          pay_max?: number | null
+          pay_min?: number | null
           remote?: boolean | null
+          reporting_to?: string | null
           requirements?: string[] | null
           role_id?: string
           salary?: string | null
@@ -544,6 +572,8 @@ export type Database = {
           title?: string
           type?: string | null
           user_id?: string | null
+          vibe_mode?: string | null
+          work_mode?: string | null
         }
         Relationships: [
           {
