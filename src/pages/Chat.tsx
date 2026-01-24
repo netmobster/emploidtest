@@ -309,7 +309,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <motion.header
         initial={{ y: -20, opacity: 0 }}
@@ -493,7 +493,7 @@ const Chat = () => {
           )}
 
           {/* Chat Content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             {activeTab === "chat" ? (
               <ChatInterface
                 messages={messages}

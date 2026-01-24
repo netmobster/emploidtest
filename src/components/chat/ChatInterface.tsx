@@ -301,7 +301,7 @@ const ChatInterface = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       {/* Document Request Banner for Candidates */}
       {matchId && (
         <DocumentRequestBanner
@@ -324,7 +324,7 @@ const ChatInterface = ({
       </div>
 
       {/* Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 p-4">
+      <ScrollArea ref={scrollRef} className="flex-1 min-h-0 p-4">
         {messages.length === 0 && pendingQuizzes.length === 0 && completedInsights.length === 0 ? (
           <div className="flex-1 flex items-center justify-center h-full min-h-[200px]">
             <div className="text-center text-muted-foreground">
@@ -457,8 +457,8 @@ const ChatInterface = ({
         )}
       </ScrollArea>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="p-4 border-t border-border">
+      {/* Input - Pinned to bottom */}
+      <form onSubmit={handleSubmit} className="flex-shrink-0 p-4 border-t border-border bg-background">
         <div className="flex gap-2 items-center">
           {/* Actions Menu */}
           {onScheduleInterview && (

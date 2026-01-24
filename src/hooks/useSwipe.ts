@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -11,6 +11,9 @@ interface SwipeResult {
   matchId?: string;
 }
 
+const MATCH_POLL_ATTEMPTS = 3;
+const MATCH_POLL_DELAY_MS = 300;
+
 export const useSwipe = (jobId?: string) => {
   const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -20,10 +23,13 @@ export const useSwipe = (jobId?: string) => {
   } | null>(null);
   const { createApplication } = useJobApplication();
   const { showToast } = useToastNotifications();
+  const swipeCountRef = useRef(0);
 
   // Subscribe to new matches
   useEffect(() => {
     if (!user) return;
+
+    console.log("[useSwipe] Setting up realtime subscription for user:", user.id);
 
     const channel = supabase
       .channel("matches-channel")
@@ -36,6 +42,7 @@ export const useSwipe = (jobId?: string) => {
           filter: `employer_id=eq.${user.id}`,
         },
         (payload) => {
+          console.log("[useSwipe] Realtime match detected (employer):", payload.new);
           const match = payload.new as any;
           setLatestMatch({
             matchId: match.id,
@@ -52,6 +59,7 @@ export const useSwipe = (jobId?: string) => {
           filter: `candidate_id=eq.${user.id}`,
         },
         (payload) => {
+          console.log("[useSwipe] Realtime match detected (candidate):", payload.new);
           const match = payload.new as any;
           setLatestMatch({
             matchId: match.id,
@@ -59,12 +67,50 @@ export const useSwipe = (jobId?: string) => {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[useSwipe] Realtime subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  // Helper: poll for match with retries
+  const pollForMatch = useCallback(
+    async (swipedUserId: string): Promise<{ id: string } | null> => {
+      for (let attempt = 1; attempt <= MATCH_POLL_ATTEMPTS; attempt++) {
+        console.log(`[useSwipe] Polling for match, attempt ${attempt}/${MATCH_POLL_ATTEMPTS}`);
+        
+        const { data: match, error } = await supabase
+          .from("matches")
+          .select("id")
+          .or(
+            `and(employer_id.eq.${user!.id},candidate_id.eq.${swipedUserId}),and(employer_id.eq.${swipedUserId},candidate_id.eq.${user!.id})`
+          )
+          .order("matched_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.error("[useSwipe] Poll error:", error);
+        }
+
+        if (match) {
+          console.log("[useSwipe] Match found on attempt", attempt, ":", match);
+          return match;
+        }
+
+        if (attempt < MATCH_POLL_ATTEMPTS) {
+          await new Promise((resolve) => setTimeout(resolve, MATCH_POLL_DELAY_MS));
+        }
+      }
+
+      console.log("[useSwipe] No match found after polling");
+      return null;
+    },
+    [user]
+  );
 
   const recordSwipe = useCallback(
     async (
@@ -75,6 +121,9 @@ export const useSwipe = (jobId?: string) => {
         toast.error("You must be logged in to swipe");
         return null;
       }
+
+      const swipeNum = ++swipeCountRef.current;
+      console.log(`[useSwipe] #${swipeNum} Recording swipe:`, { swipedUserId, direction, jobId });
 
       setIsLoading(true);
 
@@ -94,27 +143,22 @@ export const useSwipe = (jobId?: string) => {
         if (swipeError) {
           // Handle duplicate swipe
           if (swipeError.code === "23505") {
+            console.warn(`[useSwipe] #${swipeNum} Duplicate swipe detected`);
             toast.error("You've already swiped on this profile");
             return null;
           }
           throw swipeError;
         }
 
-        // Check if a match was created (by the trigger)
-        // Look for a match where both users are involved
-        const { data: match } = await supabase
-          .from("matches")
-          .select("id")
-          .or(
-            `and(employer_id.eq.${user.id},candidate_id.eq.${swipedUserId}),and(employer_id.eq.${swipedUserId},candidate_id.eq.${user.id})`
-          )
-          .order("matched_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        console.log(`[useSwipe] #${swipeNum} Swipe recorded:`, swipe.id);
 
+        // Poll for match with retries (trigger may have slight delay)
+        const match = await pollForMatch(swipedUserId);
         const isMatch = !!match;
 
-        if (isMatch) {
+        console.log(`[useSwipe] #${swipeNum} Match result:`, { isMatch, matchId: match?.id });
+
+        if (isMatch && match) {
           setLatestMatch({
             matchId: match.id,
             matchedUserId: swipedUserId,
@@ -145,7 +189,7 @@ export const useSwipe = (jobId?: string) => {
           matchId: match?.id,
         };
       } catch (error: any) {
-        console.error("Error recording swipe:", error);
+        console.error(`[useSwipe] #${swipeNum} Error recording swipe:`, error);
         toast.error("Failed to record swipe");
         return null;
       } finally {
@@ -153,7 +197,7 @@ export const useSwipe = (jobId?: string) => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user, jobId, showToast]
+    [user, jobId, showToast, pollForMatch]
   );
 
   const clearLatestMatch = useCallback(() => {
