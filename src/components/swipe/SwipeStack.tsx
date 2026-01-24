@@ -32,17 +32,29 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
-    if (!currentItem || isAnimating) return;
+    if (!currentItem || isAnimating) {
+      console.log("[SwipeStack] handleSwipe blocked:", { currentItem: !!currentItem, isAnimating });
+      return;
+    }
+
+    console.log("[SwipeStack] handleSwipe:", { id: currentItem.id, direction, currentIndex });
 
     setIsAnimating(true);
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
     
     // Fire onSwipe immediately (don't await - let it process in background)
-    Promise.resolve(onSwipe(currentItem, direction)).catch(console.error);
+    Promise.resolve(onSwipe(currentItem, direction))
+      .then((result) => {
+        console.log("[SwipeStack] onSwipe completed:", result);
+      })
+      .catch((err) => {
+        console.error("[SwipeStack] onSwipe error:", err);
+      });
 
     // Advance to next card after exit animation completes
     setTimeout(() => {
+      console.log("[SwipeStack] Advancing to next card after animation");
       setCurrentIndex(prev => prev + 1);
       setExitDirection(null);
       x.set(0);
@@ -51,7 +63,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
       if (currentIndex + 1 >= items.length && onEmpty) {
         onEmpty();
       }
-    }, 350); // Increased to ensure animation fully completes
+    }, 350);
   }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x, isAnimating]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
