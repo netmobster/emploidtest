@@ -1159,6 +1159,45 @@ export type Database = {
           },
         ]
       }
+      user_onboarding_status: {
+        Row: {
+          created_at: string
+          dashboard_tour_completed_at: string | null
+          has_completed_dashboard_tour: boolean | null
+          has_completed_walkthrough: boolean | null
+          has_seen_philosophy: boolean | null
+          id: string
+          philosophy_seen_at: string | null
+          updated_at: string
+          user_id: string
+          walkthrough_completed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          dashboard_tour_completed_at?: string | null
+          has_completed_dashboard_tour?: boolean | null
+          has_completed_walkthrough?: boolean | null
+          has_seen_philosophy?: boolean | null
+          id?: string
+          philosophy_seen_at?: string | null
+          updated_at?: string
+          user_id: string
+          walkthrough_completed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          dashboard_tour_completed_at?: string | null
+          has_completed_dashboard_tour?: boolean | null
+          has_completed_walkthrough?: boolean | null
+          has_seen_philosophy?: boolean | null
+          id?: string
+          philosophy_seen_at?: string | null
+          updated_at?: string
+          user_id?: string
+          walkthrough_completed_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

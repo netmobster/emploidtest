@@ -159,6 +159,22 @@ export function CloseRoleDialog({
 
       if (hireError) throw hireError;
 
+      // Send email notifications to matched candidates
+      try {
+        await supabase.functions.invoke("role-closure-notification", {
+          body: {
+            jobId,
+            jobTitle,
+            companyName: "Your company", // This should come from profile
+            status: "filled",
+            employerId: user.id,
+          },
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send notifications:", notifyErr);
+        // Don't fail the whole operation if notifications fail
+      }
+
       toast.success("Congratulations! Role marked as filled 🎉");
       onOpenChange(false);
       onSuccess?.();
@@ -191,6 +207,21 @@ export function CloseRoleDialog({
       });
 
       if (closureError) throw closureError;
+
+      // Send email notifications to matched candidates
+      try {
+        await supabase.functions.invoke("role-closure-notification", {
+          body: {
+            jobId,
+            jobTitle,
+            companyName: "Your company",
+            status: "unfilled",
+            employerId: user.id,
+          },
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send notifications:", notifyErr);
+      }
 
       toast.success("Role closed successfully");
       onOpenChange(false);

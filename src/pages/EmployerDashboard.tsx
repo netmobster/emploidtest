@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Users, Eye, TrendingUp, Loader2 } from "lucide-react";
+import { Briefcase, Users, Eye, TrendingUp, Loader2, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmployerStats } from "@/hooks/useEmployerStats";
 import { useEmployerJobs } from "@/hooks/useEmployerJobs";
@@ -24,8 +24,10 @@ import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterview
 import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
 import { DomainVerificationSection } from "@/components/verification/DomainVerificationSection";
 import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
+import { EmployerAnalyticsChart } from "@/components/dashboard/EmployerAnalyticsChart";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/components/Logo";
 
 export default function EmployerDashboard() {
@@ -146,10 +148,21 @@ export default function EmployerDashboard() {
           />
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Jobs & Activity */}
-          <div className="lg:col-span-2 space-y-6">
+        {/* Tab Navigation */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* Main Content Grid */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Left Column - Jobs & Activity */}
+              <div className="lg:col-span-2 space-y-6">
             {/* Job Postings */}
             <motion.div
               id="job-postings"
@@ -298,6 +311,13 @@ export default function EmployerDashboard() {
             </motion.div>
           </div>
         </div>
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <EmployerAnalyticsChart />
+          </TabsContent>
+        </Tabs>
 
         {/* Company Details Panel */}
         {profile && (
