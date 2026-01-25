@@ -94,11 +94,7 @@ const CandidateSwipe = () => {
         // Fetch real jobs from database with employer profiles and role definition fields
         let query = supabase.from("jobs").select(`
           *,
-          hiring_manager:hiring_team_members(id, name, avatar_url),
-          mission_statement,
-          big_rocks,
-          daily_stack,
-          vibe_mode
+          hiring_manager:hiring_team_members(id, name, avatar_url)
         `);
         if (role) query = query.eq("role_id", role);
         if (city) query = query.eq("city_id", city);
