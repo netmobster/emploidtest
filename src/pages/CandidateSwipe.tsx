@@ -11,6 +11,7 @@ import { useSwipe } from "@/hooks/useSwipe";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
 import { ROLES, SAMPLE_JOBS, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
+import { isJobLocationMatch } from "@/lib/locationMatchingUtils";
 import { toast } from "sonner";
 import { AdminMatchButton } from "@/components/testing/AdminMatchButton";
 
@@ -30,6 +31,10 @@ interface JobWithScore {
   employerId?: string;
   hiringManagerName?: string;
   hiringManagerAvatar?: string;
+  hasTimezoneSynergy?: boolean;
+  work_mode?: string;
+  location_text?: string;
+  geographic_restriction?: string;
 }
 
 const CandidateSwipe = () => {
@@ -91,6 +96,12 @@ const CandidateSwipe = () => {
 
         const { data: dbJobs } = await query;
 
+        // Get candidate location data for filtering
+        const candidateLocationData = profile ? {
+          work_mode: (profile as any).work_mode,
+          city_hub: (profile as any).city_hub,
+        } : null;
+
         // Fetch employer profiles for synergy comparison
         const employerUserIds = [...new Set((dbJobs || []).map((j) => j.user_id).filter(Boolean))];
         let employerProfiles: Record<string, any> = {};
@@ -134,6 +145,12 @@ const CandidateSwipe = () => {
             const cityInfo = CITIES.find((c) => c.id === job.city_id);
             const hiringManager = Array.isArray(job.hiring_manager) ? job.hiring_manager[0] : job.hiring_manager;
 
+            // Check for timezone synergy
+            const locationResult = candidateLocationData ? isJobLocationMatch(
+              candidateLocationData,
+              { work_mode: job.work_mode, location_text: job.location_text, geographic_restriction: job.geographic_restriction }
+            ) : { isMatch: true, hasTimezoneSynergy: false };
+
             return {
               id: job.id,
               title: job.title,
@@ -150,6 +167,10 @@ const CandidateSwipe = () => {
               employerId: job.user_id || undefined,
               hiringManagerName: hiringManager?.name,
               hiringManagerAvatar: hiringManager?.avatar_url,
+              hasTimezoneSynergy: locationResult.hasTimezoneSynergy,
+              work_mode: job.work_mode || undefined,
+              location_text: job.location_text || undefined,
+              geographic_restriction: job.geographic_restriction || undefined,
             };
           }),
           ...sampleJobs.map((job) => {
@@ -174,7 +195,22 @@ const CandidateSwipe = () => {
               employerId: "sample",
             };
           }),
-        ].filter((j) => !swipedIds.includes(j.id));
+        ]
+        .filter((j) => !swipedIds.includes(j.id))
+        // Apply location dealbreaker filter for DB jobs
+        .filter((job) => {
+          if (!candidateLocationData || job.employerId === "sample") return true;
+          const jobLocationData = {
+            work_mode: (job as any).work_mode,
+            location_text: (job as any).location_text,
+            geographic_restriction: (job as any).geographic_restriction,
+          };
+          const result = isJobLocationMatch(candidateLocationData, jobLocationData);
+          if (!result.isMatch) {
+            console.log(`[Matching] Excluded job ${job.title}: ${result.reason}`);
+          }
+          return result.isMatch;
+        });
 
         // Prioritize test employer jobs for test candidate
         if (user?.id === TEST_CANDIDATE_ID) {

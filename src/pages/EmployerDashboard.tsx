@@ -22,6 +22,8 @@ import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
 import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
 import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
+import { DomainVerificationSection } from "@/components/verification/DomainVerificationSection";
+import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -65,9 +67,16 @@ export default function EmployerDashboard() {
             <div className="flex items-center gap-4">
               <Logo size="sm" />
               <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold text-foreground">
-                  {profile?.company_name || "Dashboard"}
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-semibold text-foreground">
+                    {profile?.company_name || "Dashboard"}
+                  </h1>
+                  <VerifiedDomainBadge 
+                    domain={(profile as any)?.verified_domain} 
+                    isVerified={(profile as any)?.is_domain_verified} 
+                    size="sm"
+                  />
+                </div>
               </div>
             </div>
           </div>

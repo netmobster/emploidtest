@@ -8,6 +8,9 @@ import GatedBioSection from "./GatedBioSection";
 import LockedSection from "./LockedSection";
 import SwipeControls from "./SwipeControls";
 import MatchedBadge from "./MatchedBadge";
+import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
+import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
+import { TimezoneSynergyBadge } from "@/components/role/LocationWorkModeFields";
 
 export interface CandidateData {
   id: string;
@@ -30,6 +33,8 @@ export interface CandidateData {
   resumeUrl?: string;
   coverImageUrl?: string;
   cultureCompatibility?: number;
+  isVerified?: boolean;
+  hasTimezoneSynergy?: boolean;
 }
 
 export interface JobData {
@@ -49,6 +54,9 @@ export interface JobData {
   hiringManagerName?: string;
   hiringManagerAvatar?: string;
   culturePreferences?: Record<string, string>;
+  isVerified?: boolean;
+  verifiedDomain?: string;
+  hasTimezoneSynergy?: boolean;
 }
 
 interface FullProfileCardProps {
@@ -162,9 +170,17 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
           <div className="px-5 py-4 space-y-4">
             {/* Name, Title, Location */}
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                {candidate ? candidate.name : job?.title}
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-foreground">
+                  {candidate ? candidate.name : job?.title}
+                </h1>
+                {candidate?.isVerified && (
+                  <VerifiedProfessionalBadge isVerified size="md" />
+                )}
+                {job?.isVerified && (
+                  <VerifiedDomainBadge domain={job.verifiedDomain} isVerified size="md" />
+                )}
+              </div>
               <p className="text-base text-muted-foreground">
                 {candidate ? candidate.title : job?.company}
               </p>
@@ -180,6 +196,9 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
                     <Wifi className="w-3.5 h-3.5 mr-1.5" />
                     Remote OK
                   </Badge>
+                )}
+                {(candidate?.hasTimezoneSynergy || job?.hasTimezoneSynergy) && (
+                  <TimezoneSynergyBadge />
                 )}
               </div>
             </div>

@@ -186,7 +186,7 @@ serve(async (req) => {
   }
 
   try {
-    const { linkedinUrl, userId, userType = "candidate" } = await req.json();
+    const { linkedinUrl, userId, userType = "candidate", verificationMode = false } = await req.json();
 
     if (!linkedinUrl) {
       return new Response(
@@ -278,6 +278,39 @@ serve(async (req) => {
     const apifyData = apifyResults[0] as ApifyProfileData;
     const profileData = mapApifyToEmploid(apifyData);
 
+    // Extract LinkedIn public identifier for verification mode
+    const linkedinIdentifier = linkedinUrl.match(/linkedin\.com\/in\/([\w-]+)/i)?.[1]?.toLowerCase() || null;
+
+    // If verification mode, check for duplicate linked_provider_id
+    if (verificationMode && linkedinIdentifier && userId) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      const { data: existingProfile, error: checkError } = await supabase
+        .from("profiles")
+        .select("user_id")
+        .eq("linked_provider_id", linkedinIdentifier)
+        .neq("user_id", userId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("Error checking for duplicate profile:", checkError);
+      }
+
+      if (existingProfile) {
+        console.log("LinkedIn profile already linked to another account:", linkedinIdentifier);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "This LinkedIn profile is already linked to another account",
+            alreadyLinked: true,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     console.log("Mapped profile data:", JSON.stringify(profileData));
     console.log("Work history items:", profileData.workHistory.length);
 
@@ -299,6 +332,7 @@ serve(async (req) => {
         success: true,
         data: profileData,
         linkedinUrl,
+        linkedinIdentifier: linkedinIdentifier,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
