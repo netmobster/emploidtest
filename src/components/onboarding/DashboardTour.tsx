@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Joyride, { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from "react-joyride";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useFeatureToggle } from "@/contexts/FeatureToggleContext";
@@ -64,10 +64,11 @@ const joyrideStyles = {
 };
 
 export function DashboardTour({ steps, userType }: DashboardTourProps) {
-  const { status, markDashboardTourCompleted, isLoading } = useOnboarding();
+  const { status, markDashboardTourCompleted, isLoading, dashboardTourRestartNonce } = useOnboarding();
   const { testMode } = useFeatureToggle();
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const previousNonce = useRef(dashboardTourRestartNonce);
 
   // Start tour automatically if conditions are met
   // Tour should run when Public Mode is OFF (real mode)
@@ -75,19 +76,26 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
     if (!isLoading && !status.hasCompletedDashboardTour && !testMode.enabled) {
       // Small delay to ensure DOM elements are rendered
       const timer = setTimeout(() => {
+        console.log("[DashboardTour] Auto-starting tour (not completed, not in test mode)");
         setRun(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
   }, [isLoading, status.hasCompletedDashboardTour, testMode.enabled]);
 
-  // Allow external trigger for restart
+  // Handle restart nonce changes (from "Restart Tour" button)
   useEffect(() => {
-    if (!status.hasCompletedDashboardTour && !isLoading) {
-      setRun(true);
+    if (dashboardTourRestartNonce > previousNonce.current) {
+      console.log("[DashboardTour] Restart triggered via nonce change:", dashboardTourRestartNonce);
+      previousNonce.current = dashboardTourRestartNonce;
       setStepIndex(0);
+      // Force a re-run by toggling off then on
+      setRun(false);
+      setTimeout(() => {
+        setRun(true);
+      }, 100);
     }
-  }, [status.hasCompletedDashboardTour, isLoading]);
+  }, [dashboardTourRestartNonce]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status: joyrideStatus, action, index, type } = data;
@@ -110,11 +118,24 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
   
   useEffect(() => {
     const timer = setTimeout(() => {
-      const validSteps = steps.filter((step) => {
+      const validSteps: Step[] = [];
+      const missingTargets: string[] = [];
+      
+      steps.forEach((step) => {
         const target = step.target as string;
         const element = document.querySelector(target) as HTMLElement | null;
-        return element && element.offsetParent !== null;
+        if (element && element.offsetParent !== null) {
+          validSteps.push(step);
+        } else {
+          missingTargets.push(target);
+        }
       });
+      
+      if (missingTargets.length > 0) {
+        console.warn("[DashboardTour] Missing targets:", missingTargets);
+      }
+      console.log("[DashboardTour] Valid steps:", validSteps.length, "of", steps.length);
+      
       setActiveSteps(validSteps);
     }, 500);
     return () => clearTimeout(timer);

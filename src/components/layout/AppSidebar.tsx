@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield, User, Star } from "lucide-react";
+import { LayoutDashboard, Heart, MessageCircle, Settings, LogOut, Shield, User, Star, Globe } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
@@ -129,6 +129,23 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              {/* Public Home link */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive("/public-home")}
+                  tooltip="Public Home"
+                >
+                  <NavLink
+                    to="/public-home"
+                    className="flex items-center gap-3"
+                    activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                  >
+                    <Globe className="h-5 w-5" />
+                    {!collapsed && <span>Public Home</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               {isSuperAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
