@@ -1,67 +1,51 @@
 import { motion } from "framer-motion";
-import { Shield } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
-const verifiedRoles = [
+const verifiedBadges = [
   "Fractional CMO",
   "Growth Lead",
   "Series A Founder",
   "Brand Strategist",
   "Product Marketing",
-  "Performance Lead",
-  "Content Director",
 ];
 
 export function HumanityBar() {
   return (
-    <section className="py-16 md:py-20 px-4 relative overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-muted/20 to-background" />
-      
-      <div className="max-w-4xl mx-auto text-center relative">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
+    <section className="py-6 px-4">
+      <div className="max-w-4xl mx-auto text-center">
+        {/* Tagline */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          className="text-sm text-muted-foreground mb-4"
         >
-          <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3 font-serif-display">
-            A private table of identity-verified humans.
-          </h3>
-          <p className="text-lg md:text-xl text-muted-foreground mb-10">
-            <span className="text-primary font-semibold">0% Social Noise.</span>
-            {" "}
-            <span className="text-accent font-semibold">100% Strategic Alignment.</span>
-          </p>
-        </motion.div>
+          A private table of identity-verified humans.{" "}
+          <span className="text-foreground font-medium">0% Social Noise.</span>{" "}
+          <span className="text-primary font-medium">100% Strategic Alignment.</span>
+        </motion.p>
 
-        {/* Verified Badges */}
+        {/* Badge Row */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="flex flex-wrap justify-center gap-3"
+          transition={{ delay: 0.1 }}
+          className="flex flex-wrap justify-center gap-2"
         >
-          {verifiedRoles.map((role, index) => (
+          {verifiedBadges.map((badge, index) => (
             <motion.div
-              key={role}
-              initial={{ opacity: 0, scale: 0.8 }}
+              key={badge}
+              initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.1 * index, duration: 0.4 }}
-              className="group"
+              transition={{ delay: 0.05 * index, duration: 0.3 }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border/60 shadow-sm"
             >
-              <div className="
-                inline-flex items-center gap-2 px-4 py-2 rounded-full
-                bg-card/80 backdrop-blur-sm border border-border/50
-                hover:border-primary/30 hover:bg-card transition-all duration-300
-                shadow-sm hover:shadow-md hover:shadow-primary/5
-              ">
-                <Shield className="w-3.5 h-3.5 text-primary/70 group-hover:text-primary transition-colors" />
-                <span className="text-sm font-medium text-foreground/80 group-hover:text-foreground transition-colors">
-                  Verified: {role}
-                </span>
-              </div>
+              <CheckCircle className="w-3 h-3 text-success" />
+              <span className="text-xs font-medium text-foreground">
+                Verified: {badge}
+              </span>
             </motion.div>
           ))}
         </motion.div>

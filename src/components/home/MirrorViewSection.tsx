@@ -39,49 +39,49 @@ const employerBullets = [
 
 export function MirrorViewSection() {
   return (
-    <section className="py-16 md:py-24 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-6 lg:gap-10">
+    <section className="py-6 md:py-8 px-4">
+      <div className="max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
           {/* Candidate Side */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-3xl" />
-            <div className="relative bg-card/50 backdrop-blur-sm rounded-3xl border border-accent/20 p-8 lg:p-10 h-full">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-2xl" />
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-accent/20 p-6 lg:p-8 h-full">
               {/* Header */}
-              <div className="mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center mb-4">
-                  <User className="w-6 h-6 text-accent-foreground" />
+              <div className="mb-5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center mb-3">
+                  <User className="w-5 h-5 text-accent-foreground" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-foreground font-serif-display">
+                <h3 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">
                   Find Your Work
                 </h3>
-                <p className="text-muted-foreground mt-2">For candidates seeking meaningful roles</p>
+                <p className="text-sm text-muted-foreground mt-1">For candidates seeking meaningful roles</p>
               </div>
 
               {/* Bullets */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {candidateBullets.map((bullet, index) => {
                   const Icon = bullet.icon;
                   return (
                     <motion.div
                       key={bullet.title}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: 0.1 * index, duration: 0.5 }}
-                      className="flex gap-4"
+                      transition={{ delay: 0.05 * index, duration: 0.4 }}
+                      className="flex gap-3"
                     >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-accent" />
+                      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-accent" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-1">{bullet.title}</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{bullet.description}</p>
+                        <h4 className="font-semibold text-foreground text-sm mb-0.5">{bullet.title}</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{bullet.description}</p>
                       </div>
                     </motion.div>
                   );
@@ -92,44 +92,44 @@ export function MirrorViewSection() {
 
           {/* Employer Side */}
           <motion.div
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-3xl" />
-            <div className="relative bg-card/50 backdrop-blur-sm rounded-3xl border border-primary/20 p-8 lg:p-10 h-full">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl" />
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-primary/20 p-6 lg:p-8 h-full">
               {/* Header */}
-              <div className="mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-4">
-                  <Briefcase className="w-6 h-6 text-primary-foreground" />
+              <div className="mb-5">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-3">
+                  <Briefcase className="w-5 h-5 text-primary-foreground" />
                 </div>
-                <h3 className="text-2xl lg:text-3xl font-bold text-foreground font-serif-display">
+                <h3 className="text-xl lg:text-2xl font-bold text-foreground tracking-tight">
                   Build Your Team
                 </h3>
-                <p className="text-muted-foreground mt-2">For employers seeking lasting hires</p>
+                <p className="text-sm text-muted-foreground mt-1">For employers seeking lasting hires</p>
               </div>
 
               {/* Bullets */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {employerBullets.map((bullet, index) => {
                   const Icon = bullet.icon;
                   return (
                     <motion.div
                       key={bullet.title}
-                      initial={{ opacity: 0, y: 20 }}
+                      initial={{ opacity: 0, y: 15 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                      transition={{ delay: 0.1 * index, duration: 0.5 }}
-                      className="flex gap-4"
+                      transition={{ delay: 0.05 * index, duration: 0.4 }}
+                      className="flex gap-3"
                     >
-                      <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Icon className="w-5 h-5 text-primary" />
+                      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-primary" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-foreground mb-1">{bullet.title}</h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{bullet.description}</p>
+                        <h4 className="font-semibold text-foreground text-sm mb-0.5">{bullet.title}</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{bullet.description}</p>
                       </div>
                     </motion.div>
                   );
