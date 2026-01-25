@@ -153,8 +153,9 @@ export default function EmployerDashboard() {
 
         {/* Tab Navigation */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="analytics" className="gap-2">
               <BarChart3 className="w-4 h-4" />
               Analytics
@@ -251,6 +252,12 @@ export default function EmployerDashboard() {
           <div className="space-y-6">
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
+            
+            {/* Quick Match Panel for Testing */}
+            <QuickMatchPanel />
+            
+            <QuickActionsPanel />
+
             <div id="profile-strength">
               <ProfileCompletionCard {...profileCompletion} />
             </div>
@@ -259,11 +266,6 @@ export default function EmployerDashboard() {
             {profile?.synergy_scores && (
               <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
             )}
-            
-            {/* Quick Match Panel for Testing */}
-            <QuickMatchPanel />
-            
-            <QuickActionsPanel />
 
             {/* Recent Matches Preview */}
             <motion.div
@@ -318,30 +320,41 @@ export default function EmployerDashboard() {
         </div>
           </TabsContent>
 
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            {profile && (
+              <div id="company-details">
+                <CompanyDetailsPanel 
+                  profile={{
+                    company_name: profile.company_name,
+                    bio: profile.bio,
+                    avatar_url: profile.avatar_url,
+                    company_website: profile.company_website,
+                    company_size: profile.company_size,
+                    company_industry: profile.company_industry,
+                    company_location: profile.company_location,
+                  }}
+                  onEditSuccess={refreshProfile}
+                  onPreview={() => setPreviewOpen(true)}
+                />
+              </div>
+            )}
+            
+            <div id="profile-strength-tab">
+              <ProfileCompletionCard {...profileCompletion} />
+            </div>
+
+            {/* Synergy Score in Profile Tab */}
+            {profile?.synergy_scores && (
+              <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+            )}
+          </TabsContent>
+
           {/* Analytics Tab */}
           <TabsContent value="analytics">
             <EmployerAnalyticsChart />
           </TabsContent>
         </Tabs>
-
-        {/* Company Details Panel */}
-        {profile && (
-          <div id="company-details" className="mt-6">
-            <CompanyDetailsPanel 
-              profile={{
-                company_name: profile.company_name,
-                bio: profile.bio,
-                avatar_url: profile.avatar_url,
-                company_website: profile.company_website,
-                company_size: profile.company_size,
-                company_industry: profile.company_industry,
-                company_location: profile.company_location,
-              }}
-              onEditSuccess={refreshProfile}
-              onPreview={() => setPreviewOpen(true)}
-            />
-          </div>
-        )}
 
         <ProfilePreviewModal
           open={previewOpen}
