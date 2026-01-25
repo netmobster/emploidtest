@@ -1,16 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { Loader2, User, Heart, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Logo from "@/components/Logo";
-import { OnboardingStepperV2 } from "@/components/onboarding/OnboardingStepperV2";
+import { OnboardingStepperV2, Step } from "@/components/onboarding/OnboardingStepperV2";
 import { IdentityStep } from "@/components/onboarding/IdentityStep";
 import { CultureQuizStep } from "@/components/onboarding/CultureQuizStep";
 import { SynergyQuizStep } from "@/components/onboarding/SynergyQuizStep";
 import { SynergyFoundScreen } from "@/components/onboarding/SynergyFoundScreen";
 
 type OnboardingStep = "identity" | "culture" | "synergy" | "success";
+
+const CANDIDATE_STEPS: Step[] = [
+  { id: "identity", label: "Identity", icon: <User className="w-4 h-4" /> },
+  { id: "culture", label: "Culture", icon: <Heart className="w-4 h-4" /> },
+  { id: "synergy", label: "Synergy", icon: <Sparkles className="w-4 h-4" /> },
+];
 
 const CandidateOnboardingV2 = () => {
   const navigate = useNavigate();
@@ -103,6 +109,17 @@ const CandidateOnboardingV2 = () => {
     navigate("/candidate-dashboard?showMatches=true");
   };
 
+  const calculateMatchReadiness = (p: any): number => {
+    let score = 0;
+    if (p.has_completed_culture_game) score += 30;
+    if (p.has_completed_synergy_quiz) score += 30;
+    if (p.full_name) score += 10;
+    if (p.bio) score += 10;
+    if (p.avatar_url) score += 10;
+    if (p.skills?.length >= 3) score += 10;
+    return Math.min(score, 100);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -122,6 +139,7 @@ const CandidateOnboardingV2 = () => {
         {/* Progress Stepper - only show for main steps, not success */}
         {currentStep !== "success" && (
           <OnboardingStepperV2
+            steps={CANDIDATE_STEPS}
             currentStep={getStepIndex(currentStep)}
             completedSteps={completedSteps}
             className="mb-10"
@@ -169,14 +187,17 @@ const CandidateOnboardingV2 = () => {
             </motion.div>
           )}
 
-          {currentStep === "success" && (
+          {currentStep === "success" && profile && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
             >
-              <SynergyFoundScreen onContinue={handleSuccessContinue} />
+              <SynergyFoundScreen 
+                matchReadiness={calculateMatchReadiness(profile)}
+                onContinue={handleSuccessContinue} 
+              />
             </motion.div>
           )}
         </AnimatePresence>

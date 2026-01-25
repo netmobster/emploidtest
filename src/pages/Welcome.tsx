@@ -42,11 +42,11 @@ const Welcome = () => {
 
   const handleInterstitialComplete = async () => {
     await markWalkthroughCompleted();
-    // Route candidates to V2 onboarding, employers to profile setup
+    // Route candidates to V2 onboarding, employers to V2 onboarding
     if (profile?.user_type === "candidate") {
       navigate("/candidate-onboarding-v2");
     } else {
-      navigate("/profile-setup");
+      navigate("/employer-onboarding-v2");
     }
   };
 

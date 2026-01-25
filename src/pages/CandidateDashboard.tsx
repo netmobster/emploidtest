@@ -26,6 +26,7 @@ import { CANDIDATE_TOUR_STEPS } from "@/components/onboarding/candidateTourSteps
 import { CandidateAnalyticsChart } from "@/components/dashboard/CandidateAnalyticsChart";
 import { MatchesForYouSection } from "@/components/dashboard/MatchesForYouSection";
 import { MatchesLockedCard } from "@/components/dashboard/MatchesLockedCard";
+import { DiscoverySectionCandidate } from "@/components/dashboard/DiscoverySectionCandidate";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -166,7 +167,10 @@ export default function CandidateDashboard() {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Conditional Matches Section */}
             {profile?.has_completed_culture_game && profile?.has_completed_synergy_quiz ? (
-              <MatchesForYouSection />
+              <>
+                <MatchesForYouSection />
+                <DiscoverySectionCandidate />
+              </>
             ) : (
               <MatchesLockedCard />
             )}

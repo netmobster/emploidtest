@@ -1,26 +1,21 @@
 import { motion } from "framer-motion";
-import { Check, User, Heart, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Step {
+export interface Step {
   id: string;
   label: string;
   icon: React.ReactNode;
 }
 
 interface OnboardingStepperV2Props {
+  steps: Step[];
   currentStep: number;
   completedSteps: number[];
   className?: string;
 }
 
-const steps: Step[] = [
-  { id: "identity", label: "Identity", icon: <User className="w-4 h-4" /> },
-  { id: "culture", label: "Culture", icon: <Heart className="w-4 h-4" /> },
-  { id: "synergy", label: "Synergy", icon: <Sparkles className="w-4 h-4" /> },
-];
-
-export function OnboardingStepperV2({ currentStep, completedSteps, className }: OnboardingStepperV2Props) {
+export function OnboardingStepperV2({ steps, currentStep, completedSteps, className }: OnboardingStepperV2Props) {
   return (
     <div className={cn("w-full", className)}>
       <div className="flex items-center justify-between relative">
@@ -32,7 +27,7 @@ export function OnboardingStepperV2({ currentStep, completedSteps, className }: 
           className="absolute top-5 left-0 h-0.5 bg-primary mx-10"
           initial={{ width: "0%" }}
           animate={{ 
-            width: `${Math.min(currentStep / (steps.length - 1), 1) * 100}%` 
+            width: steps.length > 1 ? `${Math.min(currentStep / (steps.length - 1), 1) * 100}%` : "0%"
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         />
