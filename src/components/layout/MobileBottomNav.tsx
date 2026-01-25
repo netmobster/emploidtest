@@ -8,6 +8,7 @@ const candidateNavItems = [
   { title: "Swipe", url: "/swipe/candidate", icon: Heart },
   { title: "Matches", url: "/matches", icon: MessageCircle },
   { title: "Site", url: "/public-home", icon: Globe },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 const employerNavItems = [
@@ -15,6 +16,7 @@ const employerNavItems = [
   { title: "Swipe", url: "/swipe/employer", icon: Heart },
   { title: "Matches", url: "/matches", icon: MessageCircle },
   { title: "Site", url: "/public-home", icon: Globe },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function MobileBottomNav() {

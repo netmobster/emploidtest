@@ -71,17 +71,16 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
   const previousNonce = useRef(dashboardTourRestartNonce);
 
   // Start tour automatically if conditions are met
-  // Tour should run when Public Mode is OFF (real mode)
   useEffect(() => {
-    if (!isLoading && !status.hasCompletedDashboardTour && !testMode.enabled) {
+    if (!isLoading && !status.hasCompletedDashboardTour) {
       // Small delay to ensure DOM elements are rendered
       const timer = setTimeout(() => {
-        console.log("[DashboardTour] Auto-starting tour (not completed, not in test mode)");
+        console.log("[DashboardTour] Auto-starting tour (not completed)");
         setRun(true);
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isLoading, status.hasCompletedDashboardTour, testMode.enabled]);
+  }, [isLoading, status.hasCompletedDashboardTour]);
 
   // Handle restart nonce changes (from "Restart Tour" button)
   useEffect(() => {
@@ -113,14 +112,20 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
     }
   };
 
-  // Filter steps to only include ones with existing targets
+  // Filter steps to only include ones with existing targets.
+  // IMPORTANT: dashboards often mount async content; we retry a few times so we don't
+  // permanently end up with 0 steps (which makes the tour look "broken").
   const [activeSteps, setActiveSteps] = useState<Step[]>([]);
   
   useEffect(() => {
-    const timer = setTimeout(() => {
+    let cancelled = false;
+
+    const compute = (attempt: number) => {
+      if (cancelled) return;
+
       const validSteps: Step[] = [];
       const missingTargets: string[] = [];
-      
+
       steps.forEach((step) => {
         const target = step.target as string;
         const element = document.querySelector(target) as HTMLElement | null;
@@ -130,21 +135,39 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
           missingTargets.push(target);
         }
       });
-      
-      if (missingTargets.length > 0) {
-        console.warn("[DashboardTour] Missing targets:", missingTargets);
-      }
-      console.log("[DashboardTour] Valid steps:", validSteps.length, "of", steps.length);
-      
-      setActiveSteps(validSteps);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [steps]);
 
-  // Only render when Public Mode is OFF (real mode) and we have valid steps
-  if (testMode.enabled || activeSteps.length === 0) {
-    return null;
-  }
+      console.log("[DashboardTour] Step scan", {
+        attempt,
+        total: steps.length,
+        valid: validSteps.length,
+        missing: missingTargets,
+        testMode: testMode.enabled,
+        completed: status.hasCompletedDashboardTour,
+      });
+
+      if (validSteps.length > 0) {
+        setActiveSteps(validSteps);
+        return;
+      }
+
+      // Retry a few times while the dashboard finishes mounting data-driven UI.
+      if (attempt < 6) {
+        const delay = 250 + attempt * 250;
+        window.setTimeout(() => compute(attempt + 1), delay);
+      } else {
+        setActiveSteps([]);
+      }
+    };
+
+    compute(0);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [steps, dashboardTourRestartNonce, status.hasCompletedDashboardTour, testMode.enabled]);
+
+  // Don't mount Joyride until we have at least one valid step target.
+  if (activeSteps.length === 0) return null;
 
   return (
     <Joyride
