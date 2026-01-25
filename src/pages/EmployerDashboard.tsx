@@ -25,6 +25,8 @@ import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
 import { DomainVerificationSection } from "@/components/verification/DomainVerificationSection";
 import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
 import { EmployerAnalyticsChart } from "@/components/dashboard/EmployerAnalyticsChart";
+import { DashboardTour } from "@/components/onboarding/DashboardTour";
+import { EMPLOYER_TOUR_STEPS } from "@/components/onboarding/employerTourSteps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -91,6 +93,7 @@ export default function EmployerDashboard() {
 
         {/* Activity Digest */}
         <motion.div
+          id="activity-digest"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
@@ -248,7 +251,9 @@ export default function EmployerDashboard() {
           <div className="space-y-6">
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
-            <ProfileCompletionCard {...profileCompletion} />
+            <div id="profile-strength">
+              <ProfileCompletionCard {...profileCompletion} />
+            </div>
             
             {/* Synergy Score Chart */}
             {profile?.synergy_scores && (
@@ -321,7 +326,7 @@ export default function EmployerDashboard() {
 
         {/* Company Details Panel */}
         {profile && (
-          <div className="mt-6">
+          <div id="company-details" className="mt-6">
             <CompanyDetailsPanel 
               profile={{
                 company_name: profile.company_name,
@@ -342,6 +347,9 @@ export default function EmployerDashboard() {
           open={previewOpen}
           onOpenChange={setPreviewOpen}
         />
+
+        {/* Dashboard Tour */}
+        <DashboardTour steps={EMPLOYER_TOUR_STEPS} userType="employer" />
       </main>
     </div>
   );

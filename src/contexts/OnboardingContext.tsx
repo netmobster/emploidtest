@@ -14,6 +14,7 @@ interface OnboardingContextType {
   markPhilosophySeen: () => Promise<void>;
   markWalkthroughCompleted: () => Promise<void>;
   markDashboardTourCompleted: () => Promise<void>;
+  resetDashboardTour: () => Promise<void>;
   refetch: () => Promise<void>;
 }
 
@@ -29,6 +30,7 @@ const OnboardingContext = createContext<OnboardingContextType>({
   markPhilosophySeen: async () => {},
   markWalkthroughCompleted: async () => {},
   markDashboardTourCompleted: async () => {},
+  resetDashboardTour: async () => {},
   refetch: async () => {},
 });
 
@@ -134,6 +136,20 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetDashboardTour = async () => {
+    setStatus((prev) => ({ ...prev, hasCompletedDashboardTour: false }));
+
+    if (user) {
+      await supabase
+        .from("user_onboarding_status")
+        .update({
+          has_completed_dashboard_tour: false,
+          dashboard_tour_completed_at: null,
+        })
+        .eq("user_id", user.id);
+    }
+  };
+
   return (
     <OnboardingContext.Provider
       value={{
@@ -142,6 +158,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         markPhilosophySeen,
         markWalkthroughCompleted,
         markDashboardTourCompleted,
+        resetDashboardTour,
         refetch: fetchStatus,
       }}
     >
