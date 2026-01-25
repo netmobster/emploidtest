@@ -39,6 +39,7 @@ import SavedJobs from "./pages/SavedJobs";
 import ApplicationTracker from "./pages/ApplicationTracker";
 import Shortlists from "./pages/Shortlists";
 import About from "./pages/About";
+import PublicHome from "./pages/PublicHome";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,6 +57,7 @@ const App = () => (
             <Routes>
               {/* Public routes - no layout wrapper */}
               <Route path="/" element={<Index />} />
+              <Route path="/public-home" element={<PublicHome />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/welcome" element={<Welcome />} />
