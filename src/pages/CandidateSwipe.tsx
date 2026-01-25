@@ -35,6 +35,11 @@ interface JobWithScore {
   work_mode?: string;
   location_text?: string;
   geographic_restriction?: string;
+  // Role definition fields
+  missionStatement?: string;
+  bigRocks?: { title: string; description?: string }[];
+  dailyStack?: string[];
+  vibeMode?: string;
 }
 
 const CandidateSwipe = () => {
@@ -86,10 +91,14 @@ const CandidateSwipe = () => {
             }
           : null;
 
-        // Fetch real jobs from database with employer profiles
+        // Fetch real jobs from database with employer profiles and role definition fields
         let query = supabase.from("jobs").select(`
           *,
-          hiring_manager:hiring_team_members(id, name, avatar_url)
+          hiring_manager:hiring_team_members(id, name, avatar_url),
+          mission_statement,
+          big_rocks,
+          daily_stack,
+          vibe_mode
         `);
         if (role) query = query.eq("role_id", role);
         if (city) query = query.eq("city_id", city);
@@ -151,6 +160,11 @@ const CandidateSwipe = () => {
               { work_mode: job.work_mode, location_text: job.location_text, geographic_restriction: job.geographic_restriction }
             ) : { isMatch: true, hasTimezoneSynergy: false };
 
+            // Parse big_rocks from JSON
+            const bigRocks = Array.isArray(job.big_rocks) 
+              ? (job.big_rocks as { title: string; description?: string }[])
+              : [];
+
             return {
               id: job.id,
               title: job.title,
@@ -171,6 +185,11 @@ const CandidateSwipe = () => {
               work_mode: job.work_mode || undefined,
               location_text: job.location_text || undefined,
               geographic_restriction: job.geographic_restriction || undefined,
+              // Role definition fields
+              missionStatement: job.mission_statement || undefined,
+              bigRocks: bigRocks.length > 0 ? bigRocks : undefined,
+              dailyStack: job.daily_stack as string[] | undefined,
+              vibeMode: job.vibe_mode || undefined,
             };
           }),
           ...sampleJobs.map((job) => {

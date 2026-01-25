@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { MapPin, Wifi, Briefcase, Clock, Linkedin, Globe, FileText, ExternalLink, DollarSign } from "lucide-react";
+import { MapPin, Wifi, Briefcase, Clock, Linkedin, Globe, FileText, ExternalLink, DollarSign, Target, Rocket, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { MatchScoreBreakdown } from "@/lib/matchScoreUtils";
@@ -57,6 +57,11 @@ export interface JobData {
   isVerified?: boolean;
   verifiedDomain?: string;
   hasTimezoneSynergy?: boolean;
+  // Role definition fields
+  missionStatement?: string;
+  bigRocks?: { title: string; description?: string }[];
+  dailyStack?: string[];
+  vibeMode?: string;
 }
 
 interface FullProfileCardProps {
@@ -238,22 +243,101 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
               />
             )}
             
-            {job && (
-              <div>
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  About the Role
-                </h2>
-                <p className="text-foreground leading-relaxed">
-                  {job.description || "No description provided yet."}
-                </p>
-              </div>
-            )}
-
-            {/* Salary for Jobs */}
+            {/* Salary for Jobs - Prominent placement */}
             {job?.salary && (
               <div className="flex items-center gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                 <DollarSign className="w-5 h-5 text-green-500" />
                 <span className="font-semibold text-foreground">{job.salary}</span>
+              </div>
+            )}
+
+            {/* About the Role - Mission & Big Rocks */}
+            {job && (
+              <div className="space-y-4">
+                {/* Mission Statement */}
+                {job.missionStatement && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      The Mission
+                    </h2>
+                    <div className="p-4 rounded-lg bg-secondary border border-border">
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                        {job.missionStatement}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Big Rocks - 90-Day Outcomes */}
+                {job.bigRocks && job.bigRocks.length > 0 && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Rocket className="w-4 h-4" />
+                      The Three Big Rocks
+                    </h2>
+                    <p className="text-xs text-muted-foreground mb-3">Your 90-day focus areas</p>
+                    <div className="space-y-2">
+                      {job.bigRocks.map((rock, index) => (
+                        <div 
+                          key={index} 
+                          className="p-3 rounded-lg bg-secondary border border-border"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-primary">{index + 1}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-foreground">{rock.title}</p>
+                              {rock.description && (
+                                <p className="text-sm text-muted-foreground mt-1">{rock.description}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Daily Stack / Tools */}
+                {job.dailyStack && job.dailyStack.length > 0 && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      Daily Stack
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {job.dailyStack.map((tool, index) => (
+                        <Badge key={index} variant="outline" className="px-3 py-1">
+                          {tool}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Vibe Mode */}
+                {job.vibeMode && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-secondary">
+                    <span className="text-sm text-muted-foreground">Work Style:</span>
+                    <Badge variant="secondary" className="capitalize">
+                      {job.vibeMode.replace(/-/g, " ")}
+                    </Badge>
+                  </div>
+                )}
+
+                {/* Fallback to description if no mission */}
+                {!job.missionStatement && job.description && (
+                  <div>
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                      About the Role
+                    </h2>
+                    <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                      {job.description}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
