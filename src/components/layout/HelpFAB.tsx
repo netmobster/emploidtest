@@ -36,7 +36,7 @@ export function HelpFAB() {
 
   return (
     <>
-      <div className="fixed bottom-6 left-6 z-50 hidden md:block">
+      <div className="fixed bottom-6 right-6 z-50 hidden md:block">
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -44,7 +44,7 @@ export function HelpFAB() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="absolute bottom-16 left-0 w-56 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
+              className="absolute bottom-16 right-0 w-56 bg-card border border-border rounded-xl shadow-lg overflow-hidden"
             >
               <div className="p-3 border-b border-border bg-muted/30">
                 <p className="text-sm font-medium text-foreground">Need Help?</p>

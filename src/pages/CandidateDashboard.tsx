@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil, ClipboardList } from "lucide-react";
+import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil, ClipboardList, BarChart3, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCandidateStats } from "@/hooks/useCandidateStats";
 import { useJobRecommendations } from "@/hooks/useJobRecommendations";
@@ -25,6 +25,7 @@ import { DashboardTour } from "@/components/onboarding/DashboardTour";
 import { CANDIDATE_TOUR_STEPS } from "@/components/onboarding/candidateTourSteps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/components/Logo";
 
 export default function CandidateDashboard() {
@@ -139,6 +140,17 @@ export default function CandidateDashboard() {
           />
         </div>
 
+        {/* Tab Navigation */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="profile" className="gap-2">
+              <User className="w-4 h-4" />
+              Profile
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Left Column - Job Recommendations */}
@@ -268,15 +280,8 @@ export default function CandidateDashboard() {
 
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
-            <ProfileCompletionCard {...profileCompletion} />
             
-            {/* Synergy Score Chart */}
-            {profile?.synergy_scores && (
-              <div id="synergy-score">
-                <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
-              </div>
-            )}
-            
+            {/* Quick Actions - moved before profile completion */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -320,58 +325,98 @@ export default function CandidateDashboard() {
               </div>
             </motion.div>
 
-            {/* Profile Section */}
+            {/* Profile Completion - now below quick actions */}
+            <ProfileCompletionCard {...profileCompletion} />
+            
+            {/* Synergy Score Chart */}
+            {profile?.synergy_scores && (
+              <div id="synergy-score">
+                <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+              </div>
+            )}
+            
+
+            {/* Dashboard Tour */}
+            <DashboardTour steps={CANDIDATE_TOUR_STEPS} userType="candidate" />
+          </div>
+        </div>
+          </TabsContent>
+
+          {/* Profile Tab */}
+          <TabsContent value="profile" className="space-y-6">
+            {/* Full Profile Section */}
             <motion.div
               id="profile-section"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="bg-card rounded-xl p-4 sm:p-5 shadow-card border border-border overflow-hidden"
+              className="bg-card rounded-xl p-6 shadow-card border border-border"
             >
-              <div className="flex items-center justify-between mb-4 gap-2">
-                <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">Your Profile</h3>
-                <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center justify-between mb-6 gap-2">
+                <h3 className="font-semibold text-foreground text-lg">Your Profile</h3>
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm"
                     onClick={() => setPreviewOpen(true)}
-                    className="text-xs px-2"
                   >
-                    <Eye className="w-4 h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Preview</span>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Public Profile
                   </Button>
                   <Button 
-                    variant="ghost" 
                     size="sm"
                     onClick={() => setEditProfileOpen(true)}
-                    className="text-xs px-2"
                   >
-                    <Pencil className="w-4 h-4 sm:mr-1" />
-                    <span className="hidden sm:inline">Edit</span>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit Profile
                   </Button>
                 </div>
               </div>
-              <div className="flex items-center gap-3 mb-4 overflow-hidden">
-                <Avatar className="w-12 sm:w-14 h-12 sm:h-14 flex-shrink-0">
+              
+              <div className="flex items-start gap-4 mb-6">
+                <Avatar className="w-20 h-20 flex-shrink-0">
                   <AvatarImage src={profile?.avatar_url || undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary text-base sm:text-lg">
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl">
                     {profile?.full_name?.slice(0, 2).toUpperCase() || "??"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-medium text-foreground truncate text-sm sm:text-base">{profile?.full_name || "Your Name"}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-foreground text-xl">{profile?.full_name || "Your Name"}</h4>
                     <VerifiedProfessionalBadge isVerified={(profile as any)?.is_verified_identity} size="sm" />
                   </div>
-                  <p className="text-xs sm:text-sm text-muted-foreground truncate">{profile?.email}</p>
-                  {profile?.bio && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>
+                  <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                  {profile?.job_title && (
+                    <p className="text-sm text-foreground mt-1">{profile.job_title}</p>
+                  )}
+                  {profile?.location && (
+                    <p className="text-sm text-muted-foreground">{profile.location}</p>
                   )}
                 </div>
               </div>
+
+              {profile?.bio && (
+                <div className="mb-6">
+                  <h5 className="font-medium text-foreground mb-2">About</h5>
+                  <p className="text-sm text-muted-foreground">{profile.bio}</p>
+                </div>
+              )}
+
+              {profile?.skills && profile.skills.length > 0 && (
+                <div className="mb-6">
+                  <h5 className="font-medium text-foreground mb-2">Skills</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map((skill: string, index: number) => (
+                      <span key={index} className="px-3 py-1 bg-secondary rounded-full text-sm text-foreground">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {!profile?.has_completed_culture_game && (
-                <div className="p-3 rounded-lg bg-accent/10 border border-accent/20">
-                  <p className="text-sm text-foreground mb-2">Complete your profile</p>
+                <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
+                  <p className="text-sm font-medium text-foreground mb-2">Complete your profile</p>
                   <p className="text-xs text-muted-foreground mb-3">
                     Take the culture game to get better job matches!
                   </p>
@@ -382,24 +427,31 @@ export default function CandidateDashboard() {
               )}
             </motion.div>
 
-            <EditCandidateProfileDialog
-              open={editProfileOpen}
-              onOpenChange={setEditProfileOpen}
-              onSuccess={() => {
-                setEditProfileOpen(false);
-                refreshProfile();
-              }}
-            />
+            {/* Profile Completion in Profile Tab */}
+            <ProfileCompletionCard {...profileCompletion} />
 
-            <ProfilePreviewModal
-              open={previewOpen}
-              onOpenChange={setPreviewOpen}
-            />
+            {/* Synergy Score in Profile Tab */}
+            {profile?.synergy_scores && (
+              <div id="synergy-score-tab">
+                <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
-            {/* Dashboard Tour */}
-            <DashboardTour steps={CANDIDATE_TOUR_STEPS} userType="candidate" />
-          </div>
-        </div>
+        <EditCandidateProfileDialog
+          open={editProfileOpen}
+          onOpenChange={setEditProfileOpen}
+          onSuccess={() => {
+            setEditProfileOpen(false);
+            refreshProfile();
+          }}
+        />
+
+        <ProfilePreviewModal
+          open={previewOpen}
+          onOpenChange={setPreviewOpen}
+        />
       </main>
     </div>
   );

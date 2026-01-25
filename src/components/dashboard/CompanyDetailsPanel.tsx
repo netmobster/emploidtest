@@ -22,11 +22,19 @@ interface CompanyDetailsPanelProps {
   onPreview?: () => void;
 }
 
+const BIO_TRUNCATE_LENGTH = 100;
+
 export function CompanyDetailsPanel({ profile, onEditSuccess, onPreview }: CompanyDetailsPanelProps) {
   const [editOpen, setEditOpen] = useState(false);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
 
   const hasDetails = profile.company_name || profile.bio || profile.company_website || 
                      profile.company_size || profile.company_industry || profile.company_location;
+
+  const shouldTruncateBio = profile.bio && profile.bio.length > BIO_TRUNCATE_LENGTH;
+  const displayBio = shouldTruncateBio && !isBioExpanded 
+    ? profile.bio?.slice(0, BIO_TRUNCATE_LENGTH) + "..." 
+    : profile.bio;
 
   return (
     <>
@@ -70,7 +78,19 @@ export function CompanyDetailsPanel({ profile, onEditSuccess, onPreview }: Compa
                       {profile.company_name || "Company Name"}
                     </h3>
                     {profile.bio && (
-                      <p className="text-muted-foreground mt-1 text-sm">{profile.bio}</p>
+                      <div className="mt-1">
+                        <p className="text-muted-foreground text-sm">{displayBio}</p>
+                        {shouldTruncateBio && (
+                          <Button 
+                            variant="link" 
+                            size="sm" 
+                            className="p-0 h-auto text-xs"
+                            onClick={() => setIsBioExpanded(!isBioExpanded)}
+                          >
+                            {isBioExpanded ? "Show less" : "Show more"}
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
