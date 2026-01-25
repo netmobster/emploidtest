@@ -189,7 +189,7 @@ export default function CandidateDashboard() {
                 <h3 className="text-base sm:text-lg font-semibold text-foreground truncate">Job Recommendations</h3>
                 <Button 
                   size="sm" 
-                  onClick={() => navigate("/swipe/candidate")}
+                  onClick={() => navigate("/city?type=candidate")}
                   className="flex-shrink-0"
                 >
                   Browse All
@@ -207,7 +207,7 @@ export default function CandidateDashboard() {
                   <Button 
                     variant="outline" 
                     className="mt-4"
-                    onClick={() => navigate("/swipe/candidate")}
+                    onClick={() => navigate("/city?type=candidate")}
                   >
                     Start Browsing Jobs
                   </Button>
@@ -305,7 +305,7 @@ export default function CandidateDashboard() {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => navigate("/swipe/candidate")}
+                      onClick={() => navigate("/city?type=candidate")}
                       className="h-9 w-9"
                     >
                       <Briefcase className="w-4 h-4" />

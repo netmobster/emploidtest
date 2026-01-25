@@ -338,6 +338,18 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
                     </p>
                   </div>
                 )}
+
+                {/* Incomplete role indicator when no details available */}
+                {!job.missionStatement && (!job.bigRocks || job.bigRocks.length === 0) && !job.description && (
+                  <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                      Role details are being finalized by the employer.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Match to learn more about this opportunity!
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

@@ -225,6 +225,20 @@ const CandidateSwipe = () => {
             console.log(`[Matching] Excluded job ${job.title}: ${result.reason}`);
           }
           return result.isMatch;
+        })
+        // Filter out incomplete roles (only show complete DB jobs or sample jobs)
+        .filter((job) => {
+          // Sample jobs always show
+          if (job.employerId === "sample") return true;
+          // Check if job has minimum required details (use type assertion for optional fields)
+          const jobWithDetails = job as JobWithScore;
+          const hasDetails = jobWithDetails.missionStatement || 
+                             (jobWithDetails.bigRocks && jobWithDetails.bigRocks.length > 0) || 
+                             jobWithDetails.description;
+          if (!hasDetails) {
+            console.log(`[Matching] Excluded incomplete job ${job.title}: missing role details`);
+          }
+          return hasDetails;
         });
 
         // Prioritize test employer jobs for test candidate
