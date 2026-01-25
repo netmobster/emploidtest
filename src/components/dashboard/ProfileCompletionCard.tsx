@@ -147,8 +147,8 @@ export function ProfileCompletionCard({
               className={cn(
                 "w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg text-left transition-colors",
                 item.completed
-                  ? "bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer"
-                  : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
+                  ? "bg-primary/20 hover:bg-primary/30 cursor-pointer"
+                  : "bg-secondary hover:bg-secondary/80 cursor-pointer"
               )}
             >
               {item.completed ? (
@@ -156,7 +156,10 @@ export function ProfileCompletionCard({
               ) : (
                 <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               )}
-              <span className="text-xs sm:text-sm flex-1 min-w-0 truncate">{item.label}</span>
+              <span className={cn(
+                "text-xs sm:text-sm flex-1 min-w-0 truncate",
+                item.completed ? "text-primary font-medium" : "text-foreground"
+              )}>{item.label}</span>
             </button>
           ))}
         </div>
@@ -172,26 +175,29 @@ export function ProfileCompletionCard({
             {extendedItems.map((item) => (
               <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
-                  <button
-                    onClick={() => handleItemClick(item)}
-                    disabled={item.comingSoon}
-                    className={cn(
-                      "w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg text-left transition-colors",
-                      item.comingSoon
-                        ? "bg-muted/50 text-muted-foreground cursor-not-allowed opacity-60"
-                        : item.completed
-                        ? "bg-accent/10 text-accent-foreground hover:bg-accent/20 cursor-pointer"
-                        : "bg-muted/50 hover:bg-muted text-foreground cursor-pointer"
-                    )}
+                    <button
+                      onClick={() => handleItemClick(item)}
+                      disabled={item.comingSoon}
+                      className={cn(
+                        "w-full flex items-center gap-2 sm:gap-3 p-2 rounded-lg text-left transition-colors",
+                        item.comingSoon
+                          ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                          : item.completed
+                          ? "bg-accent/20 hover:bg-accent/30 cursor-pointer"
+                          : "bg-secondary hover:bg-secondary/80 cursor-pointer"
+                      )}
                   >
-                    {item.completed ? (
-                      <Check className="h-4 w-4 text-accent flex-shrink-0" />
-                    ) : item.comingSoon ? (
-                      <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    )}
-                    <span className="text-xs sm:text-sm flex-1 min-w-0 truncate">{item.label}</span>
+                      {item.completed ? (
+                        <Check className="h-4 w-4 text-accent flex-shrink-0" />
+                      ) : item.comingSoon ? (
+                        <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      )}
+                      <span className={cn(
+                        "text-xs sm:text-sm flex-1 min-w-0 truncate",
+                        item.completed ? "text-accent font-medium" : item.comingSoon ? "text-muted-foreground" : "text-foreground"
+                      )}>{item.label}</span>
                     {item.comingSoon && (
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0 flex-shrink-0">
                         Soon
