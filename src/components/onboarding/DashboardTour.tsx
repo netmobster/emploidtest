@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import Joyride, { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from "react-joyride";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useFeatureToggle } from "@/contexts/FeatureToggleContext";
+import { TourDebugPanel } from "@/components/onboarding/TourDebugPanel";
 
 interface DashboardTourProps {
   steps: Step[];
@@ -69,6 +70,12 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const previousNonce = useRef(dashboardTourRestartNonce);
+
+  // Helpful mount log to confirm the component is alive (previously it wasn't due to missing provider).
+  useEffect(() => {
+    console.log("[DashboardTour] Mounted", { userType });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Start tour automatically if conditions are met
   useEffect(() => {
@@ -167,30 +174,54 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
   }, [steps, dashboardTourRestartNonce, status.hasCompletedDashboardTour, testMode.enabled]);
 
   // Don't mount Joyride until we have at least one valid step target.
-  if (activeSteps.length === 0) return null;
+  if (activeSteps.length === 0) {
+    return (
+      <TourDebugPanel
+        title={`Tour Debug (${userType})`}
+        status={status}
+        isLoading={isLoading}
+        restartNonce={dashboardTourRestartNonce}
+        run={run}
+        stepIndex={stepIndex}
+        steps={steps}
+      />
+    );
+  }
 
   return (
-    <Joyride
-      steps={activeSteps}
-      run={run}
-      stepIndex={stepIndex}
-      continuous
-      showProgress
-      showSkipButton
-      disableOverlayClose
-      spotlightClicks
-      callback={handleJoyrideCallback}
-      styles={joyrideStyles}
-      locale={{
-        back: "Back",
-        close: "Close",
-        last: "Finish",
-        next: "Next",
-        skip: "Skip Tour",
-      }}
-      floaterProps={{
-        disableAnimation: true,
-      }}
-    />
+    <>
+      <Joyride
+        steps={activeSteps}
+        run={run}
+        stepIndex={stepIndex}
+        continuous
+        showProgress
+        showSkipButton
+        disableOverlayClose
+        spotlightClicks
+        callback={handleJoyrideCallback}
+        styles={joyrideStyles}
+        locale={{
+          back: "Back",
+          close: "Close",
+          last: "Finish",
+          next: "Next",
+          skip: "Skip Tour",
+        }}
+        floaterProps={{
+          disableAnimation: true,
+        }}
+      />
+
+      <TourDebugPanel
+        title={`Tour Debug (${userType})`}
+        status={status}
+        isLoading={isLoading}
+        restartNonce={dashboardTourRestartNonce}
+        run={run}
+        stepIndex={stepIndex}
+        steps={steps}
+      />
+    </>
   );
 }
