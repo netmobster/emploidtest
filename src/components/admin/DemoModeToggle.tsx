@@ -29,8 +29,8 @@ export function DemoModeToggle() {
         await refetch();
         toast.success(
           enabled
-            ? "Demo mode enabled - verification requirements are bypassed"
-            : "Demo mode disabled - verification is now required"
+            ? "Public Mode enabled - verification requirements are bypassed"
+            : "Public Mode disabled - verification is now required"
         );
       }
     } catch (err) {
@@ -61,13 +61,13 @@ export function DemoModeToggle() {
             </div>
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
-                Public Demo Mode
+                Public Mode
                 {testModeEnabled && (
                   <Badge variant="secondary" className="text-xs">Active</Badge>
                 )}
               </CardTitle>
               <CardDescription>
-                Bypass verification requirements for testing
+                Bypass verification requirements for public access
               </CardDescription>
             </div>
           </div>
@@ -87,13 +87,13 @@ export function DemoModeToggle() {
           <div className="flex items-start gap-2">
             <Shield className="w-4 h-4 text-muted-foreground mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-foreground">When Demo Mode is {testModeEnabled ? "ON" : "OFF"}:</p>
+              <p className="font-medium text-foreground">When Public Mode is {testModeEnabled ? "ON" : "OFF"}:</p>
               <ul className="mt-1 space-y-1 text-muted-foreground">
                 {testModeEnabled ? (
                   <>
                     <li>• Verification prompts are <span className="text-primary font-medium">hidden</span></li>
                     <li>• Users can access all features without verification</li>
-                    <li>• Ideal for demos, testing, and development</li>
+                    <li>• Philosophy modal is <span className="text-primary font-medium">hidden</span> for new visitors</li>
                   </>
                 ) : (
                   <>

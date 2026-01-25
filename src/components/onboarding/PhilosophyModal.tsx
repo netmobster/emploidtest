@@ -40,10 +40,10 @@ export function PhilosophyModal() {
 
   useEffect(() => {
     // Only show for unauthenticated users who haven't seen philosophy
-    // AND when demo mode is enabled (testMode.enabled = true means verification is bypassed)
+    // AND when PUBLIC MODE is OFF (testMode.enabled = false means real verification mode)
     const hasSeenPhilosophy = localStorage.getItem("has_seen_philosophy");
     
-    if (!user && !hasSeenPhilosophy && testMode.enabled) {
+    if (!user && !hasSeenPhilosophy && !testMode.enabled) {
       // Small delay for better UX
       const timer = setTimeout(() => setIsOpen(true), 1000);
       return () => clearTimeout(timer);
