@@ -7,6 +7,8 @@ import ProgressDots from "@/components/ProgressDots";
 interface Day14InterstitialProps {
   userType: "candidate" | "employer";
   onComplete: () => void;
+  onSkip?: () => void;
+  isReturningUser?: boolean;
 }
 
 interface CardContent {
@@ -53,7 +55,7 @@ const EMPLOYER_CARDS: CardContent[] = [
   },
 ];
 
-export function Day14Interstitial({ userType, onComplete }: Day14InterstitialProps) {
+export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUser }: Day14InterstitialProps) {
   const [currentCard, setCurrentCard] = useState(0);
   const cards = userType === "candidate" ? CANDIDATE_CARDS : EMPLOYER_CARDS;
   const isLastCard = currentCard === cards.length - 1;
@@ -80,8 +82,22 @@ export function Day14Interstitial({ userType, onComplete }: Day14InterstitialPro
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg"
+        className="w-full max-w-lg relative"
       >
+        {/* Skip to Dashboard button for returning users */}
+        {isReturningUser && onSkip && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            onClick={onSkip}
+            className="absolute -top-12 right-0 text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 group"
+          >
+            Skip to Dashboard
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </motion.button>
+        )}
+
         <div className="bg-card rounded-3xl border border-border shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="p-6 pb-4 text-center border-b border-border/50 bg-muted/30">
