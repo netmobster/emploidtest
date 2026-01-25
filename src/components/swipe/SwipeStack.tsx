@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, useMotionValue, useTransform, AnimatePresence, PanInfo } from "framer-motion";
 import FullProfileCard, { CandidateData, JobData } from "./FullProfileCard";
+import { SwipeLoadingOverlay } from "./SwipeLoadingOverlay";
 
 interface SwipeStackProps<T> {
   items: T[];
@@ -20,6 +21,9 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [swipeHistory, setSwipeHistory] = useState<{ item: T; direction: "like" | "pass" | "super_like" }[]>([]);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [isCheckingMatch, setIsCheckingMatch] = useState(false);
+  const [checkingMatchType, setCheckingMatchType] = useState<"like" | "super_like">("like");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -28,8 +32,6 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
 
   const currentItem = items[currentIndex];
   const nextItem = items[currentIndex + 1];
-
-  const [isAnimating, setIsAnimating] = useState(false);
 
   const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
     if (!currentItem || isAnimating) {
@@ -43,13 +45,25 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
     
-    // Fire onSwipe immediately (don't await - let it process in background)
+    // Show loading overlay for likes (checking for match)
+    if (direction !== "pass") {
+      setIsCheckingMatch(true);
+      setCheckingMatchType(direction);
+    }
+    
+    // Fire onSwipe and handle result
     Promise.resolve(onSwipe(currentItem, direction))
       .then((result) => {
         console.log("[SwipeStack] onSwipe completed:", result);
       })
       .catch((err) => {
         console.error("[SwipeStack] onSwipe error:", err);
+      })
+      .finally(() => {
+        // Hide loading overlay after a short delay
+        setTimeout(() => {
+          setIsCheckingMatch(false);
+        }, 600);
       });
 
     // Advance to next card after exit animation completes
@@ -119,6 +133,12 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
 
       {/* Card Stack */}
       <div className="flex-1 relative px-4 pb-4 overflow-hidden min-h-0">
+        {/* Loading Overlay */}
+        <SwipeLoadingOverlay 
+          isVisible={isCheckingMatch} 
+          type={checkingMatchType}
+        />
+
         {/* Next card (background) - simplified preview */}
         {nextItem && (
           <div className="absolute inset-4 transform scale-95 opacity-30 pointer-events-none">

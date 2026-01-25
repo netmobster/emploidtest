@@ -51,6 +51,7 @@ import { GetToKnowDialog } from "@/components/chat/GetToKnowDialog";
 import { QuizChatbot } from "@/components/chat/QuizChatbot";
 import { QuizMessageCard } from "@/components/chat/QuizMessageCard";
 import { QuizSummaryCard } from "@/components/chat/QuizSummaryCard";
+import { QuizCompletionSummary } from "@/components/chat/QuizCompletionSummary";
 import { ChatGateEmployer } from "@/components/chat/ChatGateEmployer";
 import { ChatGateCandidate } from "@/components/chat/ChatGateCandidate";
 import { RoleDetailsTab } from "@/components/role/RoleDetailsTab";
@@ -109,6 +110,7 @@ const Chat = () => {
   const [synergyCompatibility, setSynergyCompatibility] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("chat");
   const [showRoleEditDialog, setShowRoleEditDialog] = useState(false);
+  const [showQuizCompletionSummary, setShowQuizCompletionSummary] = useState(false);
 
   const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
@@ -259,6 +261,12 @@ const Chat = () => {
     await sendMessage(`✅ I've completed the Get-to-Know-You quiz! Check the summary above.`);
     
     setShowQuizChatbot(false);
+    // Show completion summary instead of just closing
+    setShowQuizCompletionSummary(true);
+  };
+
+  const handleQuizCompletionClose = () => {
+    setShowQuizCompletionSummary(false);
     setActiveQuiz(null);
     toast.success("Quiz completed!");
   };
@@ -680,6 +688,16 @@ const Chat = () => {
           onOpenChange={setShowRoleEditDialog}
           jobId={jobInfo.id}
           onComplete={handleRoleComplete}
+        />
+      )}
+
+      {/* Quiz Completion Summary */}
+      {showQuizCompletionSummary && activeQuiz && (
+        <QuizCompletionSummary
+          employerName={activeQuiz.employerName}
+          questionCount={activeQuiz.questions.length}
+          onViewChat={handleQuizCompletionClose}
+          onClose={handleQuizCompletionClose}
         />
       )}
     </div>

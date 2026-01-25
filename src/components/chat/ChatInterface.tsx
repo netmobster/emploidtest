@@ -14,8 +14,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { ChatActionsMenu } from "./ChatActionsMenu";
 import { DocumentRequestBanner } from "./DocumentRequestBanner";
+import { DocumentReceivedCard } from "./DocumentReceivedCard";
 import { QuizMessageCard } from "./QuizMessageCard";
 import { QuizSummaryCard } from "./QuizSummaryCard";
+import { useDocumentRequests } from "@/hooks/useDocumentRequests";
 
 interface Message {
   id: string;
@@ -209,11 +211,20 @@ const ChatInterface = ({
   onStartQuiz,
   candidateName,
 }: ChatInterfaceProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch document requests to show received documents (employer side)
+  const { requests: documentRequests } = useDocumentRequests(matchId || "");
+  const isEmployer = profile?.user_type === "employer";
+  
+  // Filter for uploaded documents (employer can see these)
+  const uploadedDocuments = documentRequests.filter(
+    (req) => req.status === "uploaded" && req.requester_id === user?.id
+  );
 
   // Scroll to bottom on new messages or typing
   useEffect(() => {
@@ -369,6 +380,28 @@ const ChatInterface = ({
                       candidateName={candidateName || "Candidate"}
                       responses={insight.responses}
                       completedAt={insight.completed_at}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Uploaded Documents (visible to employer who requested them) */}
+            {isEmployer && uploadedDocuments.length > 0 && (
+              <div className="space-y-3">
+                {uploadedDocuments.map((doc) => (
+                  <motion.div
+                    key={doc.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex justify-start"
+                  >
+                    <DocumentReceivedCard
+                      documentType={doc.document_type}
+                      customLabel={doc.custom_label}
+                      fileUrl={doc.file_url}
+                      uploadedAt={doc.updated_at}
+                      candidateName={candidateName}
                     />
                   </motion.div>
                 ))}
