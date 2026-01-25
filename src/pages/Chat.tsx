@@ -56,6 +56,8 @@ import { ChatGateEmployer } from "@/components/chat/ChatGateEmployer";
 import { ChatGateCandidate } from "@/components/chat/ChatGateCandidate";
 import { RoleDetailsTab } from "@/components/role/RoleDetailsTab";
 import { RoleDefinitionDialog } from "@/components/role/RoleDefinitionDialog";
+import { ConnectionStatusBadge } from "@/components/chat/ConnectionStatusBadge";
+import { ChatSeeds } from "@/components/chat/ChatSeeds";
 import { toast } from "sonner";
 
 interface MatchDetails {
@@ -111,8 +113,9 @@ const Chat = () => {
   const [activeTab, setActiveTab] = useState("chat");
   const [showRoleEditDialog, setShowRoleEditDialog] = useState(false);
   const [showQuizCompletionSummary, setShowQuizCompletionSummary] = useState(false);
+  const [chatInputValue, setChatInputValue] = useState("");
 
-  const { messages, isLoading, isSending, sendMessage } = useChat(matchId || "");
+  const { messages, isLoading, isSending, sendMessage, channelStatus } = useChat(matchId || "");
   const { unmatch, isUnmatching } = useUnmatch();
   const { blockUser, isBlocking } = useBlock();
   const { isOtherUserOnline, isOtherUserTyping, setTyping } = useChatPresence(matchId || "");
@@ -445,17 +448,19 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Synergy Compatibility Banner */}
-        {synergyCompatibility && synergyCompatibility > 0 && (
-          <div className="px-4 pb-2">
-            <div className="flex items-center justify-center gap-2 py-1.5 px-3 bg-primary/10 rounded-full">
+        {/* Connection Status and Synergy Compatibility Banner */}
+        <div className="px-4 pb-2 flex items-center justify-between gap-2">
+          <ConnectionStatusBadge status={channelStatus} />
+          
+          {synergyCompatibility && synergyCompatibility > 0 && (
+            <div className="flex items-center gap-2 py-1.5 px-3 bg-primary/10 rounded-full">
               <Heart className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-medium text-primary">
-                {synergyCompatibility}% Synergy Compatibility • {getCompatibilityLabel(synergyCompatibility)}
+                {synergyCompatibility}% Synergy • {getCompatibilityLabel(synergyCompatibility)}
               </span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </motion.header>
 
       {/* Chat Gate Logic */}

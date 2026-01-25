@@ -500,6 +500,7 @@ export type Database = {
           culture_preferences: Json | null
           daily_stack: string[] | null
           description: string | null
+          geographic_restriction: string | null
           hiring_manager_id: string | null
           id: string
           is_complete: boolean | null
@@ -528,6 +529,7 @@ export type Database = {
           culture_preferences?: Json | null
           daily_stack?: string[] | null
           description?: string | null
+          geographic_restriction?: string | null
           hiring_manager_id?: string | null
           id?: string
           is_complete?: boolean | null
@@ -556,6 +558,7 @@ export type Database = {
           culture_preferences?: Json | null
           daily_stack?: string[] | null
           description?: string | null
+          geographic_restriction?: string | null
           hiring_manager_id?: string | null
           id?: string
           is_complete?: boolean | null
@@ -589,6 +592,7 @@ export type Database = {
         Row: {
           candidate_id: string
           employer_id: string
+          first_message_sent: boolean | null
           id: string
           job_id: string | null
           matched_at: string
@@ -597,6 +601,7 @@ export type Database = {
         Insert: {
           candidate_id: string
           employer_id: string
+          first_message_sent?: boolean | null
           id?: string
           job_id?: string | null
           matched_at?: string
@@ -605,6 +610,7 @@ export type Database = {
         Update: {
           candidate_id?: string
           employer_id?: string
+          first_message_sent?: boolean | null
           id?: string
           job_id?: string | null
           matched_at?: string
@@ -694,6 +700,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           calendly_url: string | null
+          city_hub: string | null
           company_industry: string | null
           company_location: string | null
           company_name: string | null
@@ -705,6 +712,7 @@ export type Database = {
           email: string | null
           email_notifications_enabled: boolean | null
           full_name: string | null
+          geographic_restriction: string | null
           has_completed_culture_game: boolean | null
           has_completed_extended_profile: boolean | null
           has_completed_manager_profile: boolean | null
@@ -717,6 +725,7 @@ export type Database = {
           linkedin_synced_at: string | null
           linkedin_url: string | null
           location: string | null
+          location_tier: string | null
           portfolio_url: string | null
           previous_login_at: string | null
           remote_preference: string | null
@@ -728,6 +737,7 @@ export type Database = {
           user_type: string
           website_url: string | null
           work_history: Json | null
+          work_mode: string | null
           years_of_experience: string | null
         }
         Insert: {
@@ -735,6 +745,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           calendly_url?: string | null
+          city_hub?: string | null
           company_industry?: string | null
           company_location?: string | null
           company_name?: string | null
@@ -746,6 +757,7 @@ export type Database = {
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name?: string | null
+          geographic_restriction?: string | null
           has_completed_culture_game?: boolean | null
           has_completed_extended_profile?: boolean | null
           has_completed_manager_profile?: boolean | null
@@ -758,6 +770,7 @@ export type Database = {
           linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
+          location_tier?: string | null
           portfolio_url?: string | null
           previous_login_at?: string | null
           remote_preference?: string | null
@@ -769,6 +782,7 @@ export type Database = {
           user_type?: string
           website_url?: string | null
           work_history?: Json | null
+          work_mode?: string | null
           years_of_experience?: string | null
         }
         Update: {
@@ -776,6 +790,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           calendly_url?: string | null
+          city_hub?: string | null
           company_industry?: string | null
           company_location?: string | null
           company_name?: string | null
@@ -787,6 +802,7 @@ export type Database = {
           email?: string | null
           email_notifications_enabled?: boolean | null
           full_name?: string | null
+          geographic_restriction?: string | null
           has_completed_culture_game?: boolean | null
           has_completed_extended_profile?: boolean | null
           has_completed_manager_profile?: boolean | null
@@ -799,6 +815,7 @@ export type Database = {
           linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
+          location_tier?: string | null
           portfolio_url?: string | null
           previous_login_at?: string | null
           remote_preference?: string | null
@@ -810,6 +827,7 @@ export type Database = {
           user_type?: string
           website_url?: string | null
           work_history?: Json | null
+          work_mode?: string | null
           years_of_experience?: string | null
         }
         Relationships: []
