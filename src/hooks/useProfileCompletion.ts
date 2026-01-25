@@ -175,17 +175,17 @@ export function useProfileCompletion(profile: Profile | null): ProfileCompletion
             tier: "extended",
           },
           {
-            id: "culture-game",
-            label: "Culture Game",
-            completed: profile.has_completed_culture_game ?? false,
-            path: "/candidate-onboarding",
-            tier: "extended",
-          },
-          {
             id: "synergy-score",
             label: "Synergy Score",
             completed: profile.has_completed_synergy_quiz ?? false,
             path: "/synergy-score-quiz",
+            tier: "extended",
+          },
+          {
+            id: "culture-game",
+            label: "Culture Game",
+            completed: profile.has_completed_culture_game ?? false,
+            path: "/candidate-onboarding",
             tier: "extended",
           },
         ];

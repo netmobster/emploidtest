@@ -129,12 +129,12 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
 
         <div className="bg-card rounded-3xl border border-border shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="p-6 pb-4 text-center border-b border-border/50 bg-muted/30">
+          <div className="p-6 pb-4 text-center border-b border-border/50 bg-secondary">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
-              className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"
+              className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/20 flex items-center justify-center"
             >
               <CheckCircle2 className="w-6 h-6 text-primary" />
             </motion.div>
@@ -162,7 +162,7 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
                 transition={{ duration: 0.3 }}
                 className="text-center"
               >
-                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary/20 flex items-center justify-center">
                   <Icon className="w-8 h-8 text-primary" />
                 </div>
 
@@ -175,8 +175,8 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
                 </p>
 
                 {card.note && (
-                  <div className="mt-4 p-3 rounded-xl bg-accent/10 border border-accent/20">
-                    <p className="text-sm text-accent-foreground">
+                  <div className="mt-4 p-3 rounded-xl bg-secondary border border-border">
+                    <p className="text-sm text-foreground">
                       {card.note}
                     </p>
                   </div>
@@ -205,9 +205,9 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.1 + index * 0.1 }}
-                        className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 border border-border/50"
+                        className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary border border-border"
                       >
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
                           <span className="text-[10px] font-bold text-primary">
                             {index + 1}
                           </span>

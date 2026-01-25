@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil, ClipboardList, BarChart3, User } from "lucide-react";
+import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil, ClipboardList, BarChart3, User, Heart } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCandidateStats } from "@/hooks/useCandidateStats";
 import { useJobRecommendations } from "@/hooks/useJobRecommendations";
@@ -30,6 +30,7 @@ import { DiscoverySectionCandidate } from "@/components/dashboard/DiscoverySecti
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import Logo from "@/components/Logo";
 
 export default function CandidateDashboard() {
@@ -290,6 +291,78 @@ export default function CandidateDashboard() {
 
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-4 sm:space-y-6">
+            {/* Quick Actions - at top with horizontal icons */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card rounded-xl p-4 shadow-card border border-border"
+            >
+              <h3 className="font-semibold text-foreground mb-3 text-sm">Quick Actions</h3>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate("/swipe/candidate")}
+                      className="h-9 w-9"
+                    >
+                      <Briefcase className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Browse Jobs</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate("/matches")}
+                      className="h-9 w-9"
+                    >
+                      <Users className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View Matches</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate("/applications")}
+                      className="h-9 w-9"
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Track Applications</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => navigate("/game/culture")}
+                      className="h-9 w-9"
+                    >
+                      <TrendingUp className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Update Preferences</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </motion.div>
+
             {/* LinkedIn Verification Section - Only shows when test mode is OFF */}
             {user && !(profile as any)?.is_verified_identity && (
               <CandidateVerificationSection
@@ -301,52 +374,8 @@ export default function CandidateDashboard() {
 
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
-            
-            {/* Quick Actions - moved before profile completion */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="bg-card rounded-xl p-4 sm:p-5 shadow-card border border-border overflow-hidden"
-            >
-              <h3 className="font-semibold text-foreground mb-4 text-sm sm:text-base">Quick Actions</h3>
-              <div className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm"
-                  onClick={() => navigate("/swipe/candidate")}
-                >
-                  <Briefcase className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">Browse Jobs</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm"
-                  onClick={() => navigate("/matches")}
-                >
-                  <Users className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">View Matches</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm"
-                  onClick={() => navigate("/applications")}
-                >
-                  <ClipboardList className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">Track Applications</span>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm"
-                  onClick={() => navigate("/game/culture")}
-                >
-                  <TrendingUp className="w-4 h-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">Update Preferences</span>
-                </Button>
-              </div>
-            </motion.div>
 
-            {/* Profile Completion - now below quick actions */}
+            {/* Profile Completion */}
             <ProfileCompletionCard {...profileCompletion} />
             
             {/* Synergy Score Chart */}
@@ -355,7 +384,6 @@ export default function CandidateDashboard() {
                 <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
               </div>
             )}
-            
 
             {/* Dashboard Tour */}
             <DashboardTour steps={CANDIDATE_TOUR_STEPS} userType="candidate" />

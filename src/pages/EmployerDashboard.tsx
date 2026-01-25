@@ -76,7 +76,7 @@ export default function EmployerDashboard() {
               <div className="hidden sm:block">
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg font-semibold text-foreground">
-                    {profile?.company_name || "Dashboard"}
+                    {profile?.company_name || "Employer Dashboard"}
                   </h1>
                   <VerifiedDomainBadge 
                     domain={(profile as any)?.verified_domain} 
@@ -264,13 +264,14 @@ export default function EmployerDashboard() {
 
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-6">
+            {/* Quick Actions - at top */}
+            <QuickActionsPanel />
+            
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
             
             {/* Quick Match Panel for Testing */}
             <QuickMatchPanel />
-            
-            <QuickActionsPanel />
 
             <div id="profile-strength">
               <ProfileCompletionCard {...profileCompletion} />
