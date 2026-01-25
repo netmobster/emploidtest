@@ -146,6 +146,39 @@ export function AppSidebar() {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
+              {/* Profile + Logout quick actions */}
+              {user && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(getViewProfileRoute())}
+                      tooltip="Profile"
+                    >
+                      <NavLink
+                        to={getViewProfileRoute()}
+                        className="flex items-center gap-3"
+                        activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
+                      >
+                        <User className="h-5 w-5" />
+                        {!collapsed && <span>Profile</span>}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip="Log Out"
+                      onClick={handleLogout}
+                      className="flex items-center gap-3"
+                    >
+                      <LogOut className="h-5 w-5" />
+                      {!collapsed && <span>Log Out</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
               {isSuperAdmin && (
                 <SidebarMenuItem>
                   <SidebarMenuButton
