@@ -139,7 +139,7 @@ export function MatchesForYouSection() {
             </p>
             <Button
               variant="outline"
-              onClick={() => navigate("/swipe/candidate")}
+              onClick={() => navigate("/city?type=candidate")}
             >
               Browse Jobs
             </Button>
@@ -210,7 +210,7 @@ export function MatchesForYouSection() {
         <Button
           variant="ghost"
           className="w-full mt-4"
-          onClick={() => navigate("/swipe/candidate")}
+          onClick={() => navigate("/city?type=candidate")}
         >
           See All Matches
           <ArrowRight className="w-4 h-4 ml-2" />
