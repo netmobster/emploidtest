@@ -11,6 +11,7 @@ interface OnboardingStatus {
 interface OnboardingContextType {
   status: OnboardingStatus;
   isLoading: boolean;
+  dashboardTourRestartNonce: number;
   markPhilosophySeen: () => Promise<void>;
   markWalkthroughCompleted: () => Promise<void>;
   markDashboardTourCompleted: () => Promise<void>;
@@ -27,6 +28,7 @@ const defaultStatus: OnboardingStatus = {
 const OnboardingContext = createContext<OnboardingContextType>({
   status: defaultStatus,
   isLoading: true,
+  dashboardTourRestartNonce: 0,
   markPhilosophySeen: async () => {},
   markWalkthroughCompleted: async () => {},
   markDashboardTourCompleted: async () => {},
@@ -38,6 +40,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<OnboardingStatus>(defaultStatus);
   const [isLoading, setIsLoading] = useState(true);
+  // Local-only nonce so "Restart Tour" can trigger even if the completed flag is already false.
+  const [dashboardTourRestartNonce, setDashboardTourRestartNonce] = useState(0);
 
   const fetchStatus = useCallback(async () => {
     if (!user) {
@@ -138,6 +142,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const resetDashboardTour = async () => {
     setStatus((prev) => ({ ...prev, hasCompletedDashboardTour: false }));
+    setDashboardTourRestartNonce((n) => n + 1);
 
     if (user) {
       await supabase
@@ -155,6 +160,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       value={{
         status,
         isLoading,
+        dashboardTourRestartNonce,
         markPhilosophySeen,
         markWalkthroughCompleted,
         markDashboardTourCompleted,
