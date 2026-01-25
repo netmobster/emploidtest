@@ -125,17 +125,20 @@ export function UserManagementPanel() {
     }
 
     try {
-      // Delete from profiles (cascade will handle related data)
-      const { error } = await supabase.from("profiles").delete().eq("user_id", userId);
+      // Call the edge function to delete the user (including auth.users)
+      const { error } = await supabase.functions.invoke("delete-user", {
+        body: { userId },
+      });
 
       if (error) throw error;
 
-      await logAuditAction("delete_user", "user", userId, { email: user.email });
+      await logAuditAction("user_delete", "user", userId, { email: user.email });
       toast.success("User deleted successfully");
       setDeleteUserId(null);
       fetchUsers();
-    } catch (err) {
-      toast.error("Failed to delete user");
+    } catch (err: any) {
+      console.error("Failed to delete user:", err);
+      toast.error(err.message || "Failed to delete user");
     }
   };
 

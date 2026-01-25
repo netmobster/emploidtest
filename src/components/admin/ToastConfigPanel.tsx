@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -11,8 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Bell, Save, Eye, Loader2 } from "lucide-react";
+import { Bell, Save, RotateCcw, Eye, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface ToastConfig {
@@ -20,58 +28,79 @@ interface ToastConfig {
   description?: string;
   duration: number;
   variant: string;
+  enabled: boolean;
 }
 
-const TOAST_TYPES = [
-  // Match & Swipe Actions
-  { id: "match_success", label: "Match Success", description: "When a new match is created", category: "Matches" },
-  { id: "swipe_right", label: "Swipe Right", description: "When user swipes right on a profile", category: "Matches" },
-  { id: "swipe_left", label: "Swipe Left", description: "When user swipes left on a profile", category: "Matches" },
-  { id: "mutual_match", label: "Mutual Match", description: "When both parties match each other", category: "Matches" },
-  
-  // Messages
-  { id: "message_sent", label: "Message Sent", description: "After sending a message", category: "Messages" },
-  { id: "message_received", label: "New Message", description: "When receiving a new message", category: "Messages" },
-  
-  // Profile
-  { id: "profile_updated", label: "Profile Updated", description: "After profile changes are saved", category: "Profile" },
-  { id: "profile_milestone_25", label: "25% Profile Complete", description: "First profile completion milestone", category: "Profile" },
-  { id: "profile_milestone_50", label: "50% Profile Complete", description: "Halfway profile completion", category: "Profile" },
-  { id: "profile_milestone_75", label: "75% Profile Complete", description: "Almost complete profile", category: "Profile" },
-  { id: "profile_milestone_100", label: "100% Profile Complete", description: "Full profile completion", category: "Profile" },
-  
-  // Jobs
-  { id: "job_created", label: "Job Created", description: "When employer creates a new job", category: "Jobs" },
-  { id: "job_application", label: "Application Received", description: "When employer receives an application", category: "Jobs" },
-  { id: "job_saved", label: "Job Saved", description: "When candidate saves a job", category: "Jobs" },
-  
-  // Errors
-  { id: "error_network", label: "Network Error", description: "When network request fails", category: "Errors" },
-  { id: "error_validation", label: "Validation Error", description: "When form validation fails", category: "Errors" },
-  { id: "error_permission", label: "Permission Denied", description: "When user lacks permission", category: "Errors" },
-  
-  // System
-  { id: "data_saved", label: "Data Saved", description: "Generic save confirmation", category: "System" },
-  { id: "copied_to_clipboard", label: "Copied to Clipboard", description: "When content is copied", category: "System" },
-];
+const DEFAULT_TOAST_CONFIGS: Record<string, ToastConfig> = {
+  match_success: {
+    title: "It's a match! 🎉",
+    description: "You can now start chatting",
+    duration: 5000,
+    variant: "success",
+    enabled: true,
+  },
+  message_sent: {
+    title: "Message sent",
+    description: undefined,
+    duration: 3000,
+    variant: "default",
+    enabled: true,
+  },
+  profile_updated: {
+    title: "Profile updated",
+    description: "Your changes have been saved",
+    duration: 3000,
+    variant: "success",
+    enabled: true,
+  },
+  swipe_like: {
+    title: "Liked!",
+    description: "Waiting for them to like you back",
+    duration: 2000,
+    variant: "default",
+    enabled: true,
+  },
+  job_created: {
+    title: "Job posted",
+    description: "Your role is now live",
+    duration: 4000,
+    variant: "success",
+    enabled: true,
+  },
+  error_generic: {
+    title: "Something went wrong",
+    description: "Please try again",
+    duration: 5000,
+    variant: "destructive",
+    enabled: true,
+  },
+};
 
 const VARIANTS = [
   { value: "default", label: "Default" },
   { value: "success", label: "Success" },
-  { value: "error", label: "Error" },
+  { value: "destructive", label: "Error" },
   { value: "warning", label: "Warning" },
-  { value: "info", label: "Info" },
 ];
+
+const VARIANT_COLORS: Record<string, string> = {
+  default: "bg-muted text-muted-foreground",
+  success: "bg-green-500/10 text-green-600 border-green-500/20",
+  destructive: "bg-destructive/10 text-destructive border-destructive/20",
+  warning: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+};
 
 export function ToastConfigPanel() {
   const { settings, updateSetting, isLoading, logAuditAction } = useAdminSettings();
-  const [configs, setConfigs] = useState<Record<string, ToastConfig>>({});
-  const [activeToast, setActiveToast] = useState("match_success");
+  const [configs, setConfigs] = useState<Record<string, ToastConfig>>(DEFAULT_TOAST_CONFIGS);
   const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    if (settings.toast_configs) {
-      setConfigs(settings.toast_configs);
+    if (settings.toast_configs && Object.keys(settings.toast_configs).length > 0) {
+      setConfigs({ ...DEFAULT_TOAST_CONFIGS, ...settings.toast_configs });
+    } else {
+      setConfigs(DEFAULT_TOAST_CONFIGS);
     }
   }, [settings.toast_configs]);
 
@@ -80,8 +109,9 @@ export function ToastConfigPanel() {
     try {
       const success = await updateSetting("toast_configs", configs);
       if (success) {
-        await logAuditAction("update_toast_configs", "toast_configs", activeToast);
+        await logAuditAction("update_toast_configs", "toast_configs");
         toast.success("Toast configurations saved");
+        setHasChanges(false);
       } else {
         throw new Error("Failed to save");
       }
@@ -92,30 +122,42 @@ export function ToastConfigPanel() {
     }
   };
 
-  const updateConfig = (key: keyof ToastConfig, value: string | number) => {
-    setConfigs((prev) => ({
-      ...prev,
-      [activeToast]: {
-        ...prev[activeToast],
-        [key]: value,
-      },
-    }));
+  const handleResetToDefaults = () => {
+    setConfigs(DEFAULT_TOAST_CONFIGS);
+    setHasChanges(true);
+    toast.info("Configurations reset to defaults. Click Save to apply.");
   };
 
-  const previewToast = () => {
-    const config = configs[activeToast];
+  const updateConfig = (toastId: string, key: keyof ToastConfig, value: string | number | boolean | undefined) => {
+    setConfigs((prev) => {
+      const updated = { ...prev };
+      updated[toastId] = {
+        ...updated[toastId],
+        [key]: value,
+      } as ToastConfig;
+      return updated;
+    });
+    setHasChanges(true);
+  };
+
+  const previewToast = (toastId: string) => {
+    const config = configs[toastId];
     if (!config) return;
 
-    toast[config.variant === "error" ? "error" : config.variant === "success" ? "success" : "message"](
-      config.title,
-      {
-        description: config.description,
-        duration: config.duration,
-      }
-    );
-  };
+    if (!config.enabled) {
+      toast.info("This toast is currently disabled");
+      return;
+    }
 
-  const currentConfig = configs[activeToast];
+    const toastFn = config.variant === "destructive" ? toast.error :
+                    config.variant === "success" ? toast.success :
+                    config.variant === "warning" ? toast.warning : toast;
+
+    toastFn(config.title, {
+      description: config.description,
+      duration: config.duration,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -124,6 +166,8 @@ export function ToastConfigPanel() {
       </div>
     );
   }
+
+  const configKeys = Object.keys(configs);
 
   return (
     <div className="space-y-6">
@@ -136,114 +180,123 @@ export function ToastConfigPanel() {
                 Toast Notifications
               </CardTitle>
               <CardDescription>
-                Customize toast notification messages shown to users.
+                Configure toast notification appearance, duration, and enable/disable them.
               </CardDescription>
             </div>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Changes
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleResetToDefaults}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving || !hasChanges}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Toast Type Selection - Grouped by Category */}
-          <div className="space-y-4">
-            <Label>Toast Type</Label>
-            {Array.from(new Set(TOAST_TYPES.map(t => t.category))).map((category) => (
-              <div key={category} className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{category}</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {TOAST_TYPES.filter(t => t.category === category).map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => setActiveToast(type.id)}
-                      className={`p-3 border rounded-lg text-left transition-all ${
-                        activeToast === type.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-muted-foreground/50"
-                      }`}
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            {configKeys.map((key) => {
+              const config = configs[key];
+              return (
+                <AccordionItem key={key} value={key}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={config.enabled}
+                        onCheckedChange={(checked) => updateConfig(key, "enabled", checked)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <span className="capitalize">{key.replace(/_/g, " ")}</span>
+                      <Badge variant="outline" className={VARIANT_COLORS[config.variant] || VARIANT_COLORS.default}>
+                        {config.variant}
+                      </Badge>
+                      {!config.enabled && (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Off
+                        </Badge>
+                      )}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Title */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`${key}-title`}>Title</Label>
+                        <Input
+                          id={`${key}-title`}
+                          value={config.title}
+                          onChange={(e) => updateConfig(key, "title", e.target.value)}
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div className="space-y-2">
+                        <Label htmlFor={`${key}-description`}>Description (optional)</Label>
+                        <Input
+                          id={`${key}-description`}
+                          value={config.description || ""}
+                          onChange={(e) => updateConfig(key, "description", e.target.value || undefined)}
+                          placeholder="Optional description"
+                        />
+                      </div>
+
+                      {/* Variant */}
+                      <div className="space-y-2">
+                        <Label>Variant</Label>
+                        <Select
+                          value={config.variant}
+                          onValueChange={(v) => updateConfig(key, "variant", v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {VARIANTS.map((v) => (
+                              <SelectItem key={v.value} value={v.value}>
+                                {v.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Duration */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Duration</Label>
+                          <span className="text-sm text-muted-foreground">
+                            {config.duration / 1000}s
+                          </span>
+                        </div>
+                        <Slider
+                          value={[config.duration]}
+                          onValueChange={([value]) => updateConfig(key, "duration", value)}
+                          min={1000}
+                          max={10000}
+                          step={500}
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => previewToast(key)}
                     >
-                      <p className="font-medium text-sm">{type.label}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{type.description}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {currentConfig && (
-            <>
-              {/* Title */}
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={currentConfig.title}
-                  onChange={(e) => updateConfig("title", e.target.value)}
-                  placeholder="Toast title..."
-                />
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
-                <Input
-                  id="description"
-                  value={currentConfig.description || ""}
-                  onChange={(e) => updateConfig("description", e.target.value)}
-                  placeholder="Additional details..."
-                />
-              </div>
-
-              {/* Duration */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label>Duration</Label>
-                  <span className="text-sm text-muted-foreground">
-                    {currentConfig.duration / 1000} seconds
-                  </span>
-                </div>
-                <Slider
-                  value={[currentConfig.duration]}
-                  onValueChange={([value]) => updateConfig("duration", value)}
-                  min={1000}
-                  max={10000}
-                  step={500}
-                />
-              </div>
-
-              {/* Variant */}
-              <div className="space-y-2">
-                <Label htmlFor="variant">Style Variant</Label>
-                <Select
-                  value={currentConfig.variant}
-                  onValueChange={(value) => updateConfig("variant", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select variant" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VARIANTS.map((variant) => (
-                      <SelectItem key={variant.value} value={variant.value}>
-                        {variant.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Preview Button */}
-              <Button variant="outline" onClick={previewToast}>
-                <Eye className="h-4 w-4 mr-2" />
-                Preview Toast
-              </Button>
-            </>
-          )}
+                      <Eye className="h-4 w-4 mr-2" />
+                      Test Toast
+                    </Button>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
         </CardContent>
       </Card>
     </div>

@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Save, Eye, Send, Loader2 } from "lucide-react";
+import { Mail, Save, Eye, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface EmailTemplate {
@@ -16,6 +16,68 @@ interface EmailTemplate {
   body: string;
   enabled: boolean;
 }
+
+const DEFAULT_TEMPLATES: Record<string, EmailTemplate> = {
+  new_match: {
+    subject: "You have a new match on Emploid!",
+    body: `Hi {{userName}},
+
+Great news! You've matched with {{matchName}} on Emploid.
+
+This means both of you are interested in connecting. Start the conversation and see where it goes!
+
+Best,
+The Emploid Team`,
+    enabled: true,
+  },
+  new_message: {
+    subject: "New message from {{senderName}}",
+    body: `Hi {{userName}},
+
+{{senderName}} sent you a message on Emploid:
+
+"{{messagePreview}}"
+
+Reply now to keep the conversation going.
+
+Best,
+The Emploid Team`,
+    enabled: true,
+  },
+  daily_digest: {
+    subject: "Your Emploid Daily Digest",
+    body: `Hi {{userName}},
+
+Here's what happened on Emploid today:
+
+• New matches waiting for you
+• Unread messages in your inbox  
+• New roles matching your profile
+
+Log in to explore!
+
+Best,
+The Emploid Team`,
+    enabled: false,
+  },
+  broadcast: {
+    subject: "{{customSubject}}",
+    body: `{{customBody}}`,
+    enabled: true,
+  },
+  welcome: {
+    subject: "Welcome to Emploid!",
+    body: `Hi {{userName}},
+
+Welcome to Emploid – where meaningful professional connections happen.
+
+Complete your profile to start matching with great opportunities.
+
+Best,
+The Emploid Team`,
+    enabled: true,
+  },
+};
 
 const TEMPLATE_VARIABLES = [
   { name: "{{userName}}", description: "Recipient's name" },
@@ -28,14 +90,17 @@ const TEMPLATE_VARIABLES = [
 
 export function EmailTemplatePanel() {
   const { settings, updateSetting, isLoading, logAuditAction } = useAdminSettings();
-  const [templates, setTemplates] = useState<Record<string, EmailTemplate>>({});
+  const [templates, setTemplates] = useState<Record<string, EmailTemplate>>(DEFAULT_TEMPLATES);
   const [activeTemplate, setActiveTemplate] = useState("new_match");
   const [isSaving, setIsSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
-    if (settings.email_templates) {
-      setTemplates(settings.email_templates);
+    if (settings.email_templates && Object.keys(settings.email_templates).length > 0) {
+      setTemplates({ ...DEFAULT_TEMPLATES, ...settings.email_templates });
+    } else {
+      setTemplates(DEFAULT_TEMPLATES);
     }
   }, [settings.email_templates]);
 
@@ -46,6 +111,7 @@ export function EmailTemplatePanel() {
       if (success) {
         await logAuditAction("update_email_templates", "email_templates", activeTemplate);
         toast.success("Email templates saved");
+        setHasChanges(false);
       } else {
         throw new Error("Failed to save");
       }
@@ -64,6 +130,13 @@ export function EmailTemplatePanel() {
         [key]: value,
       },
     }));
+    setHasChanges(true);
+  };
+
+  const handleResetToDefaults = () => {
+    setTemplates(DEFAULT_TEMPLATES);
+    setHasChanges(true);
+    toast.info("Templates reset to defaults. Click Save to apply.");
   };
 
   const renderPreview = (text: string) => {
@@ -100,28 +173,35 @@ export function EmailTemplatePanel() {
                 Customize email templates for different notification types.
               </CardDescription>
             </div>
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save Changes
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleResetToDefaults}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTemplate} onValueChange={setActiveTemplate}>
-            <TabsList className="mb-6">
+            <TabsList className="mb-6 flex-wrap">
               <TabsTrigger value="new_match">New Match</TabsTrigger>
               <TabsTrigger value="new_message">New Message</TabsTrigger>
               <TabsTrigger value="daily_digest">Daily Digest</TabsTrigger>
               <TabsTrigger value="broadcast">Broadcast</TabsTrigger>
+              <TabsTrigger value="welcome">Welcome</TabsTrigger>
             </TabsList>
 
             {Object.keys(templates).map((templateKey) => (
               <TabsContent key={templateKey} value={templateKey} className="space-y-6">
-                {currentTemplate && (
+                {currentTemplate && templateKey === activeTemplate && (
                   <>
                     {/* Template Settings */}
                     <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
