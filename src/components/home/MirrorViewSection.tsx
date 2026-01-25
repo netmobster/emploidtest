@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
-import { User, Briefcase, Target, Users, Shield, Zap } from "lucide-react";
+import { User, Briefcase, Target, Users, Shield, Zap, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const candidateBullets = [
   {
@@ -38,6 +40,8 @@ const employerBullets = [
 ];
 
 export function MirrorViewSection() {
+  const navigate = useNavigate();
+
   return (
     <section className="py-6 md:py-8 px-4">
       <div className="max-w-5xl mx-auto">
@@ -51,7 +55,7 @@ export function MirrorViewSection() {
             className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent rounded-2xl" />
-            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-accent/20 p-6 lg:p-8 h-full">
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-accent/20 p-6 lg:p-8 h-full flex flex-col">
               {/* Header */}
               <div className="mb-5">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center mb-3">
@@ -64,7 +68,7 @@ export function MirrorViewSection() {
               </div>
 
               {/* Bullets */}
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1">
                 {candidateBullets.map((bullet, index) => {
                   const Icon = bullet.icon;
                   return (
@@ -87,6 +91,15 @@ export function MirrorViewSection() {
                   );
                 })}
               </div>
+
+              {/* CTA Button */}
+              <Button
+                onClick={() => navigate("/auth?type=candidate")}
+                className="mt-5 w-full gradient-accent text-accent-foreground"
+              >
+                Find Your Team
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </motion.div>
 
@@ -99,7 +112,7 @@ export function MirrorViewSection() {
             className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent rounded-2xl" />
-            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-primary/20 p-6 lg:p-8 h-full">
+            <div className="relative bg-card/80 backdrop-blur-sm rounded-2xl border border-primary/20 p-6 lg:p-8 h-full flex flex-col">
               {/* Header */}
               <div className="mb-5">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center mb-3">
@@ -112,7 +125,7 @@ export function MirrorViewSection() {
               </div>
 
               {/* Bullets */}
-              <div className="space-y-4">
+              <div className="space-y-4 flex-1">
                 {employerBullets.map((bullet, index) => {
                   const Icon = bullet.icon;
                   return (
@@ -135,6 +148,15 @@ export function MirrorViewSection() {
                   );
                 })}
               </div>
+
+              {/* CTA Button */}
+              <Button
+                onClick={() => navigate("/auth?type=employer")}
+                className="mt-5 w-full gradient-primary text-primary-foreground"
+              >
+                Find Your Unicorn
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </motion.div>
         </div>

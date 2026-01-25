@@ -122,38 +122,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="grid md:grid-cols-2 gap-4 max-w-4xl mx-auto"
           >
-            {/* Employer Card */}
-            <motion.button
-              onMouseEnter={() => setHoveredType("employer")}
-              onMouseLeave={() => setHoveredType(null)}
-              onClick={() => handleSelect("employer")}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              className="group relative bg-card rounded-2xl p-6 text-left shadow-card hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-primary/20"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-              </div>
-              <h3 className="text-xl font-bold text-foreground mb-2">I'm Hiring</h3>
-              <p className="text-sm text-muted-foreground mb-3">
-                Find candidates who match your role requirements and company culture.
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {["Define requirements", "Match culture", "Browse candidates"].map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </motion.button>
-
-            {/* Candidate Card */}
+            {/* Candidate Card - I'm Looking (first) */}
             <motion.button
               onMouseEnter={() => setHoveredType("candidate")}
               onMouseLeave={() => setHoveredType(null)}
@@ -177,6 +146,37 @@ const Index = () => {
                   <span
                     key={tag}
                     className="text-xs font-medium bg-accent/10 text-accent px-2.5 py-0.5 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </motion.button>
+
+            {/* Employer Card - I'm Hiring (second) */}
+            <motion.button
+              onMouseEnter={() => setHoveredType("employer")}
+              onMouseLeave={() => setHoveredType(null)}
+              onClick={() => handleSelect("employer")}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative bg-card rounded-2xl p-6 text-left shadow-card hover:shadow-lg transition-all duration-300 border-2 border-transparent hover:border-primary/20"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
+                  <Building2 className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+              </div>
+              <h3 className="text-xl font-bold text-foreground mb-2">I'm Hiring</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Find candidates who match your role requirements and company culture.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {["Define requirements", "Match culture", "Browse candidates"].map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full"
                   >
                     {tag}
                   </span>
