@@ -98,7 +98,16 @@ export function ToastConfigPanel() {
 
   useEffect(() => {
     if (settings.toast_configs && Object.keys(settings.toast_configs).length > 0) {
-      setConfigs({ ...DEFAULT_TOAST_CONFIGS, ...settings.toast_configs });
+      // Merge settings with defaults, ensuring all required fields exist
+      const mergedConfigs: Record<string, ToastConfig> = { ...DEFAULT_TOAST_CONFIGS };
+      Object.entries(settings.toast_configs).forEach(([key, value]) => {
+        mergedConfigs[key] = {
+          ...DEFAULT_TOAST_CONFIGS[key],
+          ...value,
+          enabled: (value as ToastConfig).enabled ?? DEFAULT_TOAST_CONFIGS[key]?.enabled ?? true,
+        };
+      });
+      setConfigs(mergedConfigs);
     } else {
       setConfigs(DEFAULT_TOAST_CONFIGS);
     }
