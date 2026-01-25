@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Radar, Settings2, Briefcase, MapPin, Loader2 } from "lucide-react";
+import { Radar, Settings2, MapPin, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
@@ -20,6 +19,7 @@ interface DiscoveryJob {
   culture_preferences: any;
   synergy_scores: any;
   created_at: string;
+  user_id: string | null;
   synergyScore: number;
   isNew: boolean;
 }
@@ -41,10 +41,6 @@ export function DiscoverySectionCandidate() {
       }
 
       try {
-        // Fetch recent jobs with employer profiles
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
         const { data: jobsData, error } = await supabase
           .from("jobs")
           .select(`
@@ -57,7 +53,6 @@ export function DiscoverySectionCandidate() {
 
         if (error) throw error;
 
-        // Get employer profiles for synergy scores
         const employerIds = [...new Set(jobsData?.map(j => j.user_id).filter(Boolean))];
         const { data: employerProfiles } = await supabase
           .from("profiles")
@@ -87,12 +82,11 @@ export function DiscoverySectionCandidate() {
           })
           .filter(job => job.synergyScore >= threshold)
           .sort((a, b) => {
-            // Prioritize new jobs, then by synergy score
             if (a.isNew && !b.isNew) return -1;
             if (!a.isNew && b.isNew) return 1;
             return b.synergyScore - a.synergyScore;
           })
-          .slice(0, 10);
+          .slice(0, 3); // Limit to top 3
 
         setJobs(enrichedJobs);
       } catch (error) {
@@ -136,6 +130,7 @@ export function DiscoverySectionCandidate() {
           <div className="flex items-center gap-2">
             <Radar className="w-5 h-5 text-primary" />
             <h3 className="text-base sm:text-lg font-semibold text-foreground">Discovery Scout</h3>
+            <Badge variant="secondary" className="text-xs">Top 3</Badge>
           </div>
           <Button 
             variant="ghost" 
@@ -157,69 +152,74 @@ export function DiscoverySectionCandidate() {
             </p>
           </div>
         ) : (
-          <ScrollArea className="w-full">
-            <div className="flex gap-4 pb-4">
-              {jobs.map((job) => (
-                <motion.div
-                  key={job.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate("/swipe/candidate")}
-                  className={cn(
-                    "min-w-[280px] p-4 bg-secondary/30 rounded-xl border border-border cursor-pointer transition-all hover:border-primary/50",
-                    job.isNew && "ring-2 ring-primary/20"
-                  )}
-                >
-                  {/* Synergy Badge */}
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge 
-                      className={cn(
-                        "text-sm font-semibold",
-                        job.isNew && "synergy-pulse"
-                      )}
-                    >
-                      {job.synergyScore}% Match
+          <div className="grid gap-4 sm:grid-cols-3">
+            {jobs.map((job, index) => (
+              <motion.div
+                key={job.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={cn(
+                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50",
+                  job.isNew && "ring-2 ring-primary/20"
+                )}
+              >
+                {/* Synergy Badge */}
+                <div className="flex items-center justify-between mb-3">
+                  <Badge 
+                    className={cn(
+                      "text-sm font-semibold",
+                      job.isNew && "synergy-pulse"
+                    )}
+                  >
+                    {job.synergyScore}% Match
+                  </Badge>
+                  {job.isNew && (
+                    <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
+                      New
                     </Badge>
-                    {job.isNew && (
-                      <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/30">
-                        New
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Job Info */}
-                  <h4 className="font-semibold text-foreground mb-1 line-clamp-1">
-                    {job.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                    {job.company}
-                  </p>
-
-                  {/* Location & Work Mode */}
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <MapPin className="w-3 h-3" />
-                    <span>{job.location_text || "Remote"}</span>
-                    {job.work_mode && (
-                      <Badge variant="outline" className="text-xs">
-                        {job.work_mode}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Team Vibe */}
-                  {job.culture_preferences?.workPace && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <p className="text-xs text-muted-foreground">
-                        <span className="font-medium">Team Vibe:</span> {job.culture_preferences.workPace}
-                      </p>
-                    </div>
                   )}
-                </motion.div>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+                </div>
+
+                {/* Job Info */}
+                <h4 className="font-semibold text-foreground mb-1 line-clamp-1">
+                  {job.title}
+                </h4>
+                <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
+                  {job.company}
+                </p>
+
+                {/* Location */}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                  <MapPin className="w-3 h-3" />
+                  <span>{job.location_text || "Remote"}</span>
+                </div>
+
+                {/* Team Vibe */}
+                {job.culture_preferences?.workPace && (
+                  <p className="text-xs text-muted-foreground mb-3 pb-3 border-b border-border">
+                    <span className="font-medium">Vibe:</span> {job.culture_preferences.workPace}
+                  </p>
+                )}
+
+                {/* View Profile Button */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (job.user_id) {
+                      navigate(`/company/${job.user_id}`);
+                    }
+                  }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Profile
+                </Button>
+              </motion.div>
+            ))}
+          </div>
         )}
       </motion.div>
 
