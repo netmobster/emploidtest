@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Radar, Settings2, User, MapPin, Loader2 } from "lucide-react";
+import { Radar, Settings2, MapPin, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
@@ -58,7 +57,6 @@ export function DiscoverySectionEmployer() {
 
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
         const enrichedCandidates: DiscoveryCandidate[] = (candidatesData || [])
           .map(candidate => {
@@ -74,19 +72,13 @@ export function DiscoverySectionEmployer() {
               isNew: createdDate > oneDayAgo,
             };
           })
-          .filter(candidate => {
-            // Filter by threshold
-            if (candidate.synergyScore < threshold) return false;
-            // Prioritize recent (within 7 days) but show all above threshold
-            return true;
-          })
+          .filter(candidate => candidate.synergyScore >= threshold)
           .sort((a, b) => {
-            // Prioritize new candidates, then by synergy score
             if (a.isNew && !b.isNew) return -1;
             if (!a.isNew && b.isNew) return 1;
             return b.synergyScore - a.synergyScore;
           })
-          .slice(0, 10);
+          .slice(0, 3); // Limit to top 3
 
         setCandidates(enrichedCandidates);
       } catch (error) {
@@ -130,6 +122,7 @@ export function DiscoverySectionEmployer() {
           <div className="flex items-center gap-2">
             <Radar className="w-5 h-5 text-primary" />
             <h3 className="text-base sm:text-lg font-semibold text-foreground">Discovery Scout</h3>
+            <Badge variant="secondary" className="text-xs">Top 3</Badge>
           </div>
           <Button 
             variant="ghost" 
@@ -151,77 +144,85 @@ export function DiscoverySectionEmployer() {
             </p>
           </div>
         ) : (
-          <ScrollArea className="w-full">
-            <div className="flex gap-4 pb-4">
-              {candidates.map((candidate) => (
-                <motion.div
-                  key={candidate.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate("/swipe/employer")}
-                  className={cn(
-                    "min-w-[280px] p-4 bg-secondary/30 rounded-xl border border-border cursor-pointer transition-all hover:border-primary/50",
-                    candidate.isNew && "ring-2 ring-primary/20"
-                  )}
-                >
-                  {/* Header with Avatar and Badge */}
-                  <div className="flex items-start justify-between mb-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={candidate.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {candidate.full_name?.slice(0, 2).toUpperCase() || "??"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        className={cn(
-                          "text-sm font-semibold",
-                          candidate.isNew && "synergy-pulse"
-                        )}
-                      >
-                        {candidate.synergyScore}% Match
-                      </Badge>
-                    </div>
-                  </div>
-
-                  {/* Candidate Info */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-foreground line-clamp-1">
-                      {candidate.full_name || "Anonymous"}
-                    </h4>
-                    {candidate.isNew && (
-                      <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-500/30">
-                        Day 14
-                      </Badge>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {candidates.map((candidate, index) => (
+              <motion.div
+                key={candidate.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={cn(
+                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50",
+                  candidate.isNew && "ring-2 ring-primary/20"
+                )}
+              >
+                {/* Header with Avatar */}
+                <div className="flex items-start justify-between mb-3">
+                  <Avatar className="w-12 h-12">
+                    <AvatarImage src={candidate.avatar_url || undefined} />
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {candidate.full_name?.slice(0, 2).toUpperCase() || "??"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Badge 
+                    className={cn(
+                      "text-sm font-semibold",
+                      candidate.isNew && "synergy-pulse"
                     )}
+                  >
+                    {candidate.synergyScore}% Match
+                  </Badge>
+                </div>
+
+                {/* Candidate Info */}
+                <div className="flex items-center gap-2 mb-1">
+                  <h4 className="font-semibold text-foreground line-clamp-1">
+                    {candidate.full_name || "Anonymous"}
+                  </h4>
+                  {candidate.isNew && (
+                    <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/30">
+                      Day 14
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
+                  {candidate.job_title || "Professional"}
+                </p>
+
+                {/* Location */}
+                {candidate.location && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+                    <MapPin className="w-3 h-3" />
+                    <span>{candidate.location}</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-1">
-                    {candidate.job_title || "Professional"}
-                  </p>
+                )}
 
-                  {/* Location */}
-                  {candidate.location && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-                      <MapPin className="w-3 h-3" />
-                      <span>{candidate.location}</span>
-                    </div>
-                  )}
+                {/* Top Skill */}
+                {candidate.skills && candidate.skills.length > 0 && (
+                  <div className="mb-3 pb-3 border-b border-border">
+                    <p className="text-xs text-muted-foreground mb-1">Top Skill</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {candidate.skills[0]}
+                    </Badge>
+                  </div>
+                )}
 
-                  {/* Top Skill (Big Rock) */}
-                  {candidate.skills && candidate.skills.length > 0 && (
-                    <div className="pt-3 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">Top Skill</p>
-                      <Badge variant="secondary" className="text-xs">
-                        {candidate.skills[0]}
-                      </Badge>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+                {/* View Profile Button */}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/candidate/${candidate.user_id}`);
+                  }}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Profile
+                </Button>
+              </motion.div>
+            ))}
+          </div>
         )}
       </motion.div>
 
