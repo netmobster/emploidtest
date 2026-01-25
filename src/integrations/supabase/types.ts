@@ -1159,6 +1159,45 @@ export type Database = {
           },
         ]
       }
+      user_feedback: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          details: string
+          id: string
+          reviewed_at: string | null
+          screenshot_url: string | null
+          status: string | null
+          subject: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details: string
+          id?: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          subject: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details?: string
+          id?: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          subject?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_onboarding_status: {
         Row: {
           created_at: string

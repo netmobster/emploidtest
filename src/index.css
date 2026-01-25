@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Premium Serif Display Font */
+.font-serif-display {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
 @layer base {
   :root {
     /* Deep slate/indigo palette - professional and modern */

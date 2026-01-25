@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Building2, User, ArrowRight, Loader2 } from "lucide-react";
+import { Building2, User, ArrowRight, Loader2, Sparkles } from "lucide-react";
 import { UserType } from "@/lib/gameData";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSmartRedirect } from "@/hooks/useSmartRedirect";
@@ -10,6 +10,9 @@ import HowItWorks from "@/components/HowItWorks";
 import ProfileHeader from "@/components/ProfileHeader";
 import Footer from "@/components/Footer";
 import { PhilosophyModal } from "@/components/onboarding/PhilosophyModal";
+import { MirrorViewSection } from "@/components/home/MirrorViewSection";
+import { HumanityBar } from "@/components/home/HumanityBar";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -66,18 +69,18 @@ const Index = () => {
       </div>
 
       {/* Hero Section */}
-      <div className="relative">
-        {/* Background gradient */}
+      <section className="relative pt-16 md:pt-24 pb-12">
+        {/* Background effects */}
         <div className="absolute inset-0 gradient-hero opacity-5" />
         <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-1/3 h-1/3 bg-accent/5 rounded-full blur-3xl" />
 
-        <div className="container mx-auto px-4 pt-16 md:pt-20 pb-12 relative">
+        <div className="container mx-auto px-4 relative">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex justify-center mb-8"
+            className="flex justify-center mb-10"
           >
             <Logo size="xl" linkTo="" />
           </motion.div>
@@ -87,25 +90,42 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-center max-w-3xl mx-auto mb-10"
+            className="text-center max-w-4xl mx-auto"
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-              Work is more than a tech stack—it's a{" "}
-              <span className="gradient-text">human connection</span>
-            </h2>
-            <p className="text-lg md:text-xl text-muted-foreground">
-              We match you with the people and cultures where you truly click.
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight font-serif-display">
+              Work where you belong.{" "}
+              <span className="gradient-text">Hire who stays.</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+              Hiring has become an industrial volume game where everyone loses—whether you're 
+              applying to 1,000 roles or sorting through 1,000 resumes. Emploid kills the noise 
+              and replaces it with real human synergy. No bots, no performance—just 1:1 
+              connections that actually matter.
             </p>
           </motion.div>
+        </div>
+      </section>
 
-          {/* How it Works */}
+      {/* Mirror View Section */}
+      <MirrorViewSection />
+
+      {/* Humanity Bar */}
+      <HumanityBar />
+
+      {/* How it Works */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto">
           <HowItWorks />
+        </div>
+      </section>
 
-          {/* User type selection */}
+      {/* User type selection */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto"
           >
             {/* Employer Card */}
@@ -171,27 +191,33 @@ const Index = () => {
             </motion.button>
           </motion.div>
 
-          {/* Trust indicators */}
+          {/* Join the Network CTA */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-center mt-10"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex justify-center mt-10"
           >
-            <p className="text-sm text-muted-foreground">
-              Join thousands finding their perfect professional match
-            </p>
+            <Button 
+              size="lg"
+              onClick={() => navigate("/auth")}
+              className="gradient-primary text-primary-foreground px-8 py-6 text-lg rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Join the Network
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </motion.div>
-        </div>
-      </div>
 
-      {/* About Section */}
-      <section id="about" className="py-16 px-4 bg-muted/20">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">About Emploid</h2>
-          <p className="text-muted-foreground">
-            We believe great work starts with great connections. Emploid uses culture-first matching to help candidates and companies find their perfect fit—beyond just skills and experience.
-          </p>
+          {/* Trust indicator */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center mt-6 text-sm text-muted-foreground"
+          >
+            Join thousands finding their perfect professional match
+          </motion.p>
         </div>
       </section>
 
