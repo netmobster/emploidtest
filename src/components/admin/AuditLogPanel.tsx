@@ -3,6 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -11,8 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Shield, Search, Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Shield, Search, Loader2, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface AuditLog {
   id: string;
@@ -25,23 +32,59 @@ interface AuditLog {
   user_email?: string;
 }
 
+const ACTION_CATEGORIES: Record<string, string[]> = {
+  authentication: ["signup", "signin", "signout", "login", "logout", "token_refresh"],
+  users: ["user_delete", "user_purge", "profile_update", "user_create"],
+  jobs: ["job_create", "job_update", "job_close", "job_fill", "job_delete"],
+  matches: ["match_create", "unmatch", "swipe_like", "swipe_pass"],
+  emails: ["email_sent", "email_failed", "broadcast_email"],
+  admin: ["settings_update", "feature_toggle", "test_mode_toggle", "data_purge"],
+};
+
+const CATEGORY_COLORS: Record<string, string> = {
+  authentication: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  users: "bg-purple-500/10 text-purple-600 border-purple-500/20",
+  jobs: "bg-green-500/10 text-green-600 border-green-500/20",
+  matches: "bg-pink-500/10 text-pink-600 border-pink-500/20",
+  emails: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  admin: "bg-red-500/10 text-red-600 border-red-500/20",
+};
+
+const PAGE_SIZE = 50;
+
 export function AuditLogPanel() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   useEffect(() => {
     fetchLogs();
-  }, []);
+  }, [page, categoryFilter]);
 
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Get actions for selected category
+      let actionsToFilter: string[] = [];
+      if (categoryFilter !== "all") {
+        actionsToFilter = ACTION_CATEGORIES[categoryFilter] || [];
+      }
+
+      // Build query
+      let query = supabase
         .from("audit_logs")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
-        .limit(100);
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (actionsToFilter.length > 0) {
+        query = query.in("action", actionsToFilter);
+      }
+
+      const { data, error, count } = await query;
 
       if (error) throw error;
 
@@ -64,6 +107,8 @@ export function AuditLogPanel() {
       } else {
         setLogs([]);
       }
+
+      setTotalCount(count || 0);
     } catch (err) {
       console.error("Failed to fetch audit logs:", err);
     } finally {
@@ -71,22 +116,18 @@ export function AuditLogPanel() {
     }
   };
 
-  const getActionColor = (action: string) => {
-    if (action.includes("delete") || action.includes("purge")) {
-      return "bg-destructive/10 text-destructive border-destructive/20";
+  const getActionCategory = (action: string): string => {
+    for (const [category, actions] of Object.entries(ACTION_CATEGORIES)) {
+      if (actions.some((a) => action.toLowerCase().includes(a.toLowerCase()))) {
+        return category;
+      }
     }
-    if (action.includes("update") || action.includes("edit")) {
-      return "bg-blue-500/10 text-blue-600 border-blue-500/20";
-    }
-    if (action.includes("create") || action.includes("send")) {
-      return "bg-green-500/10 text-green-600 border-green-500/20";
-    }
-    return "bg-muted text-muted-foreground";
+    return "admin";
   };
 
-  const formatDetails = (details: Record<string, any> | null) => {
-    if (!details) return "-";
-    return JSON.stringify(details, null, 2);
+  const getActionColor = (action: string) => {
+    const category = getActionCategory(action);
+    return CATEGORY_COLORS[category] || "bg-muted text-muted-foreground";
   };
 
   const filteredLogs = logs.filter((log) => {
@@ -100,6 +141,8 @@ export function AuditLogPanel() {
     );
   });
 
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -111,7 +154,7 @@ export function AuditLogPanel() {
                 Audit Logs
               </CardTitle>
               <CardDescription>
-                Track all administrative actions performed on the system.
+                Track all platform activity including signups, matches, jobs, and admin actions.
               </CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={fetchLogs} disabled={isLoading}>
@@ -121,15 +164,40 @@ export function AuditLogPanel() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Search */}
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by action, user, or target..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by action, user, or target..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="authentication">Authentication</SelectItem>
+                <SelectItem value="users">Users</SelectItem>
+                <SelectItem value="jobs">Jobs</SelectItem>
+                <SelectItem value="matches">Matches</SelectItem>
+                <SelectItem value="emails">Emails</SelectItem>
+                <SelectItem value="admin">Admin</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Category Legend */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {Object.entries(CATEGORY_COLORS).map(([category, colorClass]) => (
+              <Badge key={category} variant="outline" className={colorClass}>
+                {category}
+              </Badge>
+            ))}
           </div>
 
           {/* Logs Table */}
@@ -163,7 +231,9 @@ export function AuditLogPanel() {
                       <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                         {new Date(log.created_at).toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-sm">{log.user_email}</TableCell>
+                      <TableCell className="text-sm max-w-[150px] truncate">
+                        {log.user_email}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getActionColor(log.action)}>
                           {log.action}
@@ -174,7 +244,9 @@ export function AuditLogPanel() {
                           <span>
                             {log.target_type}
                             {log.target_id && (
-                              <span className="text-muted-foreground ml-1">({log.target_id})</span>
+                              <span className="text-muted-foreground ml-1 text-xs">
+                                ({log.target_id.slice(0, 8)}...)
+                              </span>
                             )}
                           </span>
                         ) : (
@@ -191,8 +263,32 @@ export function AuditLogPanel() {
             </Table>
           </div>
 
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing {filteredLogs.length} of {logs.length} logs (last 100)
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-muted-foreground">
+              Showing {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount} logs
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {page + 1} of {Math.max(1, totalPages)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page >= totalPages - 1 || isLoading}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
