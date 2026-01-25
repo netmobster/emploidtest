@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Heart, MessageCircle, Settings } from "lucide-react";
+import { LayoutDashboard, Heart, MessageCircle, Settings, Globe } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -7,14 +7,14 @@ const candidateNavItems = [
   { title: "Home", url: "/candidate-dashboard", icon: LayoutDashboard },
   { title: "Swipe", url: "/swipe/candidate", icon: Heart },
   { title: "Matches", url: "/matches", icon: MessageCircle },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Site", url: "/public-home", icon: Globe },
 ];
 
 const employerNavItems = [
   { title: "Home", url: "/employer-dashboard", icon: LayoutDashboard },
   { title: "Swipe", url: "/swipe/employer", icon: Heart },
   { title: "Matches", url: "/matches", icon: MessageCircle },
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Site", url: "/public-home", icon: Globe },
 ];
 
 export function MobileBottomNav() {
