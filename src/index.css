@@ -261,3 +261,17 @@
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Synergy pulse animation for new matches */
+@keyframes synergy-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 hsl(238 65% 55% / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsl(238 65% 55% / 0);
+  }
+}
+
+.synergy-pulse {
+  animation: synergy-pulse 2s infinite;
+}

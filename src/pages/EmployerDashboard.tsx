@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Briefcase, Users, Eye, TrendingUp, Loader2, BarChart3 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,9 @@ import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBad
 import { EmployerAnalyticsChart } from "@/components/dashboard/EmployerAnalyticsChart";
 import { DashboardTour } from "@/components/onboarding/DashboardTour";
 import { EMPLOYER_TOUR_STEPS } from "@/components/onboarding/employerTourSteps";
+import { HighSynergyCandidatesSection } from "@/components/dashboard/HighSynergyCandidatesSection";
+import { CandidatesLockedCard } from "@/components/dashboard/CandidatesLockedCard";
+import { DiscoverySectionEmployer } from "@/components/dashboard/DiscoverySectionEmployer";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -163,11 +166,22 @@ export default function EmployerDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* Conditional High-Synergy Candidates Section */}
+            {profile?.has_completed_culture_game ? (
+              <HighSynergyCandidatesSection />
+            ) : (
+              <CandidatesLockedCard />
+            )}
+
+            {/* Discovery Scout */}
+            {profile?.has_completed_culture_game && profile?.synergy_scores && (
+              <DiscoverySectionEmployer />
+            )}
+
             {/* Main Content Grid */}
             <div className="grid lg:grid-cols-3 gap-6">
               {/* Left Column - Jobs & Activity */}
               <div className="lg:col-span-2 space-y-6">
-            {/* Job Postings */}
             <motion.div
               id="job-postings"
               initial={{ opacity: 0, y: 20 }}

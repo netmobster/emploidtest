@@ -789,6 +789,7 @@ export type Database = {
           resume_url: string | null
           skills: string[] | null
           synergy_scores: Json | null
+          team_environment: string | null
           updated_at: string
           user_id: string
           user_type: string
@@ -839,6 +840,7 @@ export type Database = {
           resume_url?: string | null
           skills?: string[] | null
           synergy_scores?: Json | null
+          team_environment?: string | null
           updated_at?: string
           user_id: string
           user_type?: string
@@ -889,6 +891,7 @@ export type Database = {
           resume_url?: string | null
           skills?: string[] | null
           synergy_scores?: Json | null
+          team_environment?: string | null
           updated_at?: string
           user_id?: string
           user_type?: string
