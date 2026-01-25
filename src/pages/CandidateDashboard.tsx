@@ -23,6 +23,7 @@ import { CandidateVerificationSection } from "@/components/verification/Candidat
 import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
 import { DashboardTour } from "@/components/onboarding/DashboardTour";
 import { CANDIDATE_TOUR_STEPS } from "@/components/onboarding/candidateTourSteps";
+import { CandidateAnalyticsChart } from "@/components/dashboard/CandidateAnalyticsChart";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -142,11 +143,15 @@ export default function CandidateDashboard() {
 
         {/* Tab Navigation */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="profile" className="gap-2">
               <User className="w-4 h-4" />
               Profile
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Analytics
             </TabsTrigger>
           </TabsList>
 
@@ -436,6 +441,11 @@ export default function CandidateDashboard() {
                 <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
               </div>
             )}
+          </TabsContent>
+
+          {/* Analytics Tab */}
+          <TabsContent value="analytics">
+            <CandidateAnalyticsChart />
           </TabsContent>
         </Tabs>
 
