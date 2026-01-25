@@ -84,6 +84,9 @@ export default function EmployerDashboard() {
       </header>
 
       <main className="px-4 sm:px-6 py-8">
+        {/* Domain Verification Section - Only when test mode is OFF */}
+        <DomainVerificationSection />
+
         {/* Activity Digest */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -180,6 +183,7 @@ export default function EmployerDashboard() {
                       job={job}
                       onDelete={deleteJob}
                       onViewCandidates={handleViewCandidates}
+                      onRoleClosed={() => window.location.reload()}
                       delay={0.35 + index * 0.05}
                     />
                   ))}
