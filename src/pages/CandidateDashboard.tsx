@@ -21,6 +21,8 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
 import { CandidateVerificationSection } from "@/components/verification/CandidateVerificationSection";
 import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
+import { DashboardTour } from "@/components/onboarding/DashboardTour";
+import { CANDIDATE_TOUR_STEPS } from "@/components/onboarding/candidateTourSteps";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -77,6 +79,7 @@ export default function CandidateDashboard() {
       <main className="px-4 sm:px-6 py-4 sm:py-8">
         {/* Activity Digest */}
         <motion.div
+          id="activity-digest"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-4 sm:mb-6"
@@ -142,6 +145,7 @@ export default function CandidateDashboard() {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Job Recommendations */}
             <motion.div
+              id="job-recommendations"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -268,7 +272,9 @@ export default function CandidateDashboard() {
             
             {/* Synergy Score Chart */}
             {profile?.synergy_scores && (
-              <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+              <div id="synergy-score">
+                <SynergyScoreChart scores={profile.synergy_scores as Record<Category, number>} />
+              </div>
             )}
             
             <motion.div
@@ -316,6 +322,7 @@ export default function CandidateDashboard() {
 
             {/* Profile Section */}
             <motion.div
+              id="profile-section"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.35 }}
@@ -388,6 +395,9 @@ export default function CandidateDashboard() {
               open={previewOpen}
               onOpenChange={setPreviewOpen}
             />
+
+            {/* Dashboard Tour */}
+            <DashboardTour steps={CANDIDATE_TOUR_STEPS} userType="candidate" />
           </div>
         </div>
       </main>

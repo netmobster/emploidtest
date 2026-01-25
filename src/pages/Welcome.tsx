@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOnboarding } from "@/contexts/OnboardingContext";
+import { useFeatureToggle } from "@/contexts/FeatureToggleContext";
+import { Day14Interstitial } from "@/components/onboarding/Day14Interstitial";
 import { Loader2, Sparkles, ArrowRight, CheckCircle2, User, Building2 } from "lucide-react";
 import Logo from "@/components/Logo";
 import confetti from "canvas-confetti";
@@ -10,7 +13,9 @@ import confetti from "canvas-confetti";
 const Welcome = () => {
   const navigate = useNavigate();
   const { user, profile, isLoading } = useAuth();
-
+  const { status: onboardingStatus, markWalkthroughCompleted, isLoading: onboardingLoading } = useOnboarding();
+  const { testMode } = useFeatureToggle();
+  const [showInterstitial, setShowInterstitial] = useState(false);
   // Redirect if not logged in
   useEffect(() => {
     if (!isLoading && !user) {
@@ -33,6 +38,22 @@ const Welcome = () => {
     }
   }, [isLoading, user, profile]);
 
+  // Check if we should show the Day 14 interstitial
+  useEffect(() => {
+    if (!isLoading && !onboardingLoading && user && profile) {
+      // Show interstitial if: test mode enabled AND not completed walkthrough
+      if (testMode.enabled && !onboardingStatus.hasCompletedWalkthrough) {
+        setShowInterstitial(true);
+      }
+    }
+  }, [isLoading, onboardingLoading, user, profile, testMode.enabled, onboardingStatus.hasCompletedWalkthrough]);
+
+  const handleInterstitialComplete = async () => {
+    await markWalkthroughCompleted();
+    setShowInterstitial(false);
+    navigate("/profile-setup");
+  };
+
   const handleContinue = () => {
     navigate("/profile-setup");
   };
@@ -47,6 +68,16 @@ const Welcome = () => {
 
   if (!user || !profile) {
     return null;
+  }
+
+  // Show Day 14 Interstitial if conditions met
+  if (showInterstitial) {
+    return (
+      <Day14Interstitial
+        userType={profile.user_type as "candidate" | "employer"}
+        onComplete={handleInterstitialComplete}
+      />
+    );
   }
 
   const isEmployer = profile.user_type === "employer";

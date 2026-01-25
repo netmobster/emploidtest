@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { HelpFAB } from "./HelpFAB";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +67,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Mobile bottom navigation */}
         <MobileBottomNav />
+
+        {/* Help FAB - bottom left */}
+        <HelpFAB />
       </div>
     </SidebarProvider>
   );
