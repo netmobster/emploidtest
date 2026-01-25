@@ -2,3 +2,6 @@ project_id = "twvgkepbpapgowvdgife"
 
 [functions.calendly-webhook]
 verify_jwt = false
+
+[functions.role-closure-notification]
+verify_jwt = false

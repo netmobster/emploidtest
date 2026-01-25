@@ -9,6 +9,7 @@ import Logo from "@/components/Logo";
 import HowItWorks from "@/components/HowItWorks";
 import ProfileHeader from "@/components/ProfileHeader";
 import Footer from "@/components/Footer";
+import { PhilosophyModal } from "@/components/onboarding/PhilosophyModal";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -56,6 +57,9 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
+      {/* Philosophy Modal for first-time visitors */}
+      <PhilosophyModal />
+
       {/* Auth header */}
       <div className="absolute top-4 right-4 z-10">
         <ProfileHeader />
