@@ -14,6 +14,7 @@ import { DemoModeToggle } from "@/components/admin/DemoModeToggle";
 import { AdminMetricsBar } from "@/components/admin/AdminMetricsBar";
 import { GrowthTrendline } from "@/components/admin/GrowthTrendline";
 import { UnfilledReasonsTable } from "@/components/admin/UnfilledReasonsTable";
+import { ManualReviewCard } from "@/components/admin/ManualReviewCard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, Database, Mail, BarChart3, ToggleLeft, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -103,6 +104,9 @@ function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Manual Review Links */}
+      <ManualReviewCard />
 
       {/* Growth Trendline Chart */}
       <GrowthTrendline />
