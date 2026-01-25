@@ -71,7 +71,10 @@ export function FeatureToggleProvider({ children }: { children: ReactNode }) {
       }
 
       if (data) {
+        const seenKeys = new Set<string>();
+
         data.forEach((row) => {
+          seenKeys.add(row.setting_key);
           if (row.setting_key === "feature_toggles" && row.setting_value && typeof row.setting_value === 'object') {
             const newFeatures = row.setting_value as unknown as FeatureToggles;
             setFeatures(newFeatures);
@@ -83,6 +86,20 @@ export function FeatureToggleProvider({ children }: { children: ReactNode }) {
             localStorage.setItem("test_mode", JSON.stringify(newTestMode));
           }
         });
+
+        // IMPORTANT: If the backend returns no rows for these keys (common in production
+        // before admin settings are initialized), don't let stale localStorage values
+        // permanently override defaults.
+        if (!seenKeys.has("feature_toggles")) {
+          console.warn("[FeatureToggle] No feature_toggles row found; falling back to defaults");
+          setFeatures(defaultFeatures);
+          localStorage.setItem("feature_toggles", JSON.stringify(defaultFeatures));
+        }
+        if (!seenKeys.has("test_mode")) {
+          console.warn("[FeatureToggle] No test_mode row found; falling back to defaults (enabled:false)");
+          setTestMode(defaultTestMode);
+          localStorage.setItem("test_mode", JSON.stringify(defaultTestMode));
+        }
       }
     } catch (err) {
       console.error("Failed to fetch feature toggles:", err);
