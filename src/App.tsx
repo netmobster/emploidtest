@@ -15,6 +15,7 @@ import Welcome from "./pages/Welcome";
 import Admin from "./pages/Admin";
 import ProfileSetup from "./pages/ProfileSetup";
 import CandidateOnboarding from "./pages/CandidateOnboarding";
+import CandidateOnboardingV2 from "./pages/CandidateOnboardingV2";
 import OnboardingComplete from "./pages/OnboardingComplete";
 import CitySelection from "./pages/CitySelection";
 import RoleSelection from "./pages/RoleSelection";
@@ -68,6 +69,7 @@ const App = () => (
                 {/* Onboarding routes - no sidebar yet */}
                 <Route path="/profile-setup" element={<ProfileSetup />} />
                 <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+                <Route path="/candidate-onboarding-v2" element={<CandidateOnboardingV2 />} />
                 <Route path="/employer-onboarding" element={<EmployerOnboarding />} />
                 <Route path="/onboarding-complete" element={<OnboardingComplete />} />
                 <Route path="/city" element={<CitySelection />} />
