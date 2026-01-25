@@ -228,6 +228,54 @@ export type Database = {
           },
         ]
       }
+      hires: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          employer_id: string
+          hired_at: string
+          id: string
+          job_id: string
+          match_id: string | null
+          source: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          employer_id: string
+          hired_at?: string
+          id?: string
+          job_id: string
+          match_id?: string | null
+          source?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          employer_id?: string
+          hired_at?: string
+          id?: string
+          job_id?: string
+          match_id?: string | null
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hires_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hires_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hiring_team_members: {
         Row: {
           avatar_url: string | null
@@ -501,6 +549,7 @@ export type Database = {
           daily_stack: string[] | null
           description: string | null
           geographic_restriction: string | null
+          hired_candidate_id: string | null
           hiring_manager_id: string | null
           id: string
           is_complete: boolean | null
@@ -514,6 +563,7 @@ export type Database = {
           role_id: string
           salary: string | null
           skills_preferences: Json | null
+          status: Database["public"]["Enums"]["role_status"] | null
           title: string
           type: string | null
           user_id: string | null
@@ -530,6 +580,7 @@ export type Database = {
           daily_stack?: string[] | null
           description?: string | null
           geographic_restriction?: string | null
+          hired_candidate_id?: string | null
           hiring_manager_id?: string | null
           id?: string
           is_complete?: boolean | null
@@ -543,6 +594,7 @@ export type Database = {
           role_id: string
           salary?: string | null
           skills_preferences?: Json | null
+          status?: Database["public"]["Enums"]["role_status"] | null
           title: string
           type?: string | null
           user_id?: string | null
@@ -559,6 +611,7 @@ export type Database = {
           daily_stack?: string[] | null
           description?: string | null
           geographic_restriction?: string | null
+          hired_candidate_id?: string | null
           hiring_manager_id?: string | null
           id?: string
           is_complete?: boolean | null
@@ -572,6 +625,7 @@ export type Database = {
           role_id?: string
           salary?: string | null
           skills_preferences?: Json | null
+          status?: Database["public"]["Enums"]["role_status"] | null
           title?: string
           type?: string | null
           user_id?: string | null
@@ -968,6 +1022,44 @@ export type Database = {
           },
         ]
       }
+      role_closures: {
+        Row: {
+          closed_at: string
+          created_at: string
+          employer_id: string
+          id: string
+          job_id: string
+          notes: string | null
+          reason: string
+        }
+        Insert: {
+          closed_at?: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          reason: string
+        }
+        Update: {
+          closed_at?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_closures_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_jobs: {
         Row: {
           created_at: string
@@ -1103,6 +1195,7 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin" | "admin" | "moderator" | "user"
+      role_status: "active" | "filled" | "unfilled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1231,6 +1324,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin", "admin", "moderator", "user"],
+      role_status: ["active", "filled", "unfilled"],
     },
   },
 } as const

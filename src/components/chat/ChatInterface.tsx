@@ -19,6 +19,8 @@ import { QuizMessageCard } from "./QuizMessageCard";
 import { QuizSummaryCard } from "./QuizSummaryCard";
 import { ChatSeeds } from "./ChatSeeds";
 import { useDocumentRequests } from "@/hooks/useDocumentRequests";
+import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
+import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
 
 interface Message {
   id: string;
@@ -63,6 +65,8 @@ interface ChatInterfaceProps {
     name: string;
     avatar?: string;
     type: string;
+    isVerified?: boolean;
+    verifiedDomain?: string;
   };
   jobInfo?: {
     id: string;
@@ -349,7 +353,7 @@ const ChatInterface = ({
         />
       )}
 
-      {/* Online Status Bar */}
+      {/* Online Status Bar with Verification Badges */}
       <div className="px-4 py-2 border-b border-border flex items-center gap-2">
         <span
           className={cn(
@@ -360,6 +364,13 @@ const ChatInterface = ({
         <span className="text-sm text-muted-foreground">
           {isOtherUserOnline ? "Online" : "Offline"}
         </span>
+        {/* Verification badges */}
+        {otherUser?.type === "candidate" && otherUser?.isVerified && (
+          <VerifiedProfessionalBadge isVerified={true} size="sm" />
+        )}
+        {otherUser?.type === "employer" && otherUser?.isVerified && (
+          <VerifiedDomainBadge domain={otherUser.verifiedDomain} isVerified={true} size="sm" />
+        )}
       </div>
 
       {/* ChatSeeds - Icebreakers for new conversations */}

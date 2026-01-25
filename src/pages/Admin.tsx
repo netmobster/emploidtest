@@ -10,6 +10,10 @@ import { AnalyticsPanel } from "@/components/admin/AnalyticsPanel";
 import { FeatureTogglePanel } from "@/components/admin/FeatureTogglePanel";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AdminSettingsPanel } from "@/components/admin/AdminSettingsPanel";
+import { DemoModeToggle } from "@/components/admin/DemoModeToggle";
+import { AdminMetricsBar } from "@/components/admin/AdminMetricsBar";
+import { GrowthTrendline } from "@/components/admin/GrowthTrendline";
+import { UnfilledReasonsTable } from "@/components/admin/UnfilledReasonsTable";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Users, Database, Mail, BarChart3, ToggleLeft, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -71,6 +75,13 @@ function AdminDashboard() {
         </p>
       </div>
 
+      {/* Demo Mode Toggle */}
+      <DemoModeToggle />
+
+      {/* Real-time Metrics Bar */}
+      <AdminMetricsBar />
+
+      {/* Quick Links */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {quickLinks.map((link) => (
           <Card
@@ -92,6 +103,12 @@ function AdminDashboard() {
           </Card>
         ))}
       </div>
+
+      {/* Growth Trendline Chart */}
+      <GrowthTrendline />
+
+      {/* Failed Match Analysis */}
+      <UnfilledReasonsTable />
     </div>
   );
 }
