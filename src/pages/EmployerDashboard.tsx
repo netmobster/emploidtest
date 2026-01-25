@@ -21,6 +21,7 @@ import { CreateJobDialog } from "@/components/dashboard/CreateJobDialog";
 import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { QuickMatchPanel } from "@/components/testing/QuickMatchPanel";
 import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
+import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -176,6 +177,9 @@ export default function EmployerDashboard() {
                 </div>
               )}
             </motion.div>
+
+            {/* Pending Likes */}
+            <PendingLikesCard />
 
             {/* Recent Activity */}
             <motion.div

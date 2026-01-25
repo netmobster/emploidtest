@@ -18,6 +18,7 @@ import { ProfilePreviewModal } from "@/components/ProfilePreviewModal";
 import { GettingStartedBanner } from "@/components/dashboard/GettingStartedBanner";
 import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -184,6 +185,9 @@ export default function CandidateDashboard() {
                 </div>
               )}
             </motion.div>
+
+            {/* Pending Likes */}
+            <PendingLikesCard />
 
             {/* Recent Matches */}
             <motion.div

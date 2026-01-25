@@ -17,6 +17,7 @@ import { DocumentRequestBanner } from "./DocumentRequestBanner";
 import { DocumentReceivedCard } from "./DocumentReceivedCard";
 import { QuizMessageCard } from "./QuizMessageCard";
 import { QuizSummaryCard } from "./QuizSummaryCard";
+import { ChatSeeds } from "./ChatSeeds";
 import { useDocumentRequests } from "@/hooks/useDocumentRequests";
 
 interface Message {
@@ -66,6 +67,8 @@ interface ChatInterfaceProps {
   jobInfo?: {
     id: string;
     title: string;
+    mission_statement?: string | null;
+    big_rocks?: { title: string }[] | null;
   };
   matchId?: string;
   isOtherUserOnline?: boolean;
@@ -84,6 +87,20 @@ interface ChatInterfaceProps {
   completedInsights?: InterviewInsight[];
   onStartQuiz?: (quiz: QuizRequest) => void;
   candidateName?: string;
+  // For ChatSeeds
+  currentUserProfile?: {
+    skills?: string[] | null;
+    synergy_scores?: Record<string, number> | null;
+    culture_preferences?: Record<string, number> | null;
+  };
+  otherUserProfile?: {
+    skills?: string[] | null;
+    synergy_scores?: Record<string, number> | null;
+    culture_preferences?: Record<string, number> | null;
+    full_name?: string;
+  };
+  firstMessageSent?: boolean;
+  onSetInputValue?: (value: string) => void;
 }
 
 const TypingIndicator = () => (
@@ -210,6 +227,9 @@ const ChatInterface = ({
   completedInsights = [],
   onStartQuiz,
   candidateName,
+  currentUserProfile,
+  otherUserProfile,
+  firstMessageSent = false,
 }: ChatInterfaceProps) => {
   const { user, profile } = useAuth();
   const [inputValue, setInputValue] = useState("");
@@ -225,6 +245,14 @@ const ChatInterface = ({
   const uploadedDocuments = documentRequests.filter(
     (req) => req.status === "uploaded" && req.requester_id === user?.id
   );
+
+  // Show ChatSeeds only if first message hasn't been sent
+  const showChatSeeds = !firstMessageSent && messages.length === 0 && currentUserProfile && otherUserProfile;
+
+  const handleSeedSelect = (message: string) => {
+    setInputValue(message);
+    inputRef.current?.focus();
+  };
 
   // Scroll to bottom on new messages or typing
   useEffect(() => {
@@ -326,13 +354,27 @@ const ChatInterface = ({
         <span
           className={cn(
             "w-2 h-2 rounded-full",
-            isOtherUserOnline ? "bg-green-500" : "bg-muted-foreground"
+            isOtherUserOnline ? "bg-emerald-500" : "bg-muted-foreground"
           )}
         />
         <span className="text-sm text-muted-foreground">
           {isOtherUserOnline ? "Online" : "Offline"}
         </span>
       </div>
+
+      {/* ChatSeeds - Icebreakers for new conversations */}
+      {showChatSeeds && currentUserProfile && otherUserProfile && (
+        <ChatSeeds
+          currentUserProfile={currentUserProfile}
+          otherUserProfile={{
+            ...otherUserProfile,
+            full_name: otherUser?.name,
+          }}
+          jobInfo={jobInfo}
+          onSelectSeed={handleSeedSelect}
+          isVisible={true}
+        />
+      )}
 
       {/* Messages */}
       <ScrollArea ref={scrollRef} className="flex-1 min-h-0 p-4">
