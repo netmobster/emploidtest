@@ -19,6 +19,8 @@ import { GettingStartedBanner } from "@/components/dashboard/GettingStartedBanne
 import { UpcomingInterviewsCard } from "@/components/dashboard/UpcomingInterviewsCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { PendingLikesCard } from "@/components/dashboard/PendingLikesCard";
+import { CandidateVerificationSection } from "@/components/verification/CandidateVerificationSection";
+import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
@@ -251,6 +253,15 @@ export default function CandidateDashboard() {
 
           {/* Right Column - Quick Actions & Profile Completion */}
           <div className="space-y-4 sm:space-y-6">
+            {/* LinkedIn Verification Section - Only shows when test mode is OFF */}
+            {user && !(profile as any)?.is_verified_identity && (
+              <CandidateVerificationSection
+                userId={user.id}
+                isVerified={(profile as any)?.is_verified_identity}
+                onVerificationComplete={refreshProfile}
+              />
+            )}
+
             {/* Upcoming Interviews */}
             <UpcomingInterviewsCard maxItems={3} />
             <ProfileCompletionCard {...profileCompletion} />
@@ -341,7 +352,10 @@ export default function CandidateDashboard() {
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate text-sm sm:text-base">{profile?.full_name || "Your Name"}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium text-foreground truncate text-sm sm:text-base">{profile?.full_name || "Your Name"}</p>
+                    <VerifiedProfessionalBadge isVerified={(profile as any)?.is_verified_identity} size="sm" />
+                  </div>
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">{profile?.email}</p>
                   {profile?.bio && (
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{profile.bio}</p>

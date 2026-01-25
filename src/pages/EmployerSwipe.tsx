@@ -12,6 +12,7 @@ import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
 import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
+import { isLocationMatch } from "@/lib/locationMatchingUtils";
 import { toast } from "sonner";
 
 interface CandidateWithScore {
@@ -39,6 +40,10 @@ interface CandidateWithScore {
   // Synergy score fields
   hasSynergyScore?: boolean;
   synergyBadge?: string;
+  hasTimezoneSynergy?: boolean;
+  // Location fields for filtering
+  work_mode?: string;
+  city_hub?: string;
 }
 
 const EmployerSwipe = () => {
@@ -86,12 +91,15 @@ const EmployerSwipe = () => {
           requirements: string[] | null;
           culture_preferences: Record<string, number> | null;
           skills_preferences: Record<string, number> | null;
+          work_mode?: string | null;
+          location_text?: string | null;
+          geographic_restriction?: string | null;
         } | null = null;
 
         if (user && role) {
           const { data: jobResult } = await supabase
             .from("jobs")
-            .select("requirements, culture_preferences, skills_preferences")
+            .select("requirements, culture_preferences, skills_preferences, work_mode, location_text, geographic_restriction")
             .eq("user_id", user.id)
             .eq("role_id", role)
             .order("created_at", { ascending: false })
@@ -103,6 +111,9 @@ const EmployerSwipe = () => {
               requirements: jobResult.requirements as string[] | null,
               culture_preferences: jobResult.culture_preferences as Record<string, number> | null,
               skills_preferences: jobResult.skills_preferences as Record<string, number> | null,
+              work_mode: jobResult.work_mode,
+              location_text: jobResult.location_text,
+              geographic_restriction: jobResult.geographic_restriction,
             };
           }
         }
@@ -115,11 +126,11 @@ const EmployerSwipe = () => {
             }
           : null;
 
-        // Fetch real candidate profiles from database
+        // Fetch real candidate profiles from database (including location fields)
         const { data: dbProfiles } = await supabase
           .from("profiles")
           .select(
-            "user_id, full_name, avatar_url, bio, culture_preferences, synergy_scores, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url, has_completed_synergy_quiz"
+            "user_id, full_name, avatar_url, bio, culture_preferences, synergy_scores, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url, has_completed_synergy_quiz, work_mode, city_hub, is_verified_identity"
           )
           .eq("user_type", "candidate");
 
@@ -150,6 +161,12 @@ const EmployerSwipe = () => {
               employerProfile,
               jobData
             );
+
+            // Check location match for timezone synergy
+            const locationResult = jobData ? isLocationMatch(
+              { work_mode: realProfile?.work_mode, city_hub: realProfile?.city_hub },
+              jobData
+            ) : { isMatch: true, hasTimezoneSynergy: false };
 
             return {
               id: candidate.id,
@@ -182,7 +199,23 @@ const EmployerSwipe = () => {
               synergyBadge: realProfile?.synergy_scores
                 ? getPrimaryBadge(realProfile.synergy_scores as Record<string, number>)?.title
                 : undefined,
+              // Location fields
+              hasTimezoneSynergy: locationResult.hasTimezoneSynergy,
+              work_mode: realProfile?.work_mode || undefined,
+              city_hub: realProfile?.city_hub || undefined,
             };
+          })
+          // Apply location dealbreaker filter
+          .filter((candidate) => {
+            if (!jobData) return true;
+            const result = isLocationMatch(
+              { work_mode: candidate.work_mode, city_hub: candidate.city_hub },
+              jobData
+            );
+            if (!result.isMatch) {
+              console.log(`[Matching] Excluded ${candidate.name}: ${result.reason}`);
+            }
+            return result.isMatch;
           });
 
         // Also add real DB candidates that aren't in sample data

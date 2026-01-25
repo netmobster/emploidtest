@@ -720,8 +720,11 @@ export type Database = {
           has_completed_synergy_quiz: boolean | null
           has_completed_work_love_language: boolean | null
           id: string
+          is_domain_verified: boolean | null
+          is_verified_identity: boolean | null
           job_title: string | null
           last_login_at: string | null
+          linked_provider_id: string | null
           linkedin_synced_at: string | null
           linkedin_url: string | null
           location: string | null
@@ -735,6 +738,8 @@ export type Database = {
           updated_at: string
           user_id: string
           user_type: string
+          verified_domain: string | null
+          verified_work_email: string | null
           website_url: string | null
           work_history: Json | null
           work_mode: string | null
@@ -765,8 +770,11 @@ export type Database = {
           has_completed_synergy_quiz?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
+          is_domain_verified?: boolean | null
+          is_verified_identity?: boolean | null
           job_title?: string | null
           last_login_at?: string | null
+          linked_provider_id?: string | null
           linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -780,6 +788,8 @@ export type Database = {
           updated_at?: string
           user_id: string
           user_type?: string
+          verified_domain?: string | null
+          verified_work_email?: string | null
           website_url?: string | null
           work_history?: Json | null
           work_mode?: string | null
@@ -810,8 +820,11 @@ export type Database = {
           has_completed_synergy_quiz?: boolean | null
           has_completed_work_love_language?: boolean | null
           id?: string
+          is_domain_verified?: boolean | null
+          is_verified_identity?: boolean | null
           job_title?: string | null
           last_login_at?: string | null
+          linked_provider_id?: string | null
           linkedin_synced_at?: string | null
           linkedin_url?: string | null
           location?: string | null
@@ -825,6 +838,8 @@ export type Database = {
           updated_at?: string
           user_id?: string
           user_type?: string
+          verified_domain?: string | null
+          verified_work_email?: string | null
           website_url?: string | null
           work_history?: Json | null
           work_mode?: string | null

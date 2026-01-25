@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRoleDefinition, RoleDefinition } from "@/hooks/useRoleDefinition";
+import { LocationWorkModeFields } from "@/components/role/LocationWorkModeFields";
 import { cn } from "@/lib/utils";
 
 interface RoleDefinitionFormProps {
@@ -40,7 +41,9 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
   const [formData, setFormData] = useState({
     pay_min: "",
     pay_max: "",
-    work_mode: "remote" as "remote" | "hybrid" | "on-site",
+    work_mode: "remote" as "onsite" | "hybrid" | "remote",
+    city_hub: "",
+    geographic_restriction: "none" as "none" | "us_canada" | "north_america" | "emea",
     location_text: "",
     reporting_to: "",
     mission_statement: "",
@@ -54,10 +57,19 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
       const data = await fetchRole();
       if (data) {
         setRole(data);
+        // Map work_mode from DB format
+        const workModeMap: Record<string, "onsite" | "hybrid" | "remote"> = {
+          "on-site": "onsite",
+          "onsite": "onsite",
+          "hybrid": "hybrid",
+          "remote": "remote",
+        };
         setFormData({
           pay_min: data.pay_min?.toString() || "",
           pay_max: data.pay_max?.toString() || "",
-          work_mode: data.work_mode,
+          work_mode: workModeMap[data.work_mode] || "remote",
+          city_hub: data.location_text || "",
+          geographic_restriction: (data as any).geographic_restriction || "none",
           location_text: data.location_text || "",
           reporting_to: data.reporting_to || "",
           mission_statement: data.mission_statement || "",
@@ -102,17 +114,24 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
   };
 
   const handlePublish = async () => {
+    // Map work_mode back to DB format
+    const workModeMap: Record<string, "remote" | "hybrid" | "on-site"> = {
+      onsite: "on-site",
+      hybrid: "hybrid",
+      remote: "remote",
+    };
     const success = await publishRole({
       pay_min: formData.pay_min ? parseInt(formData.pay_min) : null,
       pay_max: formData.pay_max ? parseInt(formData.pay_max) : null,
-      work_mode: formData.work_mode,
-      location_text: formData.location_text || null,
+      work_mode: workModeMap[formData.work_mode],
+      location_text: formData.city_hub || null,
       reporting_to: formData.reporting_to || null,
       mission_statement: formData.mission_statement || null,
       big_rocks: formData.big_rocks.filter(Boolean),
       daily_stack: formData.daily_stack,
       vibe_mode: formData.vibe_mode,
-    });
+      geographic_restriction: formData.geographic_restriction,
+    } as any);
     
     if (success) {
       onComplete?.();
@@ -124,7 +143,7 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
       id: "logistics", 
       title: "The Logistics", 
       isComplete: Boolean(formData.pay_min && formData.pay_max && 
-        (formData.work_mode === "remote" || formData.location_text))
+        (formData.work_mode === "remote" || formData.city_hub))
     },
     { 
       id: "mission", 
@@ -219,51 +238,19 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
             </div>
           </div>
 
-          <div className="space-y-3">
-            <Label>Work Mode</Label>
-            <RadioGroup
-              value={formData.work_mode}
-              onValueChange={(v) => setFormData(prev => ({ ...prev, work_mode: v as typeof formData.work_mode }))}
-              className="grid grid-cols-3 gap-3"
-            >
-              {[
-                { value: "remote", label: "Remote" },
-                { value: "hybrid", label: "Hybrid" },
-                { value: "on-site", label: "On-site" },
-              ].map((option) => (
-                <Label
-                  key={option.value}
-                  className={cn(
-                    "flex items-center justify-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors",
-                    formData.work_mode === option.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  )}
-                >
-                  <RadioGroupItem value={option.value} className="sr-only" />
-                  {option.label}
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
-
-          <AnimatePresence>
-            {formData.work_mode !== "remote" && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                className="space-y-2"
-              >
-                <Label>Location</Label>
-                <Input
-                  placeholder="e.g., New York, NY"
-                  value={formData.location_text}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location_text: e.target.value }))}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <LocationWorkModeFields
+            workMode={formData.work_mode}
+            cityHub={formData.city_hub}
+            geographicRestriction={formData.geographic_restriction}
+            onWorkModeChange={(v) => setFormData(prev => ({ ...prev, work_mode: v }))}
+            onCityHubChange={(v) => setFormData(prev => ({ ...prev, city_hub: v }))}
+            onGeographicRestrictionChange={(v) => setFormData(prev => ({ ...prev, geographic_restriction: v }))}
+            errors={{
+              cityHub: (formData.work_mode === "onsite" || formData.work_mode === "hybrid") && !formData.city_hub 
+                ? "City hub is required for on-site/hybrid roles" 
+                : undefined
+            }}
+          />
 
           <div className="space-y-2">
             <Label>Reports To</Label>
