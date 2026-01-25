@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Briefcase, Users, Eye, TrendingUp, Bookmark, Loader2, Pencil, ClipboardList, BarChart3, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +24,8 @@ import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedPro
 import { DashboardTour } from "@/components/onboarding/DashboardTour";
 import { CANDIDATE_TOUR_STEPS } from "@/components/onboarding/candidateTourSteps";
 import { CandidateAnalyticsChart } from "@/components/dashboard/CandidateAnalyticsChart";
+import { MatchesForYouSection } from "@/components/dashboard/MatchesForYouSection";
+import { MatchesLockedCard } from "@/components/dashboard/MatchesLockedCard";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +33,8 @@ import Logo from "@/components/Logo";
 
 export default function CandidateDashboard() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const showMatchesPrioritized = searchParams.get("showMatches") === "true";
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const stats = useCandidateStats();
   const { jobs, isLoading: jobsLoading } = useJobRecommendations();
@@ -158,8 +162,16 @@ export default function CandidateDashboard() {
           <TabsContent value="overview" className="space-y-6">
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Left Column - Job Recommendations */}
+          {/* Left Column - Matches for You + Job Recommendations */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Conditional Matches Section */}
+            {profile?.has_completed_culture_game && profile?.has_completed_synergy_quiz ? (
+              <MatchesForYouSection />
+            ) : (
+              <MatchesLockedCard />
+            )}
+
+            {/* Job Recommendations */}
             {/* Job Recommendations */}
             <motion.div
               id="job-recommendations"
