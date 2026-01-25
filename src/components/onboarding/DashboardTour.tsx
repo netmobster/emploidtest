@@ -70,8 +70,9 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
   const [stepIndex, setStepIndex] = useState(0);
 
   // Start tour automatically if conditions are met
+  // Tour should run when Public Mode is OFF (real mode)
   useEffect(() => {
-    if (!isLoading && !status.hasCompletedDashboardTour && testMode.enabled) {
+    if (!isLoading && !status.hasCompletedDashboardTour && !testMode.enabled) {
       // Small delay to ensure DOM elements are rendered
       const timer = setTimeout(() => {
         setRun(true);
@@ -119,7 +120,8 @@ export function DashboardTour({ steps, userType }: DashboardTourProps) {
     return () => clearTimeout(timer);
   }, [steps]);
 
-  if (!testMode.enabled || activeSteps.length === 0) {
+  // Only render when Public Mode is OFF (real mode) and we have valid steps
+  if (testMode.enabled || activeSteps.length === 0) {
     return null;
   }
 
