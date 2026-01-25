@@ -1,8 +1,21 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ArrowLeft, Users, Target, Sparkles, Briefcase, Shield, Zap } from "lucide-react";
+import { 
+  ArrowRight, 
+  ArrowLeft, 
+  Users, 
+  Target, 
+  Sparkles, 
+  Briefcase, 
+  Shield, 
+  Zap,
+  User,
+  Building2,
+  CheckCircle2
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProgressDots from "@/components/ProgressDots";
+import Logo from "@/components/Logo";
 
 interface Day14InterstitialProps {
   userType: "candidate" | "employer";
@@ -18,6 +31,7 @@ interface CardContent {
   icon: React.ElementType;
 }
 
+// Candidate narrative cards
 const CANDIDATE_CARDS: CardContent[] = [
   {
     title: "This is a 'YOU' Profile, not a Job Profile.",
@@ -37,6 +51,7 @@ const CANDIDATE_CARDS: CardContent[] = [
   },
 ];
 
+// Employer narrative cards
 const EMPLOYER_CARDS: CardContent[] = [
   {
     title: "Brief Emploid, Not a Recruiter.",
@@ -55,9 +70,23 @@ const EMPLOYER_CARDS: CardContent[] = [
   },
 ];
 
+// Steps that will follow after the interstitial
+const CANDIDATE_STEPS = [
+  { label: "Complete your profile", icon: User },
+  { label: "Share your work preferences & culture", icon: Sparkles },
+  { label: "Get matched with great companies", icon: Building2 },
+];
+
+const EMPLOYER_STEPS = [
+  { label: "Complete your profile & company details", icon: Building2 },
+  { label: "Define your ideal culture fit", icon: Sparkles },
+  { label: "Post jobs & discover matching candidates", icon: User },
+];
+
 export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUser }: Day14InterstitialProps) {
   const [currentCard, setCurrentCard] = useState(0);
   const cards = userType === "candidate" ? CANDIDATE_CARDS : EMPLOYER_CARDS;
+  const steps = userType === "candidate" ? CANDIDATE_STEPS : EMPLOYER_STEPS;
   const isLastCard = currentCard === cards.length - 1;
 
   const handleNext = () => {
@@ -78,11 +107,11 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
   const Icon = card.icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-background flex items-center justify-center p-4 overflow-y-auto">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg relative"
+        className="w-full max-w-lg relative my-8"
       >
         {/* Skip to Dashboard button for returning users */}
         {isReturningUser && onSkip && (
@@ -101,6 +130,14 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
         <div className="bg-card rounded-3xl border border-border shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="p-6 pb-4 text-center border-b border-border/50 bg-muted/30">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+              className="w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"
+            >
+              <CheckCircle2 className="w-6 h-6 text-primary" />
+            </motion.div>
             {userType === "employer" && (
               <p className="text-xs uppercase tracking-wider text-primary font-semibold mb-2">
                 A Heavier Lift for a Higher Standard
@@ -148,6 +185,43 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
             </AnimatePresence>
           </div>
 
+          {/* What's Coming Section - show on last card */}
+          <AnimatePresence>
+            {isLastCard && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="px-8 pb-4"
+              >
+                <div className="border-t border-border/50 pt-4">
+                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 text-center">
+                    What's Coming
+                  </h4>
+                  <div className="space-y-2">
+                    {steps.map((step, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 + index * 0.1 }}
+                        className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/50 border border-border/50"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-[10px] font-bold text-primary">
+                            {index + 1}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground flex-1">{step.label}</p>
+                        <step.icon className="w-4 h-4 text-muted-foreground" />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Footer */}
           <div className="px-8 pb-6">
             <ProgressDots total={cards.length} current={currentCard} />
@@ -167,7 +241,7 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
                 onClick={handleNext}
                 className="flex-1"
               >
-                {isLastCard ? "Continue to Profile" : "Next"}
+                {isLastCard ? "Let's Get Started" : "Next"}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
@@ -176,6 +250,11 @@ export function Day14Interstitial({ userType, onComplete, onSkip, isReturningUse
             <p className="text-xs text-muted-foreground text-center mt-6 italic">
               "The best connections require the best data. Let's get to work."
             </p>
+
+            {/* Logo */}
+            <div className="mt-4 flex justify-center">
+              <Logo size="sm" />
+            </div>
           </div>
         </div>
       </motion.div>
