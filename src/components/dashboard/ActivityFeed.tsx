@@ -78,7 +78,11 @@ export function ActivityFeed({ userType }: ActivityFeedProps) {
               variant="outline" 
               size="sm" 
               className="mt-3"
-              onClick={() => navigate(userType === "employer" ? "/swipe/employer" : "/swipe/candidate")}
+              onClick={() =>
+                navigate(
+                  userType === "employer" ? "/swipe/employer" : "/city?type=candidate"
+                )
+              }
             >
               Start Exploring
             </Button>
@@ -105,7 +109,7 @@ export function ActivityFeed({ userType }: ActivityFeedProps) {
                 iconBg="bg-green-500/10"
                 title={`${digest.newJobsMatchingProfile} new job${digest.newJobsMatchingProfile !== 1 ? 's' : ''}`}
                 subtitle="matching your profile posted"
-                onClick={() => navigate("/swipe/candidate")}
+                onClick={() => navigate("/city?type=candidate")}
                 actionLabel="Browse"
               />
             )}

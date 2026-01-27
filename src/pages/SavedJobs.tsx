@@ -219,7 +219,7 @@ export default function SavedJobs() {
             <p className="text-muted-foreground mb-6">
               Start browsing jobs and save the ones you're interested in!
             </p>
-            <Button onClick={() => navigate("/swipe/candidate")}>
+            <Button onClick={() => navigate("/city?type=candidate")}>
               <Briefcase className="w-4 h-4 mr-2" />
               Browse Jobs
             </Button>

@@ -63,7 +63,8 @@ export default function CandidateDashboard() {
   }
 
   const handleViewJob = (jobId: string) => {
-    navigate(`/swipe/candidate`);
+    // Always route candidates through preference selection before the swipe deck
+    navigate(`/city?type=candidate`);
   };
 
   return (
@@ -136,7 +137,7 @@ export default function CandidateDashboard() {
             value={stats.jobsViewed}
             icon={Eye}
             delay={0.2}
-            onClick={() => navigate("/swipe/candidate")}
+            onClick={() => navigate("/city?type=candidate")}
           />
           <StatsCard
             title="Match Rate"

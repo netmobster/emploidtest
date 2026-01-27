@@ -10,7 +10,8 @@ import { toast } from "sonner";
 
 const candidateNavItems = [
   { title: "Home", url: "/candidate-dashboard", icon: LayoutDashboard },
-  { title: "Swipe", url: "/swipe/candidate", icon: Heart },
+  // Route candidates through preference selection before entering the swipe deck
+  { title: "Swipe", url: "/city?type=candidate", icon: Heart },
   { title: "Matches", url: "/matches", icon: MessageCircle },
   { title: "Site", url: "/public-home", icon: Globe },
 ];
