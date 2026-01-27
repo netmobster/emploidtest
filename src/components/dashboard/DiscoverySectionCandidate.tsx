@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
-import { DiscoveryRefineModal } from "./DiscoveryRefineModal";
+import { DiscoveryRefineModal, DiscoveryFilters } from "./DiscoveryRefineModal";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -20,9 +20,18 @@ interface DiscoveryJob {
   synergy_scores: any;
   created_at: string;
   user_id: string | null;
+  requirements: string[] | null;
   synergyScore: number;
   isNew: boolean;
 }
+
+const DEFAULT_FILTERS: DiscoveryFilters = {
+  threshold: 70,
+  mustMatchMission: false,
+  location: "",
+  workModes: [],
+  skills: [],
+};
 
 export function DiscoverySectionCandidate() {
   const navigate = useNavigate();
@@ -30,8 +39,7 @@ export function DiscoverySectionCandidate() {
   const [jobs, setJobs] = useState<DiscoveryJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refineOpen, setRefineOpen] = useState(false);
-  const [threshold, setThreshold] = useState(70);
-  const [mustMatchMission, setMustMatchMission] = useState(false);
+  const [filters, setFilters] = useState<DiscoveryFilters>(DEFAULT_FILTERS);
 
   useEffect(() => {
     const fetchDiscoveryJobs = async () => {
@@ -45,11 +53,11 @@ export function DiscoverySectionCandidate() {
           .from("jobs")
           .select(`
             id, title, company, location_text, work_mode, 
-            culture_preferences, created_at, user_id, status
+            culture_preferences, created_at, user_id, status, requirements
           `)
           .eq("status", "active")
           .order("created_at", { ascending: false })
-          .limit(20);
+          .limit(50);
 
         if (error) throw error;
 
@@ -80,13 +88,39 @@ export function DiscoverySectionCandidate() {
               isNew: createdDate > oneDayAgo,
             };
           })
-          .filter(job => job.synergyScore >= threshold)
+          .filter(job => {
+            // Synergy threshold filter
+            if (job.synergyScore < filters.threshold) return false;
+            
+            // Location filter
+            if (filters.location.trim()) {
+              const locationMatch = job.location_text?.toLowerCase().includes(filters.location.toLowerCase());
+              if (!locationMatch) return false;
+            }
+            
+            // Work mode filter
+            if (filters.workModes.length > 0) {
+              const jobWorkMode = job.work_mode?.toLowerCase() || "remote";
+              if (!filters.workModes.includes(jobWorkMode)) return false;
+            }
+            
+            // Skills filter
+            if (filters.skills.length > 0) {
+              const jobRequirements = job.requirements?.map(r => r.toLowerCase()) || [];
+              const hasMatchingSkill = filters.skills.some(skill =>
+                jobRequirements.some(req => req.includes(skill.toLowerCase()))
+              );
+              if (!hasMatchingSkill) return false;
+            }
+            
+            return true;
+          })
           .sort((a, b) => {
             if (a.isNew && !b.isNew) return -1;
             if (!a.isNew && b.isNew) return 1;
             return b.synergyScore - a.synergyScore;
           })
-          .slice(0, 3); // Limit to top 3
+          .slice(0, 3);
 
         setJobs(enrichedJobs);
       } catch (error) {
@@ -97,13 +131,18 @@ export function DiscoverySectionCandidate() {
     };
 
     fetchDiscoveryJobs();
-  }, [profile, threshold]);
+  }, [profile, filters]);
 
-  const handleRefine = (newThreshold: number, newMustMatch: boolean) => {
-    setThreshold(newThreshold);
-    setMustMatchMission(newMustMatch);
-    setRefineOpen(false);
+  const handleApplyFilters = (newFilters: DiscoveryFilters) => {
+    setFilters(newFilters);
   };
+
+  const activeFilterCount = [
+    filters.location.trim() ? 1 : 0,
+    filters.workModes.length > 0 ? 1 : 0,
+    filters.skills.length > 0 ? 1 : 0,
+    filters.threshold !== 70 ? 1 : 0,
+  ].reduce((a, b) => a + b, 0);
 
   if (isLoading) {
     return (
@@ -140,6 +179,11 @@ export function DiscoverySectionCandidate() {
           >
             <Settings2 className="w-4 h-4" />
             Refine
+            {activeFilterCount > 0 && (
+              <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {activeFilterCount}
+              </Badge>
+            )}
           </Button>
         </div>
 
@@ -148,7 +192,9 @@ export function DiscoverySectionCandidate() {
             <Radar className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
             <p className="text-muted-foreground">No high-synergy matches yet.</p>
             <p className="text-sm text-muted-foreground/70 mt-1">
-              We're always scouting for your perfect role.
+              {activeFilterCount > 0 
+                ? "Try adjusting your filters to see more results."
+                : "We're always scouting for your perfect role."}
             </p>
           </div>
         ) : (
@@ -194,10 +240,15 @@ export function DiscoverySectionCandidate() {
                   {job.company}
                 </p>
 
-                {/* Location */}
+                {/* Location & Work Mode */}
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
                   <MapPin className="w-3 h-3" />
                   <span>{job.location_text || "Remote"}</span>
+                  {job.work_mode && (
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {job.work_mode}
+                    </Badge>
+                  )}
                 </div>
 
                 {/* Team Vibe */}
@@ -231,9 +282,9 @@ export function DiscoverySectionCandidate() {
       <DiscoveryRefineModal
         open={refineOpen}
         onOpenChange={setRefineOpen}
-        threshold={threshold}
-        mustMatchMission={mustMatchMission}
-        onApply={handleRefine}
+        filters={filters}
+        onApply={handleApplyFilters}
+        userType="candidate"
       />
     </>
   );
