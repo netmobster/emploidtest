@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export interface RoleDefinition {
   id: string;
   title: string;
+  company: string;
   pay_min: number | null;
   pay_max: number | null;
   work_mode: "remote" | "hybrid" | "on-site";
@@ -41,7 +42,7 @@ export function useRoleDefinition(jobId: string | null) {
     try {
       const { data, error } = await supabase
         .from("jobs")
-        .select("id, title, pay_min, pay_max, work_mode, location_text, reporting_to, mission_statement, big_rocks, daily_stack, vibe_mode, is_complete")
+        .select("id, title, company, pay_min, pay_max, work_mode, location_text, reporting_to, mission_statement, big_rocks, daily_stack, vibe_mode, is_complete")
         .eq("id", jobId)
         .single();
 
@@ -49,6 +50,7 @@ export function useRoleDefinition(jobId: string | null) {
 
       return {
         ...data,
+        company: data.company || "Company",
         work_mode: (data.work_mode as "remote" | "hybrid" | "on-site") || "remote",
         vibe_mode: (data.vibe_mode as "async-autonomous" | "high-collaboration") || "async-autonomous",
         big_rocks: Array.isArray(data.big_rocks) ? data.big_rocks : [],
