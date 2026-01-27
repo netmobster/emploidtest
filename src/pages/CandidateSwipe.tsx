@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, FlaskConical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
-import { useSwipe } from "@/hooks/useSwipe";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
-import { ROLES, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
+import { ROLES, CITIES, TEST_EMPLOYER_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { isJobLocationMatch } from "@/lib/locationMatchingUtils";
 import { toast } from "sonner";
@@ -40,6 +41,8 @@ interface JobWithScore {
   bigRocks?: { title: string; description?: string }[];
   dailyStack?: string[];
   vibeMode?: string;
+  // Test role flag
+  isTestRole?: boolean;
 }
 
 const CandidateSwipe = () => {
@@ -54,14 +57,13 @@ const CandidateSwipe = () => {
   const [showMatch, setShowMatch] = useState(false);
   const [matchedJob, setMatchedJob] = useState<JobWithScore | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
-
-  const { recordSwipe, latestMatch, clearLatestMatch } = useSwipe();
+  const [hideTestRoles, setHideTestRoles] = useState(false);
 
   const roleInfo = ROLES.find((r) => r.id === role);
 
   // Get employer IDs for batch match status checking
   const employerIds = useMemo(
-    () => jobs.map((j) => j.employerId).filter((id): id is string => !!id && id !== "sample"),
+    () => jobs.map((j) => j.employerId).filter((id): id is string => !!id),
     [jobs]
   );
   const { isMatched: checkIsMatched } = useBatchMatchStatus(employerIds);
@@ -72,14 +74,17 @@ const CandidateSwipe = () => {
       setIsLoading(true);
 
       try {
-        // Get already swiped jobs to exclude
-        let swipedIds: string[] = [];
+        // Get already swiped jobs to exclude (by job_id)
+        let swipedJobIds: string[] = [];
+        let swipedEmployerIds: string[] = [];
         if (user) {
           const { data: swipes } = await supabase
             .from("swipes")
-            .select("swiped_id")
+            .select("swiped_id, job_id")
             .eq("swiper_id", user.id);
-          swipedIds = swipes?.map((s) => s.swiped_id) || [];
+          // Collect both job IDs and employer IDs that were swiped
+          swipedJobIds = swipes?.filter(s => s.job_id).map((s) => s.job_id!) || [];
+          swipedEmployerIds = swipes?.map((s) => s.swiped_id) || [];
         }
 
         // Get candidate's profile data for match calculation
@@ -171,6 +176,9 @@ const CandidateSwipe = () => {
               ? (parsedBigRocks as { title: string; description?: string }[])
               : [];
 
+            // Determine if this is a test role (from a known test employer)
+            const isTestRole = job.user_id === TEST_EMPLOYER_ID;
+
             return {
               id: job.id,
               title: job.title,
@@ -196,9 +204,20 @@ const CandidateSwipe = () => {
               bigRocks: bigRocks.length > 0 ? bigRocks : undefined,
               dailyStack: job.daily_stack as string[] | undefined,
               vibeMode: job.vibe_mode || undefined,
+              // Test role flag
+              isTestRole,
             };
           })
-          .filter((j) => !swipedIds.includes(j.id))
+          // Exclude already-swiped jobs (by job_id OR employer_id)
+          .filter((j) => {
+            const alreadySwipedByJobId = swipedJobIds.includes(j.id);
+            const alreadySwipedByEmployerId = j.employerId ? swipedEmployerIds.includes(j.employerId) : false;
+            if (alreadySwipedByJobId || alreadySwipedByEmployerId) {
+              console.log(`[Matching] Excluding already-swiped job: ${j.title}`);
+              return false;
+            }
+            return true;
+          })
           // Apply location dealbreaker filter
           .filter((job) => {
             if (!candidateLocationData) return true;
@@ -220,16 +239,14 @@ const CandidateSwipe = () => {
           });
         }
 
-        // Prioritize test employer jobs for test candidate
-        if (user?.id === TEST_CANDIDATE_ID) {
-          allJobs.sort((a, b) => {
-            if (a.employerId === TEST_EMPLOYER_ID) return -1;
-            if (b.employerId === TEST_EMPLOYER_ID) return 1;
-            return b.matchScore - a.matchScore;
-          });
-        } else {
-          allJobs.sort((a, b) => b.matchScore - a.matchScore);
-        }
+        // Sort: Real roles first (by match score), then test roles (by match score)
+        allJobs.sort((a, b) => {
+          // Real roles come before test roles
+          if (a.isTestRole && !b.isTestRole) return 1;
+          if (!a.isTestRole && b.isTestRole) return -1;
+          // Within the same category, sort by match score
+          return b.matchScore - a.matchScore;
+        });
 
         setJobs(allJobs);
       } catch (error) {
@@ -243,32 +260,57 @@ const CandidateSwipe = () => {
     fetchJobs();
   }, [user, profile, role, city]);
 
-  // Handle match detection
-  useEffect(() => {
-    if (latestMatch) {
-      const matched = jobs.find(
-        (j) => j.employerId === latestMatch.matchedUserId
-      );
-      if (matched) {
-        setMatchedJob(matched);
-        setMatchId(latestMatch.matchId);
-        setShowMatch(true);
-      }
-      clearLatestMatch();
-    }
-  }, [latestMatch, jobs, clearLatestMatch]);
-
   const handleSwipe = async (
     job: JobWithScore,
     direction: "like" | "pass" | "super_like"
   ) => {
-    if (direction !== "pass" && job.employerId && job.employerId !== "sample") {
-      const result = await recordSwipe(job.employerId, direction);
+    if (!job.employerId || !user) return;
 
-      // Only show match celebration for REAL matches (mutual likes)
-      if (result?.isMatch && result.matchId) {
+    // Record swipe with job_id for proper exclusion on refresh
+    const { error } = await supabase
+      .from("swipes")
+      .insert({
+        swiper_id: user.id,
+        swiped_id: job.employerId,
+        job_id: job.id,
+        direction,
+      });
+
+    if (error) {
+      if (error.code === "23505") {
+        console.warn("[CandidateSwipe] Duplicate swipe detected");
+      } else {
+        console.error("[CandidateSwipe] Error recording swipe:", error);
+        toast.error("Failed to record swipe");
+      }
+      return;
+    }
+
+    console.log(`[CandidateSwipe] Recorded ${direction} on job ${job.id}`);
+
+    // For likes/super_likes, show toast and check for a match
+    if (direction !== "pass") {
+      if (direction === "super_like") {
+        toast.success("Super Like sent! ⭐", { duration: 2000 });
+      } else {
+        toast.success("Like sent! 💚", { duration: 1500 });
+      }
+
+      // Poll for match (the DB trigger may have created one)
+      const { data: match } = await supabase
+        .from("matches")
+        .select("id")
+        .or(
+          `and(employer_id.eq.${user.id},candidate_id.eq.${job.employerId}),and(employer_id.eq.${job.employerId},candidate_id.eq.${user.id})`
+        )
+        .order("matched_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (match) {
+        console.log("[CandidateSwipe] Match found:", match.id);
         setMatchedJob(job);
-        setMatchId(result.matchId);
+        setMatchId(match.id);
         setShowMatch(true);
       }
     }
@@ -332,16 +374,27 @@ const CandidateSwipe = () => {
           </Button>
         </div>
 
-        {/* Testing Button */}
-        <div className="px-4 pb-2">
-          <AdminMatchButton className="w-full border-dashed border-yellow-500/50 text-yellow-600 hover:text-yellow-700" />
+        {/* Test Role Filter + Admin Button */}
+        <div className="px-4 pb-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="hide-test-roles"
+              checked={hideTestRoles}
+              onCheckedChange={setHideTestRoles}
+            />
+            <Label htmlFor="hide-test-roles" className="text-xs text-muted-foreground flex items-center gap-1">
+              <FlaskConical className="w-3 h-3" />
+              Hide test roles
+            </Label>
+          </div>
+          <AdminMatchButton className="border-dashed border-amber-500/50 text-amber-600 hover:text-amber-700" />
         </div>
       </motion.header>
 
       {/* Swipe Stack */}
       <div className="flex-1 flex flex-col min-h-0">
         <SwipeStack
-          items={jobs}
+          items={hideTestRoles ? jobs.filter((j) => !j.isTestRole) : jobs}
           type="job"
           onSwipe={handleSwipe}
           onEmpty={() => {

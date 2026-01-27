@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { MapPin, Wifi, Briefcase, Clock, Linkedin, Globe, FileText, ExternalLink, DollarSign, Target, Rocket, Zap } from "lucide-react";
+import { MapPin, Wifi, Briefcase, Clock, Linkedin, Globe, FileText, ExternalLink, DollarSign, Target, Rocket, Zap, FlaskConical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { MatchScoreBreakdown } from "@/lib/matchScoreUtils";
@@ -62,6 +62,8 @@ export interface JobData {
   bigRocks?: { title: string; description?: string }[];
   dailyStack?: string[];
   vibeMode?: string;
+  // Test role flag
+  isTestRole?: boolean;
 }
 
 interface FullProfileCardProps {
@@ -131,6 +133,16 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
         {isMatched && (
           <div className="absolute top-4 left-4 z-30">
             <MatchedBadge />
+          </div>
+        )}
+
+        {/* Test Role Badge */}
+        {job?.isTestRole && (
+          <div className="absolute top-4 right-4 z-30">
+            <Badge variant="outline" className="bg-amber-500/90 text-white border-amber-600 gap-1">
+              <FlaskConical className="w-3 h-3" />
+              TEST
+            </Badge>
           </div>
         )}
 
