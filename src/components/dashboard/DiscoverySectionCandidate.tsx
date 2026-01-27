@@ -160,9 +160,14 @@ export function DiscoverySectionCandidate() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={cn(
-                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50",
+                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50 cursor-pointer",
                   job.isNew && "ring-2 ring-primary/20"
                 )}
+                onClick={() => {
+                  if (job.user_id) {
+                    navigate(`/company/${job.user_id}`);
+                  }
+                }}
               >
                 {/* Synergy Badge */}
                 <div className="flex items-center justify-between mb-3">

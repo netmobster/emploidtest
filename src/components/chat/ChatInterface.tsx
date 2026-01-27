@@ -18,6 +18,8 @@ import { DocumentReceivedCard } from "./DocumentReceivedCard";
 import { QuizMessageCard } from "./QuizMessageCard";
 import { QuizSummaryCard } from "./QuizSummaryCard";
 import { ChatSeeds } from "./ChatSeeds";
+import { ChatEventTimeline } from "./ChatEventTimeline";
+import { QuizResultsDialog } from "./QuizResultsDialog";
 import { useDocumentRequests } from "@/hooks/useDocumentRequests";
 import { VerifiedProfessionalBadge } from "@/components/verification/VerifiedProfessionalBadge";
 import { VerifiedDomainBadge } from "@/components/verification/VerifiedDomainBadge";
@@ -91,6 +93,8 @@ interface ChatInterfaceProps {
   completedInsights?: InterviewInsight[];
   onStartQuiz?: (quiz: QuizRequest) => void;
   candidateName?: string;
+  employerName?: string;
+  allQuizRequests?: QuizRequest[];
   // For ChatSeeds
   currentUserProfile?: {
     skills?: string[] | null;
@@ -231,6 +235,8 @@ const ChatInterface = ({
   completedInsights = [],
   onStartQuiz,
   candidateName,
+  employerName,
+  allQuizRequests = [],
   currentUserProfile,
   otherUserProfile,
   firstMessageSent = false,
@@ -244,6 +250,10 @@ const ChatInterface = ({
   // Fetch document requests to show received documents (employer side)
   const { requests: documentRequests } = useDocumentRequests(matchId || "");
   const isEmployer = profile?.user_type === "employer";
+  
+  // Quiz results dialog state
+  const [selectedInsight, setSelectedInsight] = useState<InterviewInsight | null>(null);
+  const [showQuizResults, setShowQuizResults] = useState(false);
   
   // Filter for uploaded documents (employer can see these)
   const uploadedDocuments = documentRequests.filter(
@@ -398,6 +408,18 @@ const ChatInterface = ({
           </div>
         ) : (
           <div className="space-y-6">
+            {/* Chat Event Timeline for employers (document requests, quizzes sent, interviews) */}
+            {isEmployer && matchId && (
+              <ChatEventTimeline
+                matchId={matchId}
+                currentUserId={user?.id}
+                isEmployer={isEmployer}
+                quizRequests={allQuizRequests}
+                candidateName={candidateName}
+                employerName={employerName}
+              />
+            )}
+            
             {/* Pending Quiz Cards for Candidates */}
             {pendingQuizzes.length > 0 && (
               <div className="space-y-3">
@@ -419,7 +441,7 @@ const ChatInterface = ({
               </div>
             )}
 
-            {/* Completed Quiz Summary Cards */}
+            {/* Completed Quiz Summary Cards - clickable to view full results */}
             {completedInsights.length > 0 && (
               <div className="space-y-3">
                 {completedInsights.map((insight) => (
@@ -427,7 +449,11 @@ const ChatInterface = ({
                     key={insight.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-start"
+                    className="flex justify-start cursor-pointer"
+                    onClick={() => {
+                      setSelectedInsight(insight);
+                      setShowQuizResults(true);
+                    }}
                   >
                     <QuizSummaryCard
                       candidateName={candidateName || "Candidate"}
@@ -582,6 +608,15 @@ const ChatInterface = ({
           </Button>
         </div>
       </form>
+      
+      {/* Quiz Results Dialog */}
+      <QuizResultsDialog
+        isOpen={showQuizResults}
+        onClose={() => setShowQuizResults(false)}
+        insight={selectedInsight}
+        candidateName={candidateName}
+        isEmployer={isEmployer}
+      />
     </div>
   );
 };

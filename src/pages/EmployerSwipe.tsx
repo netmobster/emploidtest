@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
@@ -44,6 +45,10 @@ interface CandidateWithScore {
   // Location fields for filtering
   work_mode?: string;
   city_hub?: string;
+  // Non-sample detection
+  isRealCandidate?: boolean;
+  isNewCandidate?: boolean;
+  createdAt?: string;
 }
 
 const EmployerSwipe = () => {
@@ -130,7 +135,7 @@ const EmployerSwipe = () => {
         const { data: dbProfiles } = await supabase
           .from("profiles")
           .select(
-            "user_id, full_name, avatar_url, bio, culture_preferences, synergy_scores, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url, has_completed_synergy_quiz, work_mode, city_hub, is_verified_identity"
+            "user_id, full_name, avatar_url, bio, culture_preferences, synergy_scores, job_title, skills, location, years_of_experience, availability, remote_preference, linkedin_url, website_url, portfolio_url, resume_url, cover_image_url, has_completed_synergy_quiz, work_mode, city_hub, is_verified_identity, created_at"
           )
           .eq("user_type", "candidate");
 
@@ -263,12 +268,24 @@ const EmployerSwipe = () => {
                 synergyBadge: realProfile.synergy_scores
                   ? getPrimaryBadge(realProfile.synergy_scores as Record<string, number>)?.title
                   : undefined,
+                isRealCandidate: true,
+                createdAt: realProfile.created_at,
               };
             }) || [];
 
-        const allCandidates = [...candidatesWithScores, ...additionalCandidates];
+        // Mark additional candidates with new flag
+        const now = new Date();
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        
+        const additionalCandidatesWithFlags = additionalCandidates.map(c => ({
+          ...c,
+          isNewCandidate: c.createdAt ? new Date(c.createdAt) > sevenDaysAgo : false,
+        }));
 
-        // Prioritize test candidate for test employer
+        const allCandidates = [...candidatesWithScores, ...additionalCandidatesWithFlags];
+
+        // Prioritize non-sample/real candidates first, then by match score
+        // Test candidate gets priority for test employer
         if (user?.id === TEST_EMPLOYER_ID) {
           allCandidates.sort((a, b) => {
             if (a.userId === TEST_CANDIDATE_ID) return -1;
@@ -276,7 +293,20 @@ const EmployerSwipe = () => {
             return b.matchScore - a.matchScore;
           });
         } else {
-          allCandidates.sort((a, b) => b.matchScore - a.matchScore);
+          allCandidates.sort((a, b) => {
+            // Real candidates come first
+            const aReal = a.isRealCandidate ? 1 : 0;
+            const bReal = b.isRealCandidate ? 1 : 0;
+            if (aReal !== bReal) return bReal - aReal;
+            
+            // New candidates come before older ones
+            const aNew = a.isNewCandidate ? 1 : 0;
+            const bNew = b.isNewCandidate ? 1 : 0;
+            if (aNew !== bNew) return bNew - aNew;
+            
+            // Finally sort by match score
+            return b.matchScore - a.matchScore;
+          });
         }
 
         setCandidates(allCandidates);

@@ -152,9 +152,10 @@ export function DiscoverySectionEmployer() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className={cn(
-                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50",
+                  "p-4 bg-secondary/30 rounded-xl border border-border transition-all hover:border-primary/50 cursor-pointer",
                   candidate.isNew && "ring-2 ring-primary/20"
                 )}
+                onClick={() => navigate(`/candidate/${candidate.user_id}`)}
               >
                 {/* Header with Avatar */}
                 <div className="flex items-start justify-between mb-3">
