@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { TEST_EMPLOYER_ID } from "@/lib/gameData";
 import { toast } from "sonner";
 
 interface AdminMatchButtonProps {
@@ -25,6 +24,7 @@ export function AdminMatchButton({ className }: AdminMatchButtonProps) {
   const [isMatching, setIsMatching] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [matchId, setMatchId] = useState<string | null>(null);
+  const [alreadyExisted, setAlreadyExisted] = useState(false);
 
   const handleForceMatch = async () => {
     if (!user) {
@@ -33,77 +33,45 @@ export function AdminMatchButton({ className }: AdminMatchButtonProps) {
     }
 
     setIsMatching(true);
+    const loadingToast = toast.loading("Creating match with Admin...");
 
     try {
-      // Check if already matched with admin
-      const { data: existingMatch } = await supabase
-        .from("matches")
-        .select("id")
-        .eq("candidate_id", user.id)
-        .eq("employer_id", TEST_EMPLOYER_ID)
-        .maybeSingle();
+      const { data, error } = await supabase.functions.invoke("force-admin-match", {
+        method: "POST",
+      });
 
-      if (existingMatch) {
-        toast.info("You're already matched with Admin!");
-        setMatchId(existingMatch.id);
-        setShowSuccessDialog(true);
-        setIsMatching(false);
+      toast.dismiss(loadingToast);
+
+      if (error) {
+        console.error("[AdminMatchButton] Edge function error:", error);
+        toast.error("Failed to create match", {
+          description: error.message || "Please try again",
+        });
         return;
       }
 
-      // Create mutual swipes first
-      // Candidate swipe on employer
-      await supabase.from("swipes").upsert({
-        swiper_id: user.id,
-        swiped_id: TEST_EMPLOYER_ID,
-        direction: "like",
-      }, { onConflict: "swiper_id,swiped_id" });
-
-      // Employer swipe on candidate (this should trigger the match via database trigger)
-      await supabase.from("swipes").upsert({
-        swiper_id: TEST_EMPLOYER_ID,
-        swiped_id: user.id,
-        direction: "like",
-      }, { onConflict: "swiper_id,swiped_id" });
-
-      // Wait a moment for the trigger to execute
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Check if match was created
-      const { data: newMatch } = await supabase
-        .from("matches")
-        .select("id")
-        .eq("candidate_id", user.id)
-        .eq("employer_id", TEST_EMPLOYER_ID)
-        .maybeSingle();
-
-      if (newMatch) {
-        setMatchId(newMatch.id);
-        toast.success("🎉 You matched with Admin!");
-        setShowSuccessDialog(true);
-      } else {
-        // Force create the match if trigger didn't work
-        const { data: forcedMatch, error } = await supabase
-          .from("matches")
-          .insert({
-            candidate_id: user.id,
-            employer_id: TEST_EMPLOYER_ID,
-            status: "active",
-          })
-          .select("id")
-          .single();
-
-        if (error) {
-          throw error;
-        }
-
-        setMatchId(forcedMatch.id);
-        toast.success("🎉 You matched with Admin!");
-        setShowSuccessDialog(true);
+      if (!data?.matchId) {
+        console.error("[AdminMatchButton] No matchId returned:", data);
+        toast.error("Match creation failed", {
+          description: "No match ID returned from server",
+        });
+        return;
       }
+
+      setMatchId(data.matchId);
+      setAlreadyExisted(data.alreadyExisted || false);
+
+      if (data.alreadyExisted) {
+        toast.info("You're already matched with Admin!");
+      } else {
+        toast.success("🎉 Matched with Admin!");
+      }
+
+      setShowSuccessDialog(true);
     } catch (error) {
-      console.error("Error creating match:", error);
-      toast.error("Failed to create match");
+      toast.dismiss(loadingToast);
+      console.error("[AdminMatchButton] Unexpected error:", error);
+      toast.error("Something went wrong");
     } finally {
       setIsMatching(false);
     }
@@ -130,10 +98,12 @@ export function AdminMatchButton({ className }: AdminMatchButtonProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              🎉 It's a Match!
+              {alreadyExisted ? "📬 Already Matched!" : "🎉 It's a Match!"}
             </DialogTitle>
             <DialogDescription>
-              You've successfully matched with Admin for testing. You can now start chatting or continue browsing.
+              {alreadyExisted
+                ? "You're already matched with Admin. You can continue chatting or keep browsing."
+                : "You've successfully matched with Admin for testing. You can now start chatting or continue browsing."}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col sm:flex-row gap-2">
@@ -153,7 +123,7 @@ export function AdminMatchButton({ className }: AdminMatchButtonProps) {
                 }
               }}
             >
-              Start Chatting
+              {alreadyExisted ? "Open Chat" : "Start Chatting"}
             </Button>
           </DialogFooter>
         </DialogContent>
