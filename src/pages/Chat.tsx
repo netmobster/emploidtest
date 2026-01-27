@@ -120,7 +120,7 @@ const Chat = () => {
   const { blockUser, isBlocking } = useBlock();
   const { isOtherUserOnline, isOtherUserTyping, setTyping } = useChatPresence(matchId || "");
   const { isInShortlist: checkShortlist } = useShortlist();
-  const { pendingQuizzes, sendQuiz, completeQuiz } = useQuizRequests(matchId);
+  const { pendingQuizzes, requests: quizRequests, sendQuiz, completeQuiz } = useQuizRequests(matchId);
   const { insights, saveInsights } = useInterviewInsights(matchId);
 
   // Fetch match and other user details
@@ -530,6 +530,7 @@ const Chat = () => {
                 isInShortlist={isInShortlist}
                 pendingQuizzes={pendingQuizzes}
                 completedInsights={insights}
+                allQuizRequests={quizRequests}
                 onStartQuiz={(quiz) => {
                   setActiveQuiz({
                     id: quiz.id,
@@ -539,6 +540,7 @@ const Chat = () => {
                   setShowQuizChatbot(true);
                 }}
                 candidateName={otherUser?.name}
+                employerName={profile?.full_name || "Employer"}
               />
             ) : (
               <RoleDetailsTab jobId={jobInfo!.id} />
