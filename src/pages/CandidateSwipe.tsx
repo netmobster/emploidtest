@@ -9,7 +9,7 @@ import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { useSwipe } from "@/hooks/useSwipe";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
-import { ROLES, SAMPLE_JOBS, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
+import { ROLES, CITIES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { isJobLocationMatch } from "@/lib/locationMatchingUtils";
 import { toast } from "sonner";
@@ -98,8 +98,11 @@ const CandidateSwipe = () => {
         `);
         if (role) query = query.eq("role_id", role);
         if (city) query = query.eq("city_id", city);
+        // Only show roles that have been published by the employer
+        query = query.eq("is_complete", true);
 
-        const { data: dbJobs } = await query;
+        const { data: dbJobs, error: jobsError } = await query;
+        if (jobsError) throw jobsError;
 
         // Get candidate location data for filtering
         const candidateLocationData = profile ? {
@@ -122,13 +125,8 @@ const CandidateSwipe = () => {
           });
         }
 
-        // Combine with sample jobs
-        const sampleJobs = SAMPLE_JOBS.filter(
-          (j) => !role || j.roleId === role
-        );
-
-        const allJobs: JobWithScore[] = [
-          ...(dbJobs || []).map((job) => {
+        const allJobs: JobWithScore[] = (dbJobs || [])
+          .map((job) => {
             const employerProfile = job.user_id ? employerProfiles[job.user_id] : null;
 
             // Calculate real match breakdown
@@ -156,9 +154,21 @@ const CandidateSwipe = () => {
               { work_mode: job.work_mode, location_text: job.location_text, geographic_restriction: job.geographic_restriction }
             ) : { isMatch: true, hasTimezoneSynergy: false };
 
-            // Parse big_rocks from JSON
-            const bigRocks = Array.isArray(job.big_rocks) 
-              ? (job.big_rocks as { title: string; description?: string }[])
+            // Parse big_rocks from JSON (jsonb)
+            const rawBigRocks = (job as any).big_rocks;
+            const parsedBigRocks =
+              typeof rawBigRocks === "string"
+                ? (() => {
+                    try {
+                      return JSON.parse(rawBigRocks);
+                    } catch {
+                      return [];
+                    }
+                  })()
+                : rawBigRocks;
+
+            const bigRocks = Array.isArray(parsedBigRocks)
+              ? (parsedBigRocks as { title: string; description?: string }[])
               : [];
 
             return {
@@ -187,59 +197,28 @@ const CandidateSwipe = () => {
               dailyStack: job.daily_stack as string[] | undefined,
               vibeMode: job.vibe_mode || undefined,
             };
-          }),
-          ...sampleJobs.map((job) => {
-            // Sample jobs get estimated scores
-            const estimatedScore = 65 + Math.floor(Math.random() * 15);
-            return {
-              id: job.id,
-              title: job.title,
-              company: job.company,
-              description: job.description,
-              location: job.location,
-              salary: job.salary,
-              remote: job.remote === "Remote",
-              matchScore: estimatedScore,
-              matchBreakdown: {
-                skillScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
-                cultureScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
-                synergyScore: estimatedScore + Math.floor(Math.random() * 10) - 5,
-                totalScore: estimatedScore,
-              },
-              cultureCompatibility: estimatedScore + Math.floor(Math.random() * 10) - 5,
-              employerId: "sample",
+          })
+          .filter((j) => !swipedIds.includes(j.id))
+          // Apply location dealbreaker filter
+          .filter((job) => {
+            if (!candidateLocationData) return true;
+            const jobLocationData = {
+              work_mode: (job as any).work_mode,
+              location_text: (job as any).location_text,
+              geographic_restriction: (job as any).geographic_restriction,
             };
-          }),
-        ]
-        .filter((j) => !swipedIds.includes(j.id))
-        // Apply location dealbreaker filter for DB jobs
-        .filter((job) => {
-          if (!candidateLocationData || job.employerId === "sample") return true;
-          const jobLocationData = {
-            work_mode: (job as any).work_mode,
-            location_text: (job as any).location_text,
-            geographic_restriction: (job as any).geographic_restriction,
-          };
-          const result = isJobLocationMatch(candidateLocationData, jobLocationData);
-          if (!result.isMatch) {
-            console.log(`[Matching] Excluded job ${job.title}: ${result.reason}`);
-          }
-          return result.isMatch;
-        })
-        // Filter out incomplete roles (only show complete DB jobs or sample jobs)
-        .filter((job) => {
-          // Sample jobs always show
-          if (job.employerId === "sample") return true;
-          // Check if job has minimum required details (use type assertion for optional fields)
-          const jobWithDetails = job as JobWithScore;
-          const hasDetails = jobWithDetails.missionStatement || 
-                             (jobWithDetails.bigRocks && jobWithDetails.bigRocks.length > 0) || 
-                             jobWithDetails.description;
-          if (!hasDetails) {
-            console.log(`[Matching] Excluded incomplete job ${job.title}: missing role details`);
-          }
-          return hasDetails;
-        });
+            const result = isJobLocationMatch(candidateLocationData, jobLocationData);
+            if (!result.isMatch) {
+              console.log(`[Matching] Excluded job ${job.title}: ${result.reason}`);
+            }
+            return result.isMatch;
+          });
+
+        if (allJobs.length === 0) {
+          toast.message("No published roles yet", {
+            description: "When employers publish a role, it will appear here with full details (Mission, Big Rocks, Daily Stack).",
+          });
+        }
 
         // Prioritize test employer jobs for test candidate
         if (user?.id === TEST_CANDIDATE_ID) {

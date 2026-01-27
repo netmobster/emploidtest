@@ -32,7 +32,8 @@ import { toast } from "sonner";
 
 const candidateNavItems = [
   { title: "Dashboard", url: "/candidate-dashboard", icon: LayoutDashboard, countKey: null },
-  { title: "Swipe", url: "/swipe/candidate", icon: Heart, countKey: null },
+  // Route candidates through preference selection before entering the swipe deck
+  { title: "Swipe", url: "/city?type=candidate", icon: Heart, countKey: null },
   { title: "Matches", url: "/matches", icon: MessageCircle, countKey: "unreadMatches" as const },
   { title: "Settings", url: "/settings", icon: Settings, countKey: null },
 ];
