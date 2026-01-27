@@ -133,17 +133,23 @@ export const useDocumentRequests = (matchId: string) => {
 
         if (uploadError) throw uploadError;
 
-        // Get public URL
-        const { data: urlData } = supabase.storage
+        // Get signed URL for private bucket (valid for 1 hour)
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
           .from("candidate-documents")
-          .getPublicUrl(filePath);
+          .createSignedUrl(filePath, 3600); // 1 hour expiry
 
-        // Update request
+        if (signedUrlError) throw signedUrlError;
+
+        // Store the path (not the signed URL) so we can regenerate signed URLs
+        // We'll store it in a special format: path::{filePath}
+        const storedUrl = `path::${filePath}`;
+
+        // Update request with storage path
         const { error: updateError } = await supabase
           .from("document_requests")
           .update({
             status: "uploaded",
-            file_url: urlData.publicUrl,
+            file_url: storedUrl,
           })
           .eq("id", requestId);
 
@@ -160,6 +166,31 @@ export const useDocumentRequests = (matchId: string) => {
       }
     },
     [user, matchId]
+  );
+
+  // Helper to get a signed URL from stored path
+  const getSignedUrl = useCallback(
+    async (storedUrl: string): Promise<string | null> => {
+      if (!storedUrl) return null;
+      
+      // Check if it's our path format
+      if (storedUrl.startsWith("path::")) {
+        const filePath = storedUrl.replace("path::", "");
+        const { data, error } = await supabase.storage
+          .from("candidate-documents")
+          .createSignedUrl(filePath, 3600);
+        
+        if (error) {
+          console.error("Error generating signed URL:", error);
+          return null;
+        }
+        return data.signedUrl;
+      }
+      
+      // Legacy: return as-is if it's already a URL
+      return storedUrl;
+    },
+    []
   );
 
   const updateRequestStatus = useCallback(
@@ -195,5 +226,6 @@ export const useDocumentRequests = (matchId: string) => {
     requestDocument,
     uploadDocument,
     updateRequestStatus,
+    getSignedUrl,
   };
 };

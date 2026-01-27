@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Database, Download, Upload, Trash2, AlertTriangle, Loader2, Save, FolderOpen, RotateCcw } from "lucide-react";
+import { Database, Download, Upload, Trash2, AlertTriangle, Loader2, Save, FolderOpen, RotateCcw, Eraser } from "lucide-react";
 import { toast } from "sonner";
 
 interface SavedDataset {
@@ -45,10 +45,31 @@ export function TestDataPanel() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isResettingSwipes, setIsResettingSwipes] = useState(false);
   const [showClearDialog, setShowClearDialog] = useState(false);
   const [savedDatasets, setSavedDatasets] = useState<SavedDataset[]>([]);
   const [newDatasetName, setNewDatasetName] = useState("");
   const [loadingDataset, setLoadingDataset] = useState<string | null>(null);
+
+  const handleResetSwipes = async () => {
+    setIsResettingSwipes(true);
+    try {
+      const { error } = await supabase
+        .from("swipes")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000");
+
+      if (error) throw error;
+
+      await logAuditAction("reset_swipes", "swipes");
+      toast.success("All swipes cleared! Refresh the swipe page to see all jobs again.");
+    } catch (err) {
+      console.error("Failed to reset swipes:", err);
+      toast.error("Failed to reset swipes");
+    } finally {
+      setIsResettingSwipes(false);
+    }
+  };
 
   useEffect(() => {
     loadSavedDatasets();
@@ -301,6 +322,16 @@ export function TestDataPanel() {
                 Import Data
               </Button>
             </div>
+
+            <Button 
+              onClick={handleResetSwipes} 
+              disabled={isResettingSwipes} 
+              variant="outline"
+              className="border-amber-500/50 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+            >
+              {isResettingSwipes ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Eraser className="h-4 w-4 mr-2" />}
+              Reset All Swipes
+            </Button>
           </div>
 
           {/* Save as Dataset */}

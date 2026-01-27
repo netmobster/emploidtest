@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Sparkles, Plus, X, Check, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Sparkles, Plus, X, Check, ChevronDown, ChevronUp, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useRoleDefinition, RoleDefinition } from "@/hooks/useRoleDefinition";
 import { LocationWorkModeFields } from "@/components/role/LocationWorkModeFields";
+import { RolePreviewDialog } from "@/components/role/RolePreviewDialog";
 import { cn } from "@/lib/utils";
 
 interface RoleDefinitionFormProps {
@@ -36,6 +37,7 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
   const [expandedSection, setExpandedSection] = useState<string>("logistics");
   const [isGeneratingMission, setIsGeneratingMission] = useState(false);
   const [newTool, setNewTool] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -440,10 +442,19 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
       {/* Actions */}
       <div className="flex gap-3 pt-4 border-t">
         {onCancel && (
-          <Button type="button" variant="outline" className="flex-1" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
         )}
+        <Button 
+          type="button"
+          variant="ghost"
+          onClick={() => setShowPreview(true)}
+          className="gap-2"
+        >
+          <Eye className="w-4 h-4" />
+          Preview as Candidate
+        </Button>
         <Button 
           className="flex-1" 
           onClick={handlePublish}
@@ -462,6 +473,24 @@ export function RoleDefinitionForm({ jobId, onComplete, onCancel }: RoleDefiniti
           )}
         </Button>
       </div>
+
+      {/* Preview Dialog */}
+      <RolePreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        roleData={{
+          title: role?.title || "Role Title",
+          company: role?.company || "Company",
+          pay_min: formData.pay_min ? parseInt(formData.pay_min) : null,
+          pay_max: formData.pay_max ? parseInt(formData.pay_max) : null,
+          work_mode: formData.work_mode,
+          city_hub: formData.city_hub,
+          mission_statement: formData.mission_statement,
+          big_rocks: formData.big_rocks.filter(Boolean),
+          daily_stack: formData.daily_stack,
+          vibe_mode: formData.vibe_mode,
+        }}
+      />
     </div>
   );
 }

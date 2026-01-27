@@ -62,8 +62,9 @@ export interface JobData {
   bigRocks?: { title: string; description?: string }[];
   dailyStack?: string[];
   vibeMode?: string;
-  // Test role flag
+  // Flags
   isTestRole?: boolean;
+  isNewRole?: boolean;
 }
 
 interface FullProfileCardProps {
@@ -142,6 +143,15 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
             <Badge variant="outline" className="bg-amber-500/90 text-white border-amber-600 gap-1">
               <FlaskConical className="w-3 h-3" />
               TEST
+            </Badge>
+          </div>
+        )}
+
+        {/* NEW Role Badge */}
+        {job?.isNewRole && !job?.isTestRole && (
+          <div className="absolute top-4 right-4 z-30">
+            <Badge className="bg-emerald-500 text-white border-emerald-600 gap-1 animate-pulse">
+              NEW
             </Badge>
           </div>
         )}

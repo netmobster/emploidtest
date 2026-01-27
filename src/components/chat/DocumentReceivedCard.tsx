@@ -1,8 +1,9 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { FileText, Download, ExternalLink, Check, Clock } from "lucide-react";
+import { FileText, Download, ExternalLink, Check, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DocumentReceivedCardProps {
   documentType: string;
@@ -27,6 +28,9 @@ export function DocumentReceivedCard({
   uploadedAt,
   candidateName = "Candidate",
 }: DocumentReceivedCardProps) {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+
   const label = documentType === "other" && customLabel 
     ? customLabel 
     : documentTypeLabels[documentType] || "Document";
@@ -34,6 +38,47 @@ export function DocumentReceivedCard({
   const getFileExtension = (url: string) => {
     const ext = url.split('.').pop()?.toLowerCase();
     return ext || 'file';
+  };
+
+  // Generate signed URL when needed
+  useEffect(() => {
+    const generateSignedUrl = async () => {
+      if (!fileUrl) return;
+      
+      // Check if it's our path format
+      if (fileUrl.startsWith("path::")) {
+        setIsLoadingUrl(true);
+        const filePath = fileUrl.replace("path::", "");
+        try {
+          const { data, error } = await supabase.storage
+            .from("candidate-documents")
+            .createSignedUrl(filePath, 3600); // 1 hour expiry
+          
+          if (error) {
+            console.error("Error generating signed URL:", error);
+            setSignedUrl(null);
+          } else {
+            setSignedUrl(data.signedUrl);
+          }
+        } catch (err) {
+          console.error("Error:", err);
+          setSignedUrl(null);
+        } finally {
+          setIsLoadingUrl(false);
+        }
+      } else {
+        // Legacy: use URL as-is
+        setSignedUrl(fileUrl);
+      }
+    };
+
+    generateSignedUrl();
+  }, [fileUrl]);
+
+  const handleOpen = async () => {
+    if (signedUrl) {
+      window.open(signedUrl, "_blank");
+    }
   };
 
   return (
@@ -68,24 +113,33 @@ export function DocumentReceivedCard({
                 </div>
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0"
-                  onClick={() => window.open(fileUrl, "_blank")}
-                >
-                  <ExternalLink className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0"
-                  asChild
-                >
-                  <a href={fileUrl} download>
-                    <Download className="w-4 h-4" />
-                  </a>
-                </Button>
+                {isLoadingUrl ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                ) : (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0"
+                      onClick={handleOpen}
+                      disabled={!signedUrl}
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                    {signedUrl && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        asChild
+                      >
+                        <a href={signedUrl} download>
+                          <Download className="w-4 h-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           ) : (

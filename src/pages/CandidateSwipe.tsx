@@ -43,6 +43,9 @@ interface JobWithScore {
   vibeMode?: string;
   // Test role flag
   isTestRole?: boolean;
+  // New role flag (non-sample, recently created)
+  isNewRole?: boolean;
+  createdAt?: string;
 }
 
 const CandidateSwipe = () => {
@@ -187,6 +190,12 @@ const CandidateSwipe = () => {
             // Determine if this is a test role (from a known test employer)
             const isTestRole = job.user_id === TEST_EMPLOYER_ID;
 
+            // Determine if this is a "new" role (non-test, created in last 7 days)
+            const createdAt = job.created_at;
+            const isNewRole = !isTestRole && 
+              createdAt && 
+              (Date.now() - new Date(createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+
             return {
               id: job.id,
               title: job.title,
@@ -212,8 +221,10 @@ const CandidateSwipe = () => {
               bigRocks: bigRocks.length > 0 ? bigRocks : undefined,
               dailyStack: job.daily_stack as string[] | undefined,
               vibeMode: job.vibe_mode || undefined,
-              // Test role flag
+              // Flags
               isTestRole,
+              isNewRole,
+              createdAt,
             };
           })
           // Exclude already-swiped jobs (by job_id OR employer_id)
@@ -247,12 +258,19 @@ const CandidateSwipe = () => {
           });
         }
 
-        // Sort: Real roles first (by match score), then test roles (by match score)
+        // Sort: Non-test roles first (prioritize new roles), then test roles (by match score)
         allJobs.sort((a, b) => {
-          // Real roles come before test roles
+          // Non-test roles come before test roles
           if (a.isTestRole && !b.isTestRole) return 1;
           if (!a.isTestRole && b.isTestRole) return -1;
-          // Within the same category, sort by match score
+          
+          // Within non-test roles, prioritize "new" roles
+          if (!a.isTestRole && !b.isTestRole) {
+            if (a.isNewRole && !b.isNewRole) return -1;
+            if (!a.isNewRole && b.isNewRole) return 1;
+          }
+          
+          // Then sort by match score
           return b.matchScore - a.matchScore;
         });
 
