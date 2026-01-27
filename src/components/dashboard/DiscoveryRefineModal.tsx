@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Settings2, X, MapPin, Briefcase, Wrench } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export interface DiscoveryFilters {
   threshold: number;
@@ -23,6 +25,7 @@ interface DiscoveryRefineModalProps {
   filters: DiscoveryFilters;
   onApply: (filters: DiscoveryFilters) => void;
   userType: "candidate" | "employer";
+  suggestedSkills?: string[];
 }
 
 const WORK_MODE_OPTIONS = [
@@ -31,15 +34,25 @@ const WORK_MODE_OPTIONS = [
   { value: "onsite", label: "On-site" },
 ];
 
+export const DEFAULT_FILTERS: DiscoveryFilters = {
+  threshold: 70,
+  mustMatchMission: false,
+  location: "",
+  workModes: [],
+  skills: [],
+};
+
 export function DiscoveryRefineModal({
   open,
   onOpenChange,
   filters,
   onApply,
   userType,
+  suggestedSkills = [],
 }: DiscoveryRefineModalProps) {
   const [localFilters, setLocalFilters] = useState<DiscoveryFilters>(filters);
   const [skillInput, setSkillInput] = useState("");
+  const [skillsPopoverOpen, setSkillsPopoverOpen] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -53,24 +66,18 @@ export function DiscoveryRefineModal({
   };
 
   const handleReset = () => {
-    const defaultFilters: DiscoveryFilters = {
-      threshold: 70,
-      mustMatchMission: false,
-      location: "",
-      workModes: [],
-      skills: [],
-    };
-    setLocalFilters(defaultFilters);
+    setLocalFilters(DEFAULT_FILTERS);
   };
 
-  const addSkill = () => {
-    const trimmed = skillInput.trim();
+  const addSkill = (skill: string) => {
+    const trimmed = skill.trim();
     if (trimmed && !localFilters.skills.includes(trimmed)) {
       setLocalFilters(prev => ({
         ...prev,
         skills: [...prev.skills, trimmed],
       }));
       setSkillInput("");
+      setSkillsPopoverOpen(false);
     }
   };
 
@@ -84,9 +91,20 @@ export function DiscoveryRefineModal({
   const handleSkillKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      addSkill();
+      addSkill(skillInput);
     }
   };
+
+  // Filter suggestions based on input and exclude already selected
+  const filteredSuggestions = useMemo(() => {
+    const query = skillInput.toLowerCase();
+    return suggestedSkills
+      .filter(skill => 
+        !localFilters.skills.includes(skill) &&
+        skill.toLowerCase().includes(query)
+      )
+      .slice(0, 8);
+  }, [suggestedSkills, skillInput, localFilters.skills]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -179,7 +197,7 @@ export function DiscoveryRefineModal({
             </p>
           </div>
 
-          {/* Skills Filter */}
+          {/* Skills Filter with Autocomplete */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Wrench className="w-4 h-4 text-muted-foreground" />
@@ -187,18 +205,65 @@ export function DiscoveryRefineModal({
                 {userType === "candidate" ? "Required Skills" : "Candidate Skills"}
               </Label>
             </div>
-            <div className="flex gap-2">
-              <Input
-                id="skills"
-                placeholder="Type a skill and press Enter..."
-                value={skillInput}
-                onChange={(e) => setSkillInput(e.target.value)}
-                onKeyDown={handleSkillKeyDown}
-              />
-              <Button type="button" variant="secondary" size="sm" onClick={addSkill}>
-                Add
-              </Button>
-            </div>
+            
+            <Popover open={skillsPopoverOpen} onOpenChange={setSkillsPopoverOpen}>
+              <PopoverTrigger asChild>
+                <div className="flex gap-2">
+                  <Input
+                    id="skills"
+                    placeholder="Type a skill..."
+                    value={skillInput}
+                    onChange={(e) => {
+                      setSkillInput(e.target.value);
+                      if (e.target.value && !skillsPopoverOpen) {
+                        setSkillsPopoverOpen(true);
+                      }
+                    }}
+                    onKeyDown={handleSkillKeyDown}
+                    onFocus={() => {
+                      if (suggestedSkills.length > 0) {
+                        setSkillsPopoverOpen(true);
+                      }
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={() => addSkill(skillInput)}
+                  >
+                    Add
+                  </Button>
+                </div>
+              </PopoverTrigger>
+              {suggestedSkills.length > 0 && (
+                <PopoverContent className="w-[280px] p-0" align="start" onOpenAutoFocus={(e) => e.preventDefault()}>
+                  <Command>
+                    <CommandList>
+                      {filteredSuggestions.length === 0 ? (
+                        <CommandEmpty>
+                          {skillInput ? "No matching skills. Press Enter to add." : "Type to search skills..."}
+                        </CommandEmpty>
+                      ) : (
+                        <CommandGroup heading="Popular Skills">
+                          {filteredSuggestions.map((skill) => (
+                            <CommandItem
+                              key={skill}
+                              value={skill}
+                              onSelect={() => addSkill(skill)}
+                              className="cursor-pointer"
+                            >
+                              {skill}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              )}
+            </Popover>
+
             {localFilters.skills.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {localFilters.skills.map((skill) => (
