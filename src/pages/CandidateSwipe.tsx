@@ -52,6 +52,14 @@ const CandidateSwipe = () => {
   const role = searchParams.get("role");
   const city = searchParams.get("city");
 
+  // Guard: Redirect to preference flow if city or role is missing
+  useEffect(() => {
+    if (!city || !role) {
+      console.log("[CandidateSwipe] Missing city/role params, redirecting to preference flow");
+      navigate("/city?type=candidate", { replace: true });
+    }
+  }, [city, role, navigate]);
+
   const [jobs, setJobs] = useState<JobWithScore[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showMatch, setShowMatch] = useState(false);
