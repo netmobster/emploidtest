@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Radar, Settings2, MapPin, Loader2, ExternalLink } from "lucide-react";
+import { Radar, Settings2, MapPin, Loader2, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
-import { DiscoveryRefineModal, DiscoveryFilters } from "./DiscoveryRefineModal";
+import { DiscoveryRefineModal, DiscoveryFilters, DEFAULT_FILTERS } from "./DiscoveryRefineModal";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -26,21 +26,31 @@ interface DiscoveryCandidate {
   isNew: boolean;
 }
 
-const DEFAULT_FILTERS: DiscoveryFilters = {
-  threshold: 70,
-  mustMatchMission: false,
-  location: "",
-  workModes: [],
-  skills: [],
-};
-
 export function DiscoverySectionEmployer() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [candidates, setCandidates] = useState<DiscoveryCandidate[]>([]);
+  const [allCandidates, setAllCandidates] = useState<DiscoveryCandidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refineOpen, setRefineOpen] = useState(false);
   const [filters, setFilters] = useState<DiscoveryFilters>(DEFAULT_FILTERS);
+
+  // Extract popular skills from all candidates
+  const suggestedSkills = useMemo(() => {
+    const skillCounts = new Map<string, number>();
+    allCandidates.forEach(candidate => {
+      candidate.skills?.forEach(skill => {
+        const normalized = skill.trim();
+        if (normalized) {
+          skillCounts.set(normalized, (skillCounts.get(normalized) || 0) + 1);
+        }
+      });
+    });
+    return Array.from(skillCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 30)
+      .map(([skill]) => skill);
+  }, [allCandidates]);
 
   useEffect(() => {
     const fetchDiscoveryCandidates = async () => {
@@ -66,55 +76,21 @@ export function DiscoverySectionEmployer() {
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        const enrichedCandidates: DiscoveryCandidate[] = (candidatesData || [])
-          .map(candidate => {
-            const synergyScore = calculateSynergyCompatibility(
-              profile.synergy_scores as Record<string, number>,
-              candidate.synergy_scores as Record<string, number>
-            );
-            const createdDate = new Date(candidate.created_at);
-            
-            return {
-              ...candidate,
-              synergyScore,
-              isNew: createdDate > oneDayAgo,
-            };
-          })
-          .filter(candidate => {
-            // Synergy threshold filter
-            if (candidate.synergyScore < filters.threshold) return false;
-            
-            // Location filter
-            if (filters.location.trim()) {
-              const locationMatch = candidate.location?.toLowerCase().includes(filters.location.toLowerCase());
-              if (!locationMatch) return false;
-            }
-            
-            // Work mode filter
-            if (filters.workModes.length > 0) {
-              const candidateWorkMode = candidate.work_mode?.toLowerCase() || "remote";
-              if (!filters.workModes.includes(candidateWorkMode)) return false;
-            }
-            
-            // Skills filter
-            if (filters.skills.length > 0) {
-              const candidateSkills = candidate.skills?.map(s => s.toLowerCase()) || [];
-              const hasMatchingSkill = filters.skills.some(skill =>
-                candidateSkills.some(cs => cs.includes(skill.toLowerCase()))
-              );
-              if (!hasMatchingSkill) return false;
-            }
-            
-            return true;
-          })
-          .sort((a, b) => {
-            if (a.isNew && !b.isNew) return -1;
-            if (!a.isNew && b.isNew) return 1;
-            return b.synergyScore - a.synergyScore;
-          })
-          .slice(0, 3);
+        const enrichedCandidates: DiscoveryCandidate[] = (candidatesData || []).map(candidate => {
+          const synergyScore = calculateSynergyCompatibility(
+            profile.synergy_scores as Record<string, number>,
+            candidate.synergy_scores as Record<string, number>
+          );
+          const createdDate = new Date(candidate.created_at);
+          
+          return {
+            ...candidate,
+            synergyScore,
+            isNew: createdDate > oneDayAgo,
+          };
+        });
 
-        setCandidates(enrichedCandidates);
+        setAllCandidates(enrichedCandidates);
       } catch (error) {
         console.error("Error fetching discovery candidates:", error);
       } finally {
@@ -123,10 +99,50 @@ export function DiscoverySectionEmployer() {
     };
 
     fetchDiscoveryCandidates();
-  }, [profile, filters]);
+  }, [profile]);
+
+  // Filter and sort candidates based on current filters
+  useEffect(() => {
+    const filtered = allCandidates
+      .filter(candidate => {
+        if (candidate.synergyScore < filters.threshold) return false;
+        
+        if (filters.location.trim()) {
+          const locationMatch = candidate.location?.toLowerCase().includes(filters.location.toLowerCase());
+          if (!locationMatch) return false;
+        }
+        
+        if (filters.workModes.length > 0) {
+          const candidateWorkMode = candidate.work_mode?.toLowerCase() || "remote";
+          if (!filters.workModes.includes(candidateWorkMode)) return false;
+        }
+        
+        if (filters.skills.length > 0) {
+          const candidateSkills = candidate.skills?.map(s => s.toLowerCase()) || [];
+          const hasMatchingSkill = filters.skills.some(skill =>
+            candidateSkills.some(cs => cs.includes(skill.toLowerCase()))
+          );
+          if (!hasMatchingSkill) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        if (a.isNew && !b.isNew) return -1;
+        if (!a.isNew && b.isNew) return 1;
+        return b.synergyScore - a.synergyScore;
+      })
+      .slice(0, 3);
+
+    setCandidates(filtered);
+  }, [allCandidates, filters]);
 
   const handleApplyFilters = (newFilters: DiscoveryFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
   };
 
   const activeFilterCount = [
@@ -163,20 +179,33 @@ export function DiscoverySectionEmployer() {
             <h3 className="text-base sm:text-lg font-semibold text-foreground">Discovery Scout</h3>
             <Badge variant="secondary" className="text-xs">Top 3</Badge>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setRefineOpen(true)}
-            className="gap-1"
-          >
-            <Settings2 className="w-4 h-4" />
-            Refine
+          <div className="flex items-center gap-1">
             {activeFilterCount > 0 && (
-              <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                {activeFilterCount}
-              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="gap-1 text-muted-foreground hover:text-foreground h-8 px-2"
+              >
+                <X className="w-3 h-3" />
+                Clear
+              </Button>
             )}
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setRefineOpen(true)}
+              className="gap-1"
+            >
+              <Settings2 className="w-4 h-4" />
+              Refine
+              {activeFilterCount > 0 && (
+                <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
 
         {candidates.length === 0 ? (
@@ -284,6 +313,7 @@ export function DiscoverySectionEmployer() {
         filters={filters}
         onApply={handleApplyFilters}
         userType="employer"
+        suggestedSkills={suggestedSkills}
       />
     </>
   );

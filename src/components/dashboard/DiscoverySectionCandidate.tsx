@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Radar, Settings2, MapPin, Loader2, ExternalLink } from "lucide-react";
+import { Radar, Settings2, MapPin, Loader2, ExternalLink, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { calculateSynergyCompatibility } from "@/lib/synergyUtils";
-import { DiscoveryRefineModal, DiscoveryFilters } from "./DiscoveryRefineModal";
+import { DiscoveryRefineModal, DiscoveryFilters, DEFAULT_FILTERS } from "./DiscoveryRefineModal";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
@@ -25,21 +25,31 @@ interface DiscoveryJob {
   isNew: boolean;
 }
 
-const DEFAULT_FILTERS: DiscoveryFilters = {
-  threshold: 70,
-  mustMatchMission: false,
-  location: "",
-  workModes: [],
-  skills: [],
-};
-
 export function DiscoverySectionCandidate() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [jobs, setJobs] = useState<DiscoveryJob[]>([]);
+  const [allJobs, setAllJobs] = useState<DiscoveryJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refineOpen, setRefineOpen] = useState(false);
   const [filters, setFilters] = useState<DiscoveryFilters>(DEFAULT_FILTERS);
+
+  // Extract popular skills from all jobs' requirements
+  const suggestedSkills = useMemo(() => {
+    const skillCounts = new Map<string, number>();
+    allJobs.forEach(job => {
+      job.requirements?.forEach(req => {
+        const normalized = req.trim();
+        if (normalized) {
+          skillCounts.set(normalized, (skillCounts.get(normalized) || 0) + 1);
+        }
+      });
+    });
+    return Array.from(skillCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 30)
+      .map(([skill]) => skill);
+  }, [allJobs]);
 
   useEffect(() => {
     const fetchDiscoveryJobs = async () => {
@@ -72,57 +82,23 @@ export function DiscoverySectionCandidate() {
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        const enrichedJobs: DiscoveryJob[] = (jobsData || [])
-          .map(job => {
-            const employer = employerMap.get(job.user_id);
-            const synergyScore = calculateSynergyCompatibility(
-              profile.synergy_scores as Record<string, number>,
-              employer?.synergy_scores as Record<string, number>
-            );
-            const createdDate = new Date(job.created_at);
-            
-            return {
-              ...job,
-              synergy_scores: employer?.synergy_scores,
-              synergyScore,
-              isNew: createdDate > oneDayAgo,
-            };
-          })
-          .filter(job => {
-            // Synergy threshold filter
-            if (job.synergyScore < filters.threshold) return false;
-            
-            // Location filter
-            if (filters.location.trim()) {
-              const locationMatch = job.location_text?.toLowerCase().includes(filters.location.toLowerCase());
-              if (!locationMatch) return false;
-            }
-            
-            // Work mode filter
-            if (filters.workModes.length > 0) {
-              const jobWorkMode = job.work_mode?.toLowerCase() || "remote";
-              if (!filters.workModes.includes(jobWorkMode)) return false;
-            }
-            
-            // Skills filter
-            if (filters.skills.length > 0) {
-              const jobRequirements = job.requirements?.map(r => r.toLowerCase()) || [];
-              const hasMatchingSkill = filters.skills.some(skill =>
-                jobRequirements.some(req => req.includes(skill.toLowerCase()))
-              );
-              if (!hasMatchingSkill) return false;
-            }
-            
-            return true;
-          })
-          .sort((a, b) => {
-            if (a.isNew && !b.isNew) return -1;
-            if (!a.isNew && b.isNew) return 1;
-            return b.synergyScore - a.synergyScore;
-          })
-          .slice(0, 3);
+        const enrichedJobs: DiscoveryJob[] = (jobsData || []).map(job => {
+          const employer = employerMap.get(job.user_id);
+          const synergyScore = calculateSynergyCompatibility(
+            profile.synergy_scores as Record<string, number>,
+            employer?.synergy_scores as Record<string, number>
+          );
+          const createdDate = new Date(job.created_at);
+          
+          return {
+            ...job,
+            synergy_scores: employer?.synergy_scores,
+            synergyScore,
+            isNew: createdDate > oneDayAgo,
+          };
+        });
 
-        setJobs(enrichedJobs);
+        setAllJobs(enrichedJobs);
       } catch (error) {
         console.error("Error fetching discovery jobs:", error);
       } finally {
@@ -131,10 +107,50 @@ export function DiscoverySectionCandidate() {
     };
 
     fetchDiscoveryJobs();
-  }, [profile, filters]);
+  }, [profile]);
+
+  // Filter and sort jobs based on current filters
+  useEffect(() => {
+    const filtered = allJobs
+      .filter(job => {
+        if (job.synergyScore < filters.threshold) return false;
+        
+        if (filters.location.trim()) {
+          const locationMatch = job.location_text?.toLowerCase().includes(filters.location.toLowerCase());
+          if (!locationMatch) return false;
+        }
+        
+        if (filters.workModes.length > 0) {
+          const jobWorkMode = job.work_mode?.toLowerCase() || "remote";
+          if (!filters.workModes.includes(jobWorkMode)) return false;
+        }
+        
+        if (filters.skills.length > 0) {
+          const jobRequirements = job.requirements?.map(r => r.toLowerCase()) || [];
+          const hasMatchingSkill = filters.skills.some(skill =>
+            jobRequirements.some(req => req.includes(skill.toLowerCase()))
+          );
+          if (!hasMatchingSkill) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        if (a.isNew && !b.isNew) return -1;
+        if (!a.isNew && b.isNew) return 1;
+        return b.synergyScore - a.synergyScore;
+      })
+      .slice(0, 3);
+
+    setJobs(filtered);
+  }, [allJobs, filters]);
 
   const handleApplyFilters = (newFilters: DiscoveryFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters(DEFAULT_FILTERS);
   };
 
   const activeFilterCount = [
@@ -171,20 +187,33 @@ export function DiscoverySectionCandidate() {
             <h3 className="text-base sm:text-lg font-semibold text-foreground">Discovery Scout</h3>
             <Badge variant="secondary" className="text-xs">Top 3</Badge>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setRefineOpen(true)}
-            className="gap-1"
-          >
-            <Settings2 className="w-4 h-4" />
-            Refine
+          <div className="flex items-center gap-1">
             {activeFilterCount > 0 && (
-              <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                {activeFilterCount}
-              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="gap-1 text-muted-foreground hover:text-foreground h-8 px-2"
+              >
+                <X className="w-3 h-3" />
+                Clear
+              </Button>
             )}
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setRefineOpen(true)}
+              className="gap-1"
+            >
+              <Settings2 className="w-4 h-4" />
+              Refine
+              {activeFilterCount > 0 && (
+                <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                  {activeFilterCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
 
         {jobs.length === 0 ? (
@@ -285,6 +314,7 @@ export function DiscoverySectionCandidate() {
         filters={filters}
         onApply={handleApplyFilters}
         userType="candidate"
+        suggestedSkills={suggestedSkills}
       />
     </>
   );
