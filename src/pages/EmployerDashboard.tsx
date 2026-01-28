@@ -39,7 +39,7 @@ export default function EmployerDashboard() {
   const navigate = useNavigate();
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
   const stats = useEmployerStats();
-  const { jobs, isLoading: jobsLoading, deleteJob } = useEmployerJobs();
+  const { jobs, isLoading: jobsLoading, deleteJob, refetch: refetchJobs } = useEmployerJobs();
   const { activities, isLoading: activityLoading } = useEmployerActivity();
   const profileCompletion = useProfileCompletion(profile);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -191,7 +191,7 @@ export default function EmployerDashboard() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Your Job Postings</h3>
-                <CreateJobDialog onJobCreated={() => window.location.reload()} />
+                <CreateJobDialog onJobCreated={refetchJobs} />
               </div>
 
               {jobsLoading ? (
@@ -203,7 +203,7 @@ export default function EmployerDashboard() {
                   <Briefcase className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
                   <p className="text-muted-foreground">No jobs posted yet</p>
                   <div className="mt-4">
-                    <CreateJobDialog onJobCreated={() => window.location.reload()} />
+                    <CreateJobDialog onJobCreated={refetchJobs} />
                   </div>
                 </div>
               ) : (
@@ -214,7 +214,7 @@ export default function EmployerDashboard() {
                       job={job}
                       onDelete={deleteJob}
                       onViewCandidates={handleViewCandidates}
-                      onRoleClosed={() => window.location.reload()}
+                      onRoleClosed={refetchJobs}
                       delay={0.35 + index * 0.05}
                     />
                   ))}

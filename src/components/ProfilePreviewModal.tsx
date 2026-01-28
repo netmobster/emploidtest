@@ -14,18 +14,49 @@ import { useProfileCompletion } from "@/hooks/useProfileCompletion";
 import { CompanyCultureSection } from "@/components/culture/CompanyCultureSection";
 import { HiringTeamSection } from "@/components/profile/HiringTeamSection";
 
+interface ProfileData {
+  user_type: string;
+  company_name?: string | null;
+  full_name?: string | null;
+  job_title?: string | null;
+  avatar_url?: string | null;
+  cover_image_url?: string | null;
+  company_location?: string | null;
+  location?: string | null;
+  years_of_experience?: string | null;
+  availability?: string | null;
+  remote_preference?: string | null;
+  company_size?: string | null;
+  company_industry?: string | null;
+  bio?: string | null;
+  skills?: string[] | null;
+  linkedin_url?: string | null;
+  website_url?: string | null;
+  company_website?: string | null;
+  portfolio_url?: string | null;
+  synergy_scores?: Record<string, number> | null;
+  culture_preferences?: Record<string, string> | null;
+}
+
 interface ProfilePreviewModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Optional profile to preview. If not provided, defaults to current user's profile */
+  profileData?: ProfileData | null;
 }
 
-export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalProps) {
-  const { profile } = useAuth();
-  const profileCompletion = useProfileCompletion(profile);
+export function ProfilePreviewModal({ open, onOpenChange, profileData }: ProfilePreviewModalProps) {
+  const { profile: currentUserProfile } = useAuth();
+  
+  // Use provided profileData or fall back to current user's profile
+  const profile = profileData ?? currentUserProfile;
+  // Only calculate completion for own profile (when profileData is not provided)
+  const profileCompletion = useProfileCompletion(profileData ? null : currentUserProfile);
 
   if (!profile) return null;
 
   const isEmployer = profile.user_type === "employer";
+  const isOwnProfile = !profileData; // If no profileData passed, it's the user's own profile
   const primaryBadge = profile.synergy_scores 
     ? getPrimaryBadge(profile.synergy_scores as Record<string, number>)
     : null;
@@ -37,7 +68,7 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
           <DialogTitle className="flex items-center gap-2">
             <Eye className="w-5 h-5 text-primary" />
             Profile Preview
-            {profileCompletion.isComplete && (
+            {isOwnProfile && profileCompletion.isComplete && (
               <Badge className="bg-green-500/20 text-green-600 border-green-500/30 ml-2">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Complete
@@ -48,7 +79,10 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
 
         <div className="mt-4">
           <p className="text-sm text-muted-foreground mb-6">
-            This is how your profile appears to {isEmployer ? "candidates" : "employers"}.
+            {isOwnProfile 
+              ? `This is how your profile appears to ${isEmployer ? "candidates" : "employers"}.`
+              : `Preview of ${isEmployer ? profile.company_name : profile.full_name}'s profile.`
+            }
           </p>
 
           {/* Profile Card Preview */}
@@ -81,7 +115,7 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
                     <h2 className="text-xl font-bold text-foreground">
                       {isEmployer ? profile.company_name : profile.full_name}
                     </h2>
-                    {profileCompletion.isComplete && (
+                    {isOwnProfile && profileCompletion.isComplete && (
                       <CheckCircle className="w-5 h-5 text-green-500" />
                     )}
                   </div>
@@ -214,42 +248,44 @@ export function ProfilePreviewModal({ open, onOpenChange }: ProfilePreviewModalP
             </div>
           </div>
 
-          {/* Missing Items Warning */}
-          <div className="mt-6 space-y-2">
-            <h4 className="text-sm font-semibold text-foreground">Profile Completeness Tips:</h4>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              {!profile.avatar_url && (
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                  Add a {isEmployer ? "company logo" : "profile photo"}
-                </li>
-              )}
-              {!profile.bio && (
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                  Write a compelling bio
-                </li>
-              )}
-              {!profile.synergy_scores && (
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                  Complete the Synergy Score quiz
-                </li>
-              )}
-              {!isEmployer && (!profile.skills || profile.skills.length === 0) && (
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                  Add your skills
-                </li>
-              )}
-              {!isEmployer && !profile.linkedin_url && (
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                  Consider adding your LinkedIn profile
-                </li>
-              )}
-            </ul>
-          </div>
+          {/* Missing Items Warning - only show for own profile */}
+          {isOwnProfile && (
+            <div className="mt-6 space-y-2">
+              <h4 className="text-sm font-semibold text-foreground">Profile Completeness Tips:</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                {!profile.avatar_url && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                    Add a {isEmployer ? "company logo" : "profile photo"}
+                  </li>
+                )}
+                {!profile.bio && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                    Write a compelling bio
+                  </li>
+                )}
+                {!profile.synergy_scores && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                    Complete the Synergy Score quiz
+                  </li>
+                )}
+                {!isEmployer && (!profile.skills || profile.skills.length === 0) && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                    Add your skills
+                  </li>
+                )}
+                {!isEmployer && !profile.linkedin_url && (
+                  <li className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                    Consider adding your LinkedIn profile
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
 
           <div className="flex justify-end mt-6">
             <Button onClick={() => onOpenChange(false)}>
