@@ -37,7 +37,7 @@ export const CITIES = [
 ];
 
 // Test account IDs for development
-export const TEST_EMPLOYER_ID = "3d1017f8-9212-4931-ab73-ddf934434ce6";
+export const TEST_EMPLOYER_ID = "ce451f07-c95e-453d-98ec-0a5099260939";
 export const TEST_CANDIDATE_ID = "8edb0fa6-9d73-4c12-b1ee-079ca970f5f5";
 
 export const ROLES: Role[] = [
