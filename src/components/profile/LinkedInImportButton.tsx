@@ -57,18 +57,37 @@ export function LinkedInImportButton({
     setError("");
     setSyncProgress(0);
 
-    // Progress animation
-    const progressInterval = setInterval(() => {
+    // Progress animation with timeout protection
+    const TIMEOUT_MS = 45000; // 45 second timeout
+    let progressInterval: ReturnType<typeof setInterval>;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const cleanup = () => {
+      clearInterval(progressInterval);
+      clearTimeout(timeoutId);
+    };
+
+    progressInterval = setInterval(() => {
       setSyncProgress((prev) => {
         if (prev >= 90) return prev;
         return prev + Math.random() * 15;
       });
     }, 500);
 
-    try {
-      const result = await importLinkedInProfile(linkedInUrl, user?.id, userType);
+    // Set timeout to prevent hanging indefinitely
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => {
+        reject(new Error("Import timed out"));
+      }, TIMEOUT_MS);
+    });
 
-      clearInterval(progressInterval);
+    try {
+      const result = await Promise.race([
+        importLinkedInProfile(linkedInUrl, user?.id, userType),
+        timeoutPromise,
+      ]);
+
+      cleanup();
       setSyncProgress(100);
 
       if (result.success && result.data) {
@@ -95,8 +114,26 @@ export function LinkedInImportButton({
         setError(result.error || "Failed to import profile");
       }
     } catch (err) {
-      clearInterval(progressInterval);
-      setError("Something went wrong. Please try again.");
+      cleanup();
+      if (err instanceof Error && err.message === "Import timed out") {
+        setError("Import timed out. Please try again or enter details manually.");
+        // Offer manual entry fallback
+        setIsOpen(false);
+        setImportedData({
+          fullName: null,
+          headline: null,
+          location: null,
+          summary: null,
+          skills: [],
+          profilePictureUrl: null,
+          companyName: null,
+          industry: null,
+          yearsOfExperience: null,
+        });
+        setShowReviewModal(true);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
