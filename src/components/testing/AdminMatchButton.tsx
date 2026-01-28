@@ -94,7 +94,17 @@ export function AdminMatchButton({ className }: AdminMatchButtonProps) {
         Match with Admin
       </Button>
 
-      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+      <Dialog 
+        open={showSuccessDialog} 
+        onOpenChange={(open) => {
+          setShowSuccessDialog(open);
+          // Reset state when dialog closes to prevent stale data on next open
+          if (!open) {
+            setMatchId(null);
+            setAlreadyExisted(false);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
