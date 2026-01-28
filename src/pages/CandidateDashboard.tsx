@@ -63,8 +63,8 @@ export default function CandidateDashboard() {
   }
 
   const handleViewJob = (jobId: string) => {
-    // Always route candidates through preference selection before the swipe deck
-    navigate(`/city?type=candidate`);
+    // Navigate to company profile to see the specific job
+    navigate(`/swipe/candidate?job=${jobId}`);
   };
 
   return (
