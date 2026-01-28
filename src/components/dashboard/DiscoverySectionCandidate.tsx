@@ -10,6 +10,37 @@ import { DiscoveryRefineModal, DiscoveryFilters, DEFAULT_FILTERS } from "./Disco
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 
+// Loading button component for View Profile
+function ViewProfileButton({ userId, onNavigate }: { userId: string | null; onNavigate: () => void }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!userId) return;
+    setIsLoading(true);
+    onNavigate();
+    // Reset after timeout in case navigation doesn't happen
+    setTimeout(() => setIsLoading(false), 2000);
+  };
+
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      className="w-full gap-1.5"
+      onClick={handleClick}
+      disabled={isLoading || !userId}
+    >
+      {isLoading ? (
+        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      ) : (
+        <ExternalLink className="w-3.5 h-3.5" />
+      )}
+      View Profile
+    </Button>
+  );
+}
+
 interface DiscoveryJob {
   id: string;
   title: string;
@@ -288,20 +319,10 @@ export function DiscoverySectionCandidate() {
                 )}
 
                 {/* View Profile Button */}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full gap-1.5"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (job.user_id) {
-                      navigate(`/company/${job.user_id}`);
-                    }
-                  }}
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  View Profile
-                </Button>
+                <ViewProfileButton 
+                  userId={job.user_id} 
+                  onNavigate={() => job.user_id && navigate(`/company/${job.user_id}`)} 
+                />
               </motion.div>
             ))}
           </div>

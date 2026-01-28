@@ -31,6 +31,10 @@ export const useMatches = () => {
   const { user, profile } = useAuth();
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Function to trigger a refetch
+  const refetch = () => setRefreshKey((k) => k + 1);
 
   useEffect(() => {
     if (!user || !profile) return;
@@ -145,7 +149,7 @@ export const useMatches = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, profile]);
+  }, [user, profile, refreshKey]);
 
-  return { matches, isLoading };
+  return { matches, isLoading, refetch };
 };
