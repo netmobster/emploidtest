@@ -99,9 +99,9 @@ const Matches = () => {
           ) : matches.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center">
               <MessageCircle className="w-16 h-16 text-muted-foreground/30 mb-4" />
-              <h2 className="text-xl font-bold text-foreground mb-2">No matches yet</h2>
+              <h2 className="text-xl font-bold text-foreground mb-2">No conversations yet</h2>
               <p className="text-muted-foreground mb-6">
-                Keep swiping to find your perfect match!
+                Start swiping to find your perfect match!
               </p>
               <Button onClick={() => {
                 const swipePath = profile?.user_type === "employer" ? "/swipe/employer" : "/city?type=candidate";

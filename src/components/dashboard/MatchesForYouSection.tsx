@@ -135,7 +135,7 @@ export function MatchesForYouSection() {
         <CardContent>
           <div className="text-center py-6">
             <p className="text-muted-foreground mb-4">
-              No synergy matches found yet. Check back soon!
+              No synergy-matched jobs yet. Check back soon!
             </p>
             <Button
               variant="outline"

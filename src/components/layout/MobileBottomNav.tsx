@@ -49,13 +49,15 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background border-t border-border safe-area-inset-bottom">
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-16" role="navigation" aria-label="Main navigation">
         {navItems.map((item) => {
           const active = isActive(item.url);
           return (
             <button
               key={item.title}
               onClick={() => navigate(item.url)}
+              aria-label={item.title}
+              aria-current={active ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
                 active
@@ -63,7 +65,7 @@ export function MobileBottomNav() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5", active && "text-primary")} />
+              <item.icon className={cn("h-5 w-5", active && "text-primary")} aria-hidden="true" />
               <span className="text-[10px] font-medium">{item.title}</span>
             </button>
           );
@@ -73,12 +75,14 @@ export function MobileBottomNav() {
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button
+              aria-label="Open menu"
+              aria-expanded={menuOpen}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
                 menuOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <Menu className={cn("h-5 w-5", menuOpen && "text-primary")} />
+              <Menu className={cn("h-5 w-5", menuOpen && "text-primary")} aria-hidden="true" />
               <span className="text-[10px] font-medium">Menu</span>
             </button>
           </SheetTrigger>
