@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Briefcase, DollarSign, Wifi, Building2 } from "lucide-react";
+import { MapPin, Briefcase, DollarSign, Wifi, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -21,6 +22,15 @@ interface JobRecommendationCardProps {
 }
 
 export function JobRecommendationCard({ job, onView, delay = 0 }: JobRecommendationCardProps) {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleViewClick = () => {
+    setIsNavigating(true);
+    onView(job.id);
+    // Reset after a timeout in case navigation doesn't happen
+    setTimeout(() => setIsNavigating(false), 2000);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -64,8 +74,12 @@ export function JobRecommendationCard({ job, onView, delay = 0 }: JobRecommendat
           </div>
         </div>
         
-        <Button size="sm" onClick={() => onView(job.id)}>
-          View
+        <Button size="sm" onClick={handleViewClick} disabled={isNavigating}>
+          {isNavigating ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            "View"
+          )}
         </Button>
       </div>
     </motion.div>

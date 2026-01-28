@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageCircle, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,39 @@ import {
 import { useMatches } from "@/hooks/useMatches";
 import { useUnmatch } from "@/hooks/useUnmatch";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ChatsDropdown() {
   const navigate = useNavigate();
-  const { matches, isLoading } = useMatches();
+  const { matches, isLoading, refetch } = useMatches();
   const { unmatch, isUnmatching } = useUnmatch();
   const [deleteMatchId, setDeleteMatchId] = useState<string | null>(null);
 
   // Calculate total unread messages
   const totalUnread = matches.reduce((acc, match) => acc + (match.unread_count || 0), 0);
+
+  // Subscribe to realtime updates for new messages
+  useEffect(() => {
+    const channel = supabase
+      .channel('chats-dropdown-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages',
+        },
+        () => {
+          // Refetch matches when any message changes
+          refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
 
   const handleDeleteChat = async () => {
     if (deleteMatchId) {

@@ -21,10 +21,11 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
   const [swipeHistory, setSwipeHistory] = useState<{ item: T; direction: "like" | "pass" | "super_like" }[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
   const [isCheckingMatch, setIsCheckingMatch] = useState(false);
   const [checkingMatchType, setCheckingMatchType] = useState<"like" | "super_like">("like");
   const cardRef = useRef<HTMLDivElement>(null);
+  // Use ref for animation lock to prevent race conditions with state updates
+  const isAnimatingRef = useRef(false);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-10, 10]);
@@ -34,14 +35,15 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   const nextItem = items[currentIndex + 1];
 
   const handleSwipe = useCallback((direction: "like" | "pass" | "super_like") => {
-    if (!currentItem || isAnimating) {
-      console.log("[SwipeStack] handleSwipe blocked:", { currentItem: !!currentItem, isAnimating });
+    if (!currentItem || isAnimatingRef.current) {
+      console.log("[SwipeStack] handleSwipe blocked:", { currentItem: !!currentItem, isAnimating: isAnimatingRef.current });
       return;
     }
 
     console.log("[SwipeStack] handleSwipe:", { id: currentItem.id, direction, currentIndex });
 
-    setIsAnimating(true);
+    // Lock immediately with ref to prevent race conditions
+    isAnimatingRef.current = true;
     setSwipeHistory(prev => [...prev, { item: currentItem, direction }]);
     setExitDirection(direction === "pass" ? "left" : "right");
     
@@ -72,23 +74,24 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
       setCurrentIndex(prev => prev + 1);
       setExitDirection(null);
       x.set(0);
-      setIsAnimating(false);
+      // Unlock animation ref
+      isAnimatingRef.current = false;
 
       if (currentIndex + 1 >= items.length && onEmpty) {
         onEmpty();
       }
     }, 350);
-  }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x, isAnimating]);
+  }, [currentItem, currentIndex, items.length, onSwipe, onEmpty, x]);
 
   const handleDragEnd = useCallback((_: any, info: PanInfo) => {
-    if (isAnimating) return;
+    if (isAnimatingRef.current) return;
     const threshold = 100;
     if (info.offset.x > threshold) {
       handleSwipe("like");
     } else if (info.offset.x < -threshold) {
       handleSwipe("pass");
     }
-  }, [handleSwipe, isAnimating]);
+  }, [handleSwipe]);
 
   const handleUndo = useCallback(() => {
     if (swipeHistory.length === 0) return;
