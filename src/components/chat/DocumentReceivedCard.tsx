@@ -30,6 +30,7 @@ export function DocumentReceivedCard({
 }: DocumentReceivedCardProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [isLoadingUrl, setIsLoadingUrl] = useState(false);
+  const [urlExpiresAt, setUrlExpiresAt] = useState<number | null>(null);
 
   const label = documentType === "other" && customLabel 
     ? customLabel 
@@ -40,8 +41,10 @@ export function DocumentReceivedCard({
     return ext || 'file';
   };
 
-  // Generate signed URL when needed
+  // Generate signed URL when needed, with auto-refresh before expiration
   useEffect(() => {
+    let refreshTimeout: NodeJS.Timeout | null = null;
+
     const generateSignedUrl = async () => {
       if (!fileUrl) return;
       
@@ -50,15 +53,24 @@ export function DocumentReceivedCard({
         setIsLoadingUrl(true);
         const filePath = fileUrl.replace("path::", "");
         try {
+          const expirySeconds = 3600; // 1 hour
           const { data, error } = await supabase.storage
             .from("candidate-documents")
-            .createSignedUrl(filePath, 3600); // 1 hour expiry
+            .createSignedUrl(filePath, expirySeconds);
           
           if (error) {
             console.error("Error generating signed URL:", error);
             setSignedUrl(null);
           } else {
             setSignedUrl(data.signedUrl);
+            // Set expiration time (5 minutes before actual expiry for buffer)
+            const expiresAt = Date.now() + (expirySeconds - 300) * 1000;
+            setUrlExpiresAt(expiresAt);
+            
+            // Schedule refresh before expiration
+            refreshTimeout = setTimeout(() => {
+              generateSignedUrl();
+            }, (expirySeconds - 300) * 1000);
           }
         } catch (err) {
           console.error("Error:", err);
@@ -73,6 +85,12 @@ export function DocumentReceivedCard({
     };
 
     generateSignedUrl();
+
+    return () => {
+      if (refreshTimeout) {
+        clearTimeout(refreshTimeout);
+      }
+    };
   }, [fileUrl]);
 
   const handleOpen = async () => {

@@ -103,7 +103,10 @@ const Matches = () => {
               <p className="text-muted-foreground mb-6">
                 Keep swiping to find your perfect match!
               </p>
-              <Button onClick={() => navigate(-1)}>
+              <Button onClick={() => {
+                const swipePath = profile?.user_type === "employer" ? "/swipe/employer" : "/city?type=candidate";
+                navigate(swipePath);
+              }}>
                 Continue Swiping
               </Button>
             </div>

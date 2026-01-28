@@ -169,7 +169,7 @@ export function MatchesForYouSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
               className="p-4 bg-card rounded-lg border border-border hover:border-primary/30 transition-colors cursor-pointer"
-              onClick={() => navigate("/city?type=candidate")}
+              onClick={() => navigate(`/swipe/candidate?job=${match.id}`)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
