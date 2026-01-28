@@ -80,7 +80,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border" aria-label="Main sidebar navigation">
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-3">
           <Logo size="sm" />
@@ -110,7 +110,7 @@ export function AppSidebar() {
                         activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
                       >
                         <div className="relative">
-                          <item.icon className="h-5 w-5" />
+                          <item.icon className="h-5 w-5" aria-hidden="true" />
                           {count > 0 && collapsed && (
                             <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
                               {count > 9 ? "9+" : count}
@@ -142,7 +142,7 @@ export function AppSidebar() {
                     className="flex items-center gap-3"
                     activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
                   >
-                    <Globe className="h-5 w-5" />
+                    <Globe className="h-5 w-5" aria-hidden="true" />
                     {!collapsed && <span>Public Home</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -162,7 +162,7 @@ export function AppSidebar() {
                         className="flex items-center gap-3"
                         activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
                       >
-                        <User className="h-5 w-5" />
+                        <User className="h-5 w-5" aria-hidden="true" />
                         {!collapsed && <span>Profile</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -173,8 +173,9 @@ export function AppSidebar() {
                       tooltip="Log Out"
                       onClick={handleLogout}
                       className="flex items-center gap-3"
+                      aria-label="Log out of your account"
                     >
-                      <LogOut className="h-5 w-5" />
+                      <LogOut className="h-5 w-5" aria-hidden="true" />
                       {!collapsed && <span>Log Out</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -192,7 +193,7 @@ export function AppSidebar() {
                       className="flex items-center gap-3"
                       activeClassName="bg-sidebar-accent text-sidebar-accent-foreground"
                     >
-                      <Shield className="h-5 w-5" />
+                      <Shield className="h-5 w-5" aria-hidden="true" />
                       {!collapsed && <span>Super Admin</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -207,7 +208,10 @@ export function AppSidebar() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 w-full hover:bg-sidebar-accent/50 rounded-lg p-1 -m-1 transition-colors">
+              <button 
+                className="flex items-center gap-3 w-full hover:bg-sidebar-accent/50 rounded-lg p-1 -m-1 transition-colors"
+                aria-label="Account menu"
+              >
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={profile?.avatar_url || undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary text-sm">
