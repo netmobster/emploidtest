@@ -3,6 +3,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { UserManagementPanel } from "@/components/admin/UserManagementPanel";
 import { TestDataPanel } from "@/components/admin/TestDataPanel";
+import { TestDataEditorPanel } from "@/components/admin/TestDataEditorPanel";
 import { EmailTemplatePanel } from "@/components/admin/EmailTemplatePanel";
 import { BroadcastEmailPanel } from "@/components/admin/BroadcastEmailPanel";
 import { ToastConfigPanel } from "@/components/admin/ToastConfigPanel";
@@ -16,7 +17,7 @@ import { GrowthTrendline } from "@/components/admin/GrowthTrendline";
 import { UnfilledReasonsTable } from "@/components/admin/UnfilledReasonsTable";
 import { ManualReviewCard } from "@/components/admin/ManualReviewCard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, Database, Mail, BarChart3, ToggleLeft, Shield } from "lucide-react";
+import { Users, Database, Mail, BarChart3, ToggleLeft, Shield, FlaskConical } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
@@ -36,6 +37,13 @@ function AdminDashboard() {
       icon: Database,
       path: "/admin/data",
       color: "bg-green-500/10 text-green-500",
+    },
+    {
+      title: "Data Editor",
+      description: "Edit test jobs and candidates directly",
+      icon: FlaskConical,
+      path: "/admin/editor",
+      color: "bg-amber-500/10 text-amber-500",
     },
     {
       title: "Email Templates",
@@ -127,6 +135,7 @@ export default function Admin() {
             <Route index element={<AdminDashboard />} />
             <Route path="users" element={<UserManagementPanel />} />
             <Route path="data" element={<TestDataPanel />} />
+            <Route path="editor" element={<TestDataEditorPanel />} />
             <Route path="emails" element={<EmailTemplatePanel />} />
             <Route path="broadcast" element={<BroadcastEmailPanel />} />
             <Route path="toasts" element={<ToastConfigPanel />} />
