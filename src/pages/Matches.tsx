@@ -12,12 +12,16 @@ import { SynergyScoreModal } from "@/components/SynergyScoreModal";
 import { MatchScoreBadge } from "@/components/MatchScoreBadge";
 import { calculateMatchScore } from "@/lib/matchScoreUtils";
 import { ChatSidebar } from "@/components/chat/ChatSidebar";
+import { useShortlistStatus } from "@/hooks/useShortlistStatus";
+import { ShortlistIndicatorBadge } from "@/components/shortlist/ShortlistIndicatorBadge";
 
 const Matches = () => {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const { matches, isLoading } = useMatches();
   const { profile } = useAuth();
+  const { getShortlistsForCandidate } = useShortlistStatus();
+  const isEmployer = profile?.user_type === "employer";
   const [synergyModal, setSynergyModal] = useState<{
     isOpen: boolean;
     userName: string;
@@ -43,6 +47,7 @@ const Matches = () => {
   const sidebarMatches = useMemo(() => {
     return matches.map(match => ({
       id: match.id,
+      candidate_id: match.candidate_id,
       other_user: match.other_user ? {
         full_name: match.other_user.full_name,
         avatar_url: match.other_user.avatar_url,
@@ -173,6 +178,12 @@ const Matches = () => {
                       <Badge variant="outline" className="text-[10px] px-1.5 py-0">
                         {match.other_user?.user_type === "employer" ? "Employer" : "Candidate"}
                       </Badge>
+                      {/* Shortlist Indicator - only for employers viewing candidates */}
+                      {isEmployer && match.other_user?.user_type === "candidate" && (
+                        <ShortlistIndicatorBadge
+                          shortlists={getShortlistsForCandidate(match.candidate_id || "")}
+                        />
+                      )}
                       {/* Archetype Badge */}
                       {match.other_user?.synergy_scores && (
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
