@@ -5,6 +5,7 @@ import { UserManagementPanel } from "@/components/admin/UserManagementPanel";
 import { TestDataPanel } from "@/components/admin/TestDataPanel";
 import { TestDataEditorPanel } from "@/components/admin/TestDataEditorPanel";
 import { AdminChatPanel } from "@/components/admin/AdminChatPanel";
+import { ForceMatchPanel } from "@/components/admin/ForceMatchPanel";
 import { EmailTemplatePanel } from "@/components/admin/EmailTemplatePanel";
 import { BroadcastEmailPanel } from "@/components/admin/BroadcastEmailPanel";
 import { ToastConfigPanel } from "@/components/admin/ToastConfigPanel";
@@ -18,7 +19,7 @@ import { GrowthTrendline } from "@/components/admin/GrowthTrendline";
 import { UnfilledReasonsTable } from "@/components/admin/UnfilledReasonsTable";
 import { ManualReviewCard } from "@/components/admin/ManualReviewCard";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Users, Database, Mail, BarChart3, ToggleLeft, Shield, FlaskConical, MessageSquare } from "lucide-react";
+import { Users, Database, Mail, BarChart3, ToggleLeft, Shield, FlaskConical, MessageSquare, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function AdminDashboard() {
@@ -52,6 +53,13 @@ function AdminDashboard() {
       icon: MessageSquare,
       path: "/admin/chats",
       color: "bg-cyan-500/10 text-cyan-500",
+    },
+    {
+      title: "Force Match",
+      description: "Create matches between any users",
+      icon: Zap,
+      path: "/admin/force-match",
+      color: "bg-yellow-500/10 text-yellow-500",
     },
     {
       title: "Email Templates",
@@ -145,6 +153,7 @@ export default function Admin() {
             <Route path="data" element={<TestDataPanel />} />
             <Route path="editor" element={<TestDataEditorPanel />} />
             <Route path="chats" element={<AdminChatPanel />} />
+            <Route path="force-match" element={<ForceMatchPanel />} />
             <Route path="emails" element={<EmailTemplatePanel />} />
             <Route path="broadcast" element={<BroadcastEmailPanel />} />
             <Route path="toasts" element={<ToastConfigPanel />} />

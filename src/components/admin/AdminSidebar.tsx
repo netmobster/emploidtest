@@ -12,6 +12,7 @@ import {
   FileText,
   FlaskConical,
   MessageSquare,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -29,6 +30,7 @@ const sidebarItems: SidebarItem[] = [
   { id: "data", label: "Test Data", icon: Database, path: "/admin/data" },
   { id: "editor", label: "Data Editor", icon: FlaskConical, path: "/admin/editor" },
   { id: "chats", label: "Test Chats", icon: MessageSquare, path: "/admin/chats" },
+  { id: "force-match", label: "Force Match", icon: Zap, path: "/admin/force-match" },
   { id: "emails", label: "Email Templates", icon: Mail, path: "/admin/emails" },
   { id: "broadcast", label: "Broadcast", icon: Bell, path: "/admin/broadcast" },
   { id: "toasts", label: "Toast Config", icon: FileText, path: "/admin/toasts" },
