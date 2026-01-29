@@ -16,10 +16,13 @@ import {
   Briefcase, 
   RefreshCw,
   ArrowRight,
-  Clock
+  Clock,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { formatDistanceToNow } from "date-fns";
+import { QuickMatchCard } from "./QuickMatchCard";
 
 interface Match {
   id: string;
@@ -69,7 +72,9 @@ export function AdminChatPanel() {
   const [isSending, setIsSending] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [activeTab, setActiveTab] = useState<"employer" | "candidate">("employer");
+  const [channelStatus, setChannelStatus] = useState<"connected" | "disconnected">("disconnected");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Fetch matches involving test users
   const fetchMatches = useCallback(async () => {
@@ -177,7 +182,45 @@ export function AdminChatPanel() {
   useEffect(() => {
     if (selectedMatch) {
       fetchMessages(selectedMatch.id);
+      
+      // Set up realtime subscription for messages
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+      
+      const channel = supabase
+        .channel(`admin-chat-${selectedMatch.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "messages",
+            filter: `match_id=eq.${selectedMatch.id}`,
+          },
+          (payload) => {
+            console.log("[AdminChatPanel] New message via realtime:", payload.new);
+            const newMessage = payload.new as Message;
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === newMessage.id)) return prev;
+              return [...prev, newMessage];
+            });
+          }
+        )
+        .subscribe((status) => {
+          console.log("[AdminChatPanel] Channel status:", status);
+          setChannelStatus(status === "SUBSCRIBED" ? "connected" : "disconnected");
+        });
+      
+      channelRef.current = channel;
     }
+    
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
   }, [selectedMatch, fetchMessages]);
 
   // Auto-scroll to bottom
@@ -353,34 +396,58 @@ export function AdminChatPanel() {
                   </ScrollArea>
                 )}
               </CardContent>
+              
+              {/* Quick Match Section */}
+              <div className="p-4 border-t">
+                <QuickMatchCard 
+                  testUserType={activeTab} 
+                  onMatchCreated={fetchMatches}
+                />
+              </div>
             </Card>
 
             {/* Chat Interface */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2 border-b">
                 {selectedMatch ? (
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarImage src={getOtherUserInfo(selectedMatch).avatar} />
-                      <AvatarFallback>
-                        {getOtherUserInfo(selectedMatch).name?.charAt(0) || "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-lg">
-                        {getOtherUserInfo(selectedMatch).name}
-                      </CardTitle>
-                      <CardDescription className="flex items-center gap-2">
-                        {selectedMatch.job?.title && (
-                          <>
-                            <Briefcase className="h-3 w-3" />
-                            {selectedMatch.job.title}
-                          </>
-                        )}
-                        <Badge variant="outline" className="ml-2">
-                          Responding as Test {activeTab === "employer" ? "Employer" : "Candidate"}
-                        </Badge>
-                      </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={getOtherUserInfo(selectedMatch).avatar} />
+                        <AvatarFallback>
+                          {getOtherUserInfo(selectedMatch).name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">
+                          {getOtherUserInfo(selectedMatch).name}
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-2">
+                          {selectedMatch.job?.title && (
+                            <>
+                              <Briefcase className="h-3 w-3" />
+                              {selectedMatch.job.title}
+                            </>
+                          )}
+                          <Badge variant="outline" className="ml-2">
+                            Responding as Test {activeTab === "employer" ? "Employer" : "Candidate"}
+                          </Badge>
+                        </CardDescription>
+                      </div>
+                    </div>
+                    {/* Realtime Status Indicator */}
+                    <div className="flex items-center gap-1.5">
+                      {channelStatus === "connected" ? (
+                        <>
+                          <Wifi className="h-4 w-4 text-emerald-500" />
+                          <span className="text-xs text-emerald-500">Live</span>
+                        </>
+                      ) : (
+                        <>
+                          <WifiOff className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">Offline</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 ) : (
