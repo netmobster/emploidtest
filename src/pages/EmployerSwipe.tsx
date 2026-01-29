@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
@@ -8,8 +8,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
+import { AddToShortlistDialog } from "@/components/chat/AddToShortlistDialog";
 import { useSwipe } from "@/hooks/useSwipe";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
+import { useShortlistStatus } from "@/hooks/useShortlistStatus";
 import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
@@ -63,8 +65,13 @@ const EmployerSwipe = () => {
   const [showMatch, setShowMatch] = useState(false);
   const [matchedCandidate, setMatchedCandidate] = useState<CandidateWithScore | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
+  
+  // Shortlist dialog state
+  const [shortlistDialogOpen, setShortlistDialogOpen] = useState(false);
+  const [shortlistCandidate, setShortlistCandidate] = useState<CandidateWithScore | null>(null);
 
   const { recordSwipe, latestMatch, clearLatestMatch } = useSwipe(jobId);
+  const { isShortlisted, refetch: refetchShortlistStatus } = useShortlistStatus();
 
   const roleInfo = ROLES.find((r) => r.id === role);
 
@@ -362,10 +369,29 @@ const EmployerSwipe = () => {
   };
 
   // Create isMatchedFn for SwipeStack
-  const isMatchedFn = (candidateId: string) => {
+  const isMatchedFn = useCallback((candidateId: string) => {
     const candidate = candidates.find((c) => c.id === candidateId);
     return checkIsMatched(candidate?.userId || candidateId);
-  };
+  }, [candidates, checkIsMatched]);
+
+  // Create isShortlistedFn for SwipeStack
+  const isShortlistedFn = useCallback((candidateId: string) => {
+    const candidate = candidates.find((c) => c.id === candidateId);
+    return isShortlisted(candidate?.userId || candidateId);
+  }, [candidates, isShortlisted]);
+
+  // Handle shortlist button click
+  const handleShortlist = useCallback((candidate: CandidateWithScore) => {
+    setShortlistCandidate(candidate);
+    setShortlistDialogOpen(true);
+  }, []);
+
+  // Handle shortlist dialog close
+  const handleShortlistDialogClose = useCallback(() => {
+    setShortlistDialogOpen(false);
+    setShortlistCandidate(null);
+    refetchShortlistStatus();
+  }, [refetchShortlistStatus]);
 
   if (isLoading) {
     return (
@@ -409,6 +435,8 @@ const EmployerSwipe = () => {
             toast.success("You've reviewed all candidates!");
           }}
           isMatchedFn={isMatchedFn}
+          onShortlist={handleShortlist}
+          isShortlistedFn={isShortlistedFn}
         />
       </div>
 
@@ -427,6 +455,15 @@ const EmployerSwipe = () => {
           avatar: profile?.avatar_url || undefined,
         }}
         matchScore={matchedCandidate?.matchScore}
+      />
+
+      {/* Shortlist Dialog */}
+      <AddToShortlistDialog
+        isOpen={shortlistDialogOpen}
+        onClose={handleShortlistDialogClose}
+        candidateId={shortlistCandidate?.userId || shortlistCandidate?.id || ""}
+        candidateName={shortlistCandidate?.name}
+        defaultJobId={jobId}
       />
     </div>
   );

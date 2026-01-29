@@ -9,6 +9,8 @@ interface SwipeStackProps<T> {
   onSwipe: (item: T, direction: "like" | "pass" | "super_like") => void;
   onEmpty?: () => void;
   isMatchedFn?: (itemId: string) => boolean;
+  onShortlist?: (item: T) => void;
+  isShortlistedFn?: (itemId: string) => boolean;
 }
 
 const SwipeStack = <T extends { id: string; matchScore: number }>({
@@ -17,6 +19,8 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   onSwipe,
   onEmpty,
   isMatchedFn,
+  onShortlist,
+  isShortlistedFn,
 }: SwipeStackProps<T>) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
@@ -99,8 +103,9 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
     setCurrentIndex(prev => Math.max(0, prev - 1));
   }, [swipeHistory.length]);
 
-  // Check if current item is matched
+  // Check if current item is matched or shortlisted
   const isCurrentMatched = currentItem && isMatchedFn ? isMatchedFn(currentItem.id) : false;
+  const isCurrentShortlisted = currentItem && isShortlistedFn ? isShortlistedFn(currentItem.id) : false;
 
   if (!currentItem) {
     return (
@@ -178,6 +183,8 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
               onSuperLike={() => handleSwipe("super_like")}
               onUndo={handleUndo}
               canUndo={swipeHistory.length > 0}
+              onShortlist={onShortlist ? () => onShortlist(currentItem) : undefined}
+              isShortlisted={isCurrentShortlisted}
             />
           </motion.div>
         </AnimatePresence>
