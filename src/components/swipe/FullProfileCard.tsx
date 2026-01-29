@@ -77,6 +77,8 @@ interface FullProfileCardProps {
   onSuperLike?: () => void;
   onUndo?: () => void;
   canUndo?: boolean;
+  onShortlist?: () => void;
+  isShortlisted?: boolean;
 }
 
 const isCandidate = (data: CandidateData | JobData): data is CandidateData => {
@@ -84,7 +86,7 @@ const isCandidate = (data: CandidateData | JobData): data is CandidateData => {
 };
 
 const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
-  ({ data, type, isMatched = false, dragX = 0, onPass, onLike, onSuperLike, onUndo, canUndo }, ref) => {
+  ({ data, type, isMatched = false, dragX = 0, onPass, onLike, onSuperLike, onUndo, canUndo, onShortlist, isShortlisted }, ref) => {
     const candidate = isCandidate(data) ? data : null;
     const job = !isCandidate(data) ? data : null;
 
@@ -532,6 +534,8 @@ const FullProfileCard = forwardRef<HTMLDivElement, FullProfileCardProps>(
             onSuperLike={onSuperLike}
             onUndo={onUndo}
             canUndo={canUndo}
+            onShortlist={onShortlist}
+            isShortlisted={isShortlisted}
           />
         </div>
       </div>
