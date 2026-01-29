@@ -1,83 +1,94 @@
 
 ## Overview
 
-Adding shortlist indicator badges to the Matches page allows employers to quickly see which candidates they've already shortlisted for roles, improving workflow efficiency and reducing duplicate actions.
+Add a shortlist button directly to the employer swipe deck, allowing employers to save promising candidates to their shortlists without leaving the swipe flow. This creates a more efficient workflow where employers can bookmark candidates they want to compare later while continuing to swipe.
 
 ## What We'll Build
 
-When an employer views their matches list, each candidate card will display a visual indicator if that candidate has been added to any shortlist. The badge will show the job title(s) they're shortlisted for, making it easy to track hiring pipeline status at a glance.
+A star/bookmark button will appear in the swipe controls (next to the undo button) when employers are swiping candidates. Clicking it opens the existing `AddToShortlistDialog` to select a role and optionally add notes. The button will have visual feedback when a candidate is already shortlisted.
 
 ## Implementation Steps
 
-### 1. Create Shortlist Status Hook
-Create a new hook `useShortlistStatus` to efficiently fetch all shortlisted candidate IDs for the current employer in a single query.
+### 1. Update SwipeControls Component
+Add an optional shortlist button prop to the existing SwipeControls.
 
 ```
-File: src/hooks/useShortlistStatus.ts
+File: src/components/swipe/SwipeControls.tsx
 ```
 
-- Fetches all shortlist entries for the employer
-- Includes job title information via join
-- Returns a map of candidate_id to array of job titles
-- Only runs for employer users
+- Add `onShortlist` and `isShortlisted` optional props
+- Render a star button (filled when already shortlisted)
+- Position it alongside the undo button on the left side
+- Use amber/gold color scheme matching the shortlist indicator badges
 
-### 2. Create Shortlist Indicator Badge Component
-Create a reusable badge component that displays shortlist status.
-
-```
-File: src/components/shortlist/ShortlistIndicatorBadge.tsx
-```
-
-- Shows a star icon with "Shortlisted" label
-- Tooltip or expandable section showing which role(s)
-- Uses gold/amber color scheme to stand out
-- Compact design that fits the match card layout
-
-### 3. Update Matches Page
-Integrate the shortlist status into the main Matches page.
+### 2. Update FullProfileCard Component
+Pass shortlist props through to SwipeControls.
 
 ```
-File: src/pages/Matches.tsx
+File: src/components/swipe/FullProfileCard.tsx
 ```
 
-- Import and use the new `useShortlistStatus` hook
-- Only fetch shortlist data when user is an employer
-- Pass shortlist info to each match card
-- Add the `ShortlistIndicatorBadge` component next to existing badges
+- Add `onShortlist` and `isShortlisted` props to the interface
+- Forward these to the SwipeControls component
+- Button only renders when `onShortlist` is provided (employer-only)
 
-### 4. Update Chat Sidebar (Optional Enhancement)
-Also show shortlist indicators in the collapsible chat sidebar for consistency.
+### 3. Update SwipeStack Component
+Add shortlist callback prop and pass it through.
 
 ```
-File: src/components/chat/ChatSidebar.tsx
+File: src/components/swipe/SwipeStack.tsx
 ```
 
-- Add shortlist indicator to preview panel
-- Show shortlist status on hover/preview
+- Add `onShortlist` optional prop to SwipeStackProps
+- Add `isShortlistedFn` optional prop (similar to `isMatchedFn`)
+- Pass both through to FullProfileCard for the current item
+
+### 4. Update EmployerSwipe Page
+Integrate shortlist functionality with the swipe deck.
+
+```
+File: src/pages/EmployerSwipe.tsx
+```
+
+- Import `useShortlistStatus` hook for checking shortlist status
+- Import `AddToShortlistDialog` component
+- Add state for managing shortlist dialog (open/closed, candidate info)
+- Create `handleShortlist` callback to open the dialog
+- Create `isShortlistedFn` using the hook's `isShortlisted` method
+- Pass both to SwipeStack
+- Render the dialog with current candidate info
+- Call `refetch` after successful shortlist addition to update badges
+
+## Technical Details
+
+### Props Flow
+```text
+EmployerSwipe
+  └── SwipeStack
+       └── FullProfileCard
+            └── SwipeControls
+                 └── Shortlist Button
+```
+
+### Button Behavior
+- **Not shortlisted**: Outline star button, amber on hover
+- **Already shortlisted**: Filled amber star with tooltip showing roles
+- **Click action**: Opens AddToShortlistDialog with candidate pre-filled
+- **After add**: Refetch shortlist status to update badge immediately
+
+### Conditional Rendering
+- Shortlist button only appears for employer swipe (type="candidate")
+- Uses existing AddToShortlistDialog for consistent UX
+- Dialog auto-selects current job if `jobId` is in URL params
 
 ## Visual Design
 
-The badge will appear in the match card's info section:
-- Position: After the "Candidate" badge, before the archetype badge
-- Style: Amber/gold background with star icon
-- Text: "Shortlisted" with role count if multiple
-- Interaction: Click to see full list of roles in tooltip
-
-## Technical Considerations
-
-### Query Optimization
-- Single query fetches all shortlist entries for the employer
-- Data is cached in React state, not refetched per-card
-- Uses Supabase joins to get job titles efficiently
-
-### User Type Check
-- Shortlist status only fetched for employer users
-- Candidates see no shortlist badges (not applicable to their view)
-- Prevents unnecessary database queries
-
-### Data Structure
-```typescript
-type ShortlistMap = Map<string, { jobId: string; jobTitle: string }[]>;
+The shortlist button will be positioned in the control bar:
+```text
+[Undo] [Shortlist★] [✕ Pass] [⭐ Super] [♥ Like]
 ```
 
-This maps each candidate_id to an array of jobs they're shortlisted for.
+- **Icon**: Star (lucide `Star` or `Bookmark`)
+- **Color**: Amber/gold (`amber-500`) matching shortlist indicators
+- **Size**: Same as undo button (w-12 h-12)
+- **States**: Outline (default), Filled (shortlisted), Hover glow
