@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2, FlaskConical } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2, FlaskConical, Bug } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
+import { MatchScoreDebugPanel } from "@/components/swipe/MatchScoreDebugPanel";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
 import { ROLES, CITIES, TEST_EMPLOYER_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
@@ -69,6 +70,8 @@ const CandidateSwipe = () => {
   const [matchedJob, setMatchedJob] = useState<JobWithScore | null>(null);
   const [matchId, setMatchId] = useState<string | null>(null);
   const [hideTestRoles, setHideTestRoles] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [currentJobIndex, setCurrentJobIndex] = useState(0);
 
   const roleInfo = ROLES.find((r) => r.id === role);
 
@@ -400,18 +403,31 @@ const CandidateSwipe = () => {
           </Button>
         </div>
 
-        {/* Test Role Filter + Admin Button */}
+        {/* Test Role Filter + Debug Toggle + Admin Button */}
         <div className="px-4 pb-2 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Switch
-              id="hide-test-roles"
-              checked={hideTestRoles}
-              onCheckedChange={setHideTestRoles}
-            />
-            <Label htmlFor="hide-test-roles" className="text-xs text-muted-foreground flex items-center gap-1">
-              <FlaskConical className="w-3 h-3" />
-              Hide test roles
-            </Label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Switch
+                id="hide-test-roles"
+                checked={hideTestRoles}
+                onCheckedChange={setHideTestRoles}
+              />
+              <Label htmlFor="hide-test-roles" className="text-xs text-muted-foreground flex items-center gap-1">
+                <FlaskConical className="w-3 h-3" />
+                Hide test
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="show-debug"
+                checked={showDebugPanel}
+                onCheckedChange={setShowDebugPanel}
+              />
+              <Label htmlFor="show-debug" className="text-xs text-muted-foreground flex items-center gap-1">
+                <Bug className="w-3 h-3" />
+                Debug
+              </Label>
+            </div>
           </div>
           <AdminMatchButton className="border-dashed border-amber-500/50 text-amber-600 hover:text-amber-700" />
         </div>
@@ -419,15 +435,34 @@ const CandidateSwipe = () => {
 
       {/* Swipe Stack */}
       <div className="flex-1 flex flex-col min-h-0">
-        <SwipeStack
-          items={hideTestRoles ? jobs.filter((j) => !j.isTestRole) : jobs}
-          type="job"
-          onSwipe={handleSwipe}
-          onEmpty={() => {
-            toast.success("You've reviewed all jobs!");
-          }}
-          isMatchedFn={isMatchedFn}
-        />
+        {(() => {
+          const displayedJobs = hideTestRoles ? jobs.filter((j) => !j.isTestRole) : jobs;
+          const currentJob = displayedJobs[currentJobIndex];
+          
+          return (
+            <>
+              <SwipeStack
+                items={displayedJobs}
+                type="job"
+                onSwipe={handleSwipe}
+                onEmpty={() => {
+                  toast.success("You've reviewed all jobs!");
+                }}
+                isMatchedFn={isMatchedFn}
+              />
+              
+              {/* Match Score Debug Panel */}
+              {showDebugPanel && currentJob && (
+                <MatchScoreDebugPanel
+                  matchBreakdown={currentJob.matchBreakdown}
+                  candidateSkills={profile?.skills as string[] || []}
+                  jobRequirements={currentJob.requirements || []}
+                  isVisible={showDebugPanel}
+                />
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Match Celebration */}
