@@ -37,6 +37,9 @@ import {
   DollarSign,
   Target,
   Sparkles,
+  Search,
+  Plus,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TEST_EMPLOYER_ID, CITIES, ROLES } from "@/lib/gameData";
@@ -90,6 +93,28 @@ export function TestDataEditorPanel() {
   const [editingJob, setEditingJob] = useState<TestJob | null>(null);
   const [editingCandidate, setEditingCandidate] = useState<TestCandidate | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // Search and filter state
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [candidateFilter, setCandidateFilter] = useState<"all" | "complete" | "incomplete">("all");
+  
+  // Create job state
+  const [showCreateJob, setShowCreateJob] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newJobForm, setNewJobForm] = useState({
+    title: "",
+    company: "Emploid Test",
+    city_id: "nyc",
+    role_id: "growth",
+    work_mode: "remote",
+    description: "",
+    salary: "",
+    pay_min: "",
+    pay_max: "",
+    location_text: "",
+    mission_statement: "",
+    requirements: "",
+  });
 
   // Form state for job editing
   const [jobForm, setJobForm] = useState({
@@ -310,6 +335,82 @@ export function TestDataEditorPanel() {
     return ROLES.find((r) => r.id === roleId)?.title || roleId;
   };
 
+  // Filter candidates based on search and filter
+  const filteredCandidates = candidates.filter((candidate) => {
+    // Apply search filter
+    const searchLower = candidateSearch.toLowerCase();
+    const matchesSearch = !candidateSearch || 
+      candidate.full_name?.toLowerCase().includes(searchLower) ||
+      candidate.email?.toLowerCase().includes(searchLower) ||
+      candidate.job_title?.toLowerCase().includes(searchLower) ||
+      candidate.location?.toLowerCase().includes(searchLower) ||
+      candidate.skills?.some(s => s.toLowerCase().includes(searchLower));
+    
+    // Apply completion filter
+    const matchesFilter = 
+      candidateFilter === "all" ||
+      (candidateFilter === "complete" && candidate.has_completed_profile) ||
+      (candidateFilter === "incomplete" && !candidate.has_completed_profile);
+    
+    return matchesSearch && matchesFilter;
+  });
+
+  // Create new job
+  const createJob = async () => {
+    if (!newJobForm.title.trim()) {
+      toast.error("Job title is required");
+      return;
+    }
+    
+    setIsCreating(true);
+    try {
+      const { error } = await supabase
+        .from("jobs")
+        .insert({
+          title: newJobForm.title,
+          company: newJobForm.company || "Emploid Test",
+          city_id: newJobForm.city_id,
+          role_id: newJobForm.role_id,
+          user_id: TEST_EMPLOYER_ID,
+          work_mode: newJobForm.work_mode,
+          description: newJobForm.description || null,
+          salary: newJobForm.salary || null,
+          pay_min: newJobForm.pay_min ? parseInt(newJobForm.pay_min) : null,
+          pay_max: newJobForm.pay_max ? parseInt(newJobForm.pay_max) : null,
+          location_text: newJobForm.location_text || null,
+          mission_statement: newJobForm.mission_statement || null,
+          requirements: newJobForm.requirements.split("\n").filter(Boolean),
+          is_complete: true,
+          status: "active",
+        });
+      
+      if (error) throw error;
+      
+      toast.success("Job created successfully");
+      setShowCreateJob(false);
+      setNewJobForm({
+        title: "",
+        company: "Emploid Test",
+        city_id: "nyc",
+        role_id: "growth",
+        work_mode: "remote",
+        description: "",
+        salary: "",
+        pay_min: "",
+        pay_max: "",
+        location_text: "",
+        mission_statement: "",
+        requirements: "",
+      });
+      fetchJobs();
+    } catch (err) {
+      console.error("Failed to create job:", err);
+      toast.error("Failed to create job");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -340,10 +441,16 @@ export function TestDataEditorPanel() {
             <p className="text-sm text-muted-foreground">
               Jobs created by test employer (ID: {TEST_EMPLOYER_ID.slice(0, 8)}...)
             </p>
-            <Button variant="outline" size="sm" onClick={fetchJobs} disabled={isLoadingJobs}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingJobs ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="default" size="sm" onClick={() => setShowCreateJob(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Job
+              </Button>
+              <Button variant="outline" size="sm" onClick={fetchJobs} disabled={isLoadingJobs}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingJobs ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {isLoadingJobs ? (
@@ -431,29 +538,55 @@ export function TestDataEditorPanel() {
 
         {/* Candidates Tab */}
         <TabsContent value="candidates" className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              All candidate profiles in the system
-            </p>
-            <Button variant="outline" size="sm" onClick={fetchCandidates} disabled={isLoadingCandidates}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingCandidates ? "animate-spin" : ""}`} />
-              Refresh
-            </Button>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, email, skills..."
+                  value={candidateSearch}
+                  onChange={(e) => setCandidateSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={candidateFilter} onValueChange={(v) => setCandidateFilter(v as typeof candidateFilter)}>
+                <SelectTrigger className="w-[140px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="complete">Complete</SelectItem>
+                  <SelectItem value="incomplete">Incomplete</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {filteredCandidates.length} of {candidates.length} candidates
+              </p>
+              <Button variant="outline" size="sm" onClick={fetchCandidates} disabled={isLoadingCandidates}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingCandidates ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
 
           {isLoadingCandidates ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : candidates.length === 0 ? (
+          ) : filteredCandidates.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
-                No candidates found
+                {candidateSearch || candidateFilter !== "all" 
+                  ? "No candidates match your search" 
+                  : "No candidates found"}
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4">
-              {candidates.map((candidate) => (
+              {filteredCandidates.map((candidate) => (
                 <Card key={candidate.id} className="hover:border-primary/50 transition-colors">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
@@ -840,6 +973,175 @@ export function TestDataEditorPanel() {
                 <Save className="h-4 w-4 mr-2" />
               )}
               Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Job Dialog */}
+      <Dialog open={showCreateJob} onOpenChange={setShowCreateJob}>
+        <DialogContent className="max-w-2xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="h-5 w-5" />
+              Create New Test Job
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="max-h-[60vh] pr-4">
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Title *</Label>
+                  <Input
+                    value={newJobForm.title}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, title: e.target.value })}
+                    placeholder="e.g. Senior Growth Manager"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Company</Label>
+                  <Input
+                    value={newJobForm.company}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, company: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Select
+                    value={newJobForm.city_id}
+                    onValueChange={(v) => setNewJobForm({ ...newJobForm, city_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CITIES.map((city) => (
+                        <SelectItem key={city.id} value={city.id}>
+                          {city.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Role Type</Label>
+                  <Select
+                    value={newJobForm.role_id}
+                    onValueChange={(v) => setNewJobForm({ ...newJobForm, role_id: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ROLES.map((role) => (
+                        <SelectItem key={role.id} value={role.id}>
+                          {role.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Work Mode</Label>
+                  <Select
+                    value={newJobForm.work_mode}
+                    onValueChange={(v) => setNewJobForm({ ...newJobForm, work_mode: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="remote">Remote</SelectItem>
+                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                      <SelectItem value="onsite">On-site</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={newJobForm.description}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, description: e.target.value })}
+                  rows={3}
+                  placeholder="Describe the role..."
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Pay Min ($K)</Label>
+                  <Input
+                    type="number"
+                    value={newJobForm.pay_min}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, pay_min: e.target.value })}
+                    placeholder="100"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Pay Max ($K)</Label>
+                  <Input
+                    type="number"
+                    value={newJobForm.pay_max}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, pay_max: e.target.value })}
+                    placeholder="150"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Salary Display</Label>
+                  <Input
+                    value={newJobForm.salary}
+                    onChange={(e) => setNewJobForm({ ...newJobForm, salary: e.target.value })}
+                    placeholder="$100K - $150K"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Location Text</Label>
+                <Input
+                  value={newJobForm.location_text}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, location_text: e.target.value })}
+                  placeholder="e.g. New York, NY or Remote (US)"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Mission Statement</Label>
+                <Textarea
+                  value={newJobForm.mission_statement}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, mission_statement: e.target.value })}
+                  rows={2}
+                  placeholder="What is the core mission of this role?"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Requirements/Skills (one per line)</Label>
+                <Textarea
+                  value={newJobForm.requirements}
+                  onChange={(e) => setNewJobForm({ ...newJobForm, requirements: e.target.value })}
+                  rows={4}
+                  placeholder="Growth Marketing&#10;SEO&#10;Email Marketing&#10;Analytics"
+                />
+              </div>
+            </div>
+          </ScrollArea>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateJob(false)}>
+              Cancel
+            </Button>
+            <Button onClick={createJob} disabled={isCreating || !newJobForm.title.trim()}>
+              {isCreating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
+              Create Job
             </Button>
           </DialogFooter>
         </DialogContent>
