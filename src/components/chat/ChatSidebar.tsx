@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, MessageCircle, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageCircle, Star, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInterviewSection } from "./SidebarInterviewSection";
 import { useInterviews, Interview } from "@/hooks/useInterviews";
 import { useAuth } from "@/contexts/AuthContext";
+import { useShortlistStatus } from "@/hooks/useShortlistStatus";
 
 interface ChatMatch {
   id: string;
@@ -43,6 +44,7 @@ interface ChatMatch {
     title: string | null;
     avatar_url: string | null;
   } | null;
+  candidate_id?: string;
 }
 
 interface ChatSidebarProps {
@@ -57,9 +59,11 @@ export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarP
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [previewMatchId, setPreviewMatchId] = useState<string | null>(null);
   const { interviews } = useInterviews();
+  const { getShortlistsForCandidate } = useShortlistStatus();
 
   const previewMatch = matches.find((m) => m.id === previewMatchId);
   const isCandidate = profile?.user_type === "candidate";
+  const isEmployer = profile?.user_type === "employer";
 
   // Get interviews for the preview match
   const previewInterviews = useMemo(() => {
@@ -244,6 +248,10 @@ export function ChatSidebar({ matches, currentMatchId, isLoading }: ChatSidebarP
                 <span className="text-sm font-medium truncate">
                   {previewMatch.other_user?.full_name || "Unknown"}
                 </span>
+                {/* Shortlist indicator in preview */}
+                {isEmployer && previewMatch.candidate_id && getShortlistsForCandidate(previewMatch.candidate_id).length > 0 && (
+                  <Star className="w-3 h-3 text-amber-500 fill-amber-500 flex-shrink-0" />
+                )}
               </div>
               <Button
                 variant="ghost"
