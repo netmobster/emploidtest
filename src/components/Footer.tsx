@@ -34,7 +34,7 @@ const Footer = () => {
             Contact
           </a>
           <a
-            href="https://antigravity-showcase-hub.lovable.app/"
+            href="https://wtfisecho.com/antigravity"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
