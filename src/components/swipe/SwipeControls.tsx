@@ -1,6 +1,12 @@
 import { motion } from "framer-motion";
 import { X, Heart, Star, RotateCcw, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SwipeControlsProps {
   onPass: () => void;
@@ -11,6 +17,7 @@ interface SwipeControlsProps {
   disabled?: boolean;
   onShortlist?: () => void;
   isShortlisted?: boolean;
+  shortlistedRoles?: string[];
 }
 
 const SwipeControls = ({
@@ -22,8 +29,15 @@ const SwipeControls = ({
   disabled = false,
   onShortlist,
   isShortlisted = false,
+  shortlistedRoles = [],
 }: SwipeControlsProps) => {
   const buttonBase = "flex items-center justify-center rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+  
+  const shortlistTooltipContent = isShortlisted && shortlistedRoles.length > 0
+    ? `Shortlisted for: ${shortlistedRoles.join(", ")}`
+    : isShortlisted
+    ? "Already shortlisted"
+    : "Add to shortlist";
   
   return (
     <div className="flex items-center justify-center gap-4">
@@ -44,25 +58,33 @@ const SwipeControls = ({
         </motion.button>
       )}
 
-      {/* Shortlist Button */}
+      {/* Shortlist Button with Tooltip */}
       {onShortlist && (
-        <motion.button
-          whileHover={{ scale: disabled ? 1 : 1.1 }}
-          whileTap={{ scale: disabled ? 1 : 0.95 }}
-          onClick={onShortlist}
-          disabled={disabled}
-          className={cn(
-            buttonBase,
-            "w-12 h-12 bg-secondary border-2",
-            isShortlisted 
-              ? "border-amber-500 text-amber-500 bg-amber-500/10" 
-              : "border-amber-500/30 text-amber-500",
-            !disabled && !isShortlisted && "hover:bg-amber-500/10 hover:border-amber-500 hover:shadow-lg hover:shadow-amber-500/20"
-          )}
-          title={isShortlisted ? "Already shortlisted" : "Add to shortlist"}
-        >
-          <Bookmark className={cn("w-5 h-5", isShortlisted && "fill-current")} />
-        </motion.button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                whileHover={{ scale: disabled ? 1 : 1.1 }}
+                whileTap={{ scale: disabled ? 1 : 0.95 }}
+                onClick={onShortlist}
+                disabled={disabled}
+                className={cn(
+                  buttonBase,
+                  "w-12 h-12 bg-secondary border-2",
+                  isShortlisted 
+                    ? "border-amber-500 text-amber-500 bg-amber-500/10" 
+                    : "border-amber-500/30 text-amber-500",
+                  !disabled && !isShortlisted && "hover:bg-amber-500/10 hover:border-amber-500 hover:shadow-lg hover:shadow-amber-500/20"
+                )}
+              >
+                <Bookmark className={cn("w-5 h-5", isShortlisted && "fill-current")} />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <p className="text-sm">{shortlistTooltipContent}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
 
       {/* Pass Button */}

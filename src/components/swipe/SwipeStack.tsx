@@ -11,6 +11,7 @@ interface SwipeStackProps<T> {
   isMatchedFn?: (itemId: string) => boolean;
   onShortlist?: (item: T) => void;
   isShortlistedFn?: (itemId: string) => boolean;
+  getShortlistedRolesFn?: (itemId: string) => string[];
 }
 
 const SwipeStack = <T extends { id: string; matchScore: number }>({
@@ -21,6 +22,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
   isMatchedFn,
   onShortlist,
   isShortlistedFn,
+  getShortlistedRolesFn,
 }: SwipeStackProps<T>) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
@@ -103,9 +105,10 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
     setCurrentIndex(prev => Math.max(0, prev - 1));
   }, [swipeHistory.length]);
 
-  // Check if current item is matched or shortlisted
+  // Check if current item is matched, shortlisted, and get shortlisted roles
   const isCurrentMatched = currentItem && isMatchedFn ? isMatchedFn(currentItem.id) : false;
   const isCurrentShortlisted = currentItem && isShortlistedFn ? isShortlistedFn(currentItem.id) : false;
+  const currentShortlistedRoles = currentItem && getShortlistedRolesFn ? getShortlistedRolesFn(currentItem.id) : [];
 
   if (!currentItem) {
     return (
@@ -185,6 +188,7 @@ const SwipeStack = <T extends { id: string; matchScore: number }>({
               canUndo={swipeHistory.length > 0}
               onShortlist={onShortlist ? () => onShortlist(currentItem) : undefined}
               isShortlisted={isCurrentShortlisted}
+              shortlistedRoles={currentShortlistedRoles}
             />
           </motion.div>
         </AnimatePresence>
