@@ -1,9 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, MessageCircle, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, MessageCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import SwipeStack from "@/components/swipe/SwipeStack";
@@ -12,6 +11,8 @@ import { AddToShortlistDialog } from "@/components/chat/AddToShortlistDialog";
 import { useSwipe } from "@/hooks/useSwipe";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
 import { useShortlistStatus } from "@/hooks/useShortlistStatus";
+import { useShortlist } from "@/hooks/useShortlist";
+import { useEmployerJobs } from "@/hooks/useEmployerJobs";
 import { ROLES, SAMPLE_CANDIDATES, TEST_EMPLOYER_ID, TEST_CANDIDATE_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { getPrimaryBadge } from "@/lib/badgeUtils";
@@ -71,7 +72,9 @@ const EmployerSwipe = () => {
   const [shortlistCandidate, setShortlistCandidate] = useState<CandidateWithScore | null>(null);
 
   const { recordSwipe, latestMatch, clearLatestMatch } = useSwipe(jobId);
-  const { isShortlisted, refetch: refetchShortlistStatus } = useShortlistStatus();
+  const { isShortlisted, getShortlistsForCandidate, refetch: refetchShortlistStatus } = useShortlistStatus();
+  const { addToShortlist, isLoading: isAddingToShortlist } = useShortlist();
+  const { jobs: employerJobs, isLoading: isLoadingJobs } = useEmployerJobs();
 
   const roleInfo = ROLES.find((r) => r.id === role);
 
@@ -380,11 +383,36 @@ const EmployerSwipe = () => {
     return isShortlisted(candidate?.userId || candidateId);
   }, [candidates, isShortlisted]);
 
-  // Handle shortlist button click
-  const handleShortlist = useCallback((candidate: CandidateWithScore) => {
+  // Create getShortlistedRolesFn for SwipeStack to show in tooltip
+  const getShortlistedRolesFn = useCallback((candidateId: string) => {
+    const candidate = candidates.find((c) => c.id === candidateId);
+    const shortlists = getShortlistsForCandidate(candidate?.userId || candidateId);
+    return shortlists.map(s => s.jobTitle);
+  }, [candidates, getShortlistsForCandidate]);
+
+  // Handle shortlist button click - quick add if only one job, otherwise open dialog
+  const handleShortlist = useCallback(async (candidate: CandidateWithScore) => {
+    const candidateId = candidate.userId || candidate.id;
+    
+    // If only one job exists, bypass dialog and add directly
+    if (employerJobs.length === 1) {
+      const singleJob = employerJobs[0];
+      const success = await addToShortlist(singleJob.id, candidateId);
+      if (success) {
+        refetchShortlistStatus();
+      }
+      return;
+    }
+    
+    // If current job context exists and employer wants quick add for that job
+    if (jobId && employerJobs.find(j => j.id === jobId)) {
+      // Could also quick-add here, but dialog allows notes - let user choose
+    }
+    
+    // Multiple jobs - open dialog for selection
     setShortlistCandidate(candidate);
     setShortlistDialogOpen(true);
-  }, []);
+  }, [employerJobs, jobId, addToShortlist, refetchShortlistStatus]);
 
   // Handle shortlist dialog close
   const handleShortlistDialogClose = useCallback(() => {
@@ -437,6 +465,7 @@ const EmployerSwipe = () => {
           isMatchedFn={isMatchedFn}
           onShortlist={handleShortlist}
           isShortlistedFn={isShortlistedFn}
+          getShortlistedRolesFn={getShortlistedRolesFn}
         />
       </div>
 
