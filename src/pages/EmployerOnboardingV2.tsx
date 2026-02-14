@@ -30,9 +30,28 @@ export default function EmployerOnboardingV2() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth?type=employer");
+      return;
     }
     if (!authLoading && profile?.user_type !== "employer") {
       navigate("/candidate-onboarding-v2");
+      return;
+    }
+    if (!authLoading && profile) {
+      // Fully done - redirect to dashboard
+      if (profile.has_completed_profile && profile.has_completed_culture_game && (profile as any).team_environment) {
+        navigate("/employer-dashboard", { replace: true });
+        return;
+      }
+      // Resume: skip already-completed steps
+      if (profile.has_completed_profile && profile.company_name) {
+        if (profile.has_completed_culture_game) {
+          setCompletedSteps([0, 1]);
+          setCurrentStep(2);
+        } else {
+          setCompletedSteps([0]);
+          setCurrentStep(1);
+        }
+      }
     }
   }, [user, profile, authLoading, navigate]);
 
