@@ -1,94 +1,87 @@
 
+
 ## Overview
 
-Add a shortlist button directly to the employer swipe deck, allowing employers to save promising candidates to their shortlists without leaving the swipe flow. This creates a more efficient workflow where employers can bookmark candidates they want to compare later while continuing to swipe.
+Three fixes to ensure a consistent, bug-free onboarding experience for both user types: correct routing from Auth, enable the "Skip to Dashboard" button for returning users on the Welcome page, and add step-resume logic to the Employer Onboarding V2.
 
-## What We'll Build
+## 1. Fix V1/V2 Routing in Auth.tsx
 
-A star/bookmark button will appear in the swipe controls (next to the undo button) when employers are swiping candidates. Clicking it opens the existing `AddToShortlistDialog` to select a role and optionally add notes. The button will have visual feedback when a candidate is already shortlisted.
+**File:** `src/pages/Auth.tsx` (lines 117-119)
 
-## Implementation Steps
+Currently, returning users who haven't completed culture are routed to `/employer-onboarding` or `/candidate-onboarding` (V1 routes). Change these to V2:
 
-### 1. Update SwipeControls Component
-Add an optional shortlist button prop to the existing SwipeControls.
+- `/employer-onboarding` becomes `/employer-onboarding-v2`
+- `/candidate-onboarding` becomes `/candidate-onboarding-v2`
 
-```
-File: src/components/swipe/SwipeControls.tsx
-```
+## 2. Wire Up isReturningUser in Welcome.tsx
 
-- Add `onShortlist` and `isShortlisted` optional props
-- Render a star button (filled when already shortlisted)
-- Position it alongside the undo button on the left side
-- Use amber/gold color scheme matching the shortlist indicator badges
+**File:** `src/pages/Welcome.tsx`
 
-### 2. Update FullProfileCard Component
-Pass shortlist props through to SwipeControls.
+The `Day14Interstitial` component already accepts `isReturningUser` and `onSkip` props but they are never passed. Changes:
 
-```
-File: src/components/swipe/FullProfileCard.tsx
-```
+- Determine `isReturningUser` from profile data (e.g., `profile.has_completed_profile === true` or `profile.has_completed_walkthrough === true` from onboarding status)
+- Pass `isReturningUser` and an `onSkip` handler that navigates directly to the appropriate dashboard
+- This enables the "Skip to Dashboard" button for users who have already been through onboarding
 
-- Add `onShortlist` and `isShortlisted` props to the interface
-- Forward these to the SwipeControls component
-- Button only renders when `onShortlist` is provided (employer-only)
+## 3. Add Resume Logic to EmployerOnboardingV2
 
-### 3. Update SwipeStack Component
-Add shortlist callback prop and pass it through.
+**File:** `src/pages/EmployerOnboardingV2.tsx`
 
-```
-File: src/components/swipe/SwipeStack.tsx
-```
+Mirror the candidate V2 pattern (lines 37-61 of CandidateOnboardingV2.tsx):
 
-- Add `onShortlist` optional prop to SwipeStackProps
-- Add `isShortlistedFn` optional prop (similar to `isMatchedFn`)
-- Pass both through to FullProfileCard for the current item
+- If `has_completed_profile` and `company_name` exist, mark step 0 (Identity) complete, jump to step 1 (Culture)
+- If `has_completed_culture_game` is also true, mark steps 0-1 complete, jump to step 2 (Team)
+- If all steps are done (profile + culture + team_environment), redirect to `/employer-dashboard`
 
-### 4. Update EmployerSwipe Page
-Integrate shortlist functionality with the swipe deck.
-
-```
-File: src/pages/EmployerSwipe.tsx
-```
-
-- Import `useShortlistStatus` hook for checking shortlist status
-- Import `AddToShortlistDialog` component
-- Add state for managing shortlist dialog (open/closed, candidate info)
-- Create `handleShortlist` callback to open the dialog
-- Create `isShortlistedFn` using the hook's `isShortlisted` method
-- Pass both to SwipeStack
-- Render the dialog with current candidate info
-- Call `refetch` after successful shortlist addition to update badges
+This prevents employers from being forced to redo completed steps when they return to the onboarding flow.
 
 ## Technical Details
 
-### Props Flow
-```text
-EmployerSwipe
-  └── SwipeStack
-       └── FullProfileCard
-            └── SwipeControls
-                 └── Shortlist Button
+### Auth.tsx Change (line 118)
+```typescript
+// Before
+const destination = profile.user_type === "employer" ? "/employer-onboarding" : "/candidate-onboarding";
+// After
+const destination = profile.user_type === "employer" ? "/employer-onboarding-v2" : "/candidate-onboarding-v2";
 ```
 
-### Button Behavior
-- **Not shortlisted**: Outline star button, amber on hover
-- **Already shortlisted**: Filled amber star with tooltip showing roles
-- **Click action**: Opens AddToShortlistDialog with candidate pre-filled
-- **After add**: Refetch shortlist status to update badge immediately
+### Welcome.tsx Changes
+```typescript
+// Determine returning user status
+const isReturningUser = profile?.has_completed_profile === true;
 
-### Conditional Rendering
-- Shortlist button only appears for employer swipe (type="candidate")
-- Uses existing AddToShortlistDialog for consistent UX
-- Dialog auto-selects current job if `jobId` is in URL params
+// Skip handler
+const handleSkip = () => {
+  const dashboard = profile?.user_type === "employer" ? "/employer-dashboard" : "/candidate-dashboard";
+  navigate(dashboard);
+};
 
-## Visual Design
-
-The shortlist button will be positioned in the control bar:
-```text
-[Undo] [Shortlist★] [✕ Pass] [⭐ Super] [♥ Like]
+// Pass to Day14Interstitial
+<Day14Interstitial
+  userType={profile.user_type}
+  onComplete={handleInterstitialComplete}
+  isReturningUser={isReturningUser}
+  onSkip={handleSkip}
+/>
 ```
 
-- **Icon**: Star (lucide `Star` or `Bookmark`)
-- **Color**: Amber/gold (`amber-500`) matching shortlist indicators
-- **Size**: Same as undo button (w-12 h-12)
-- **States**: Outline (default), Filled (shortlisted), Hover glow
+### EmployerOnboardingV2.tsx Resume Logic
+Add inside the existing `useEffect` after the auth/type checks:
+
+```typescript
+// Resume: skip already-completed steps
+if (profile.has_completed_profile && profile.company_name) {
+  setCompletedSteps([0]);
+  if (profile.has_completed_culture_game) {
+    setCompletedSteps([0, 1]);
+    setCurrentStep(2); // Jump to Team step
+  } else {
+    setCurrentStep(1); // Jump to Culture step
+  }
+}
+
+// Fully done - redirect to dashboard
+if (profile.has_completed_profile && profile.has_completed_culture_game && (profile as any).team_environment) {
+  navigate("/employer-dashboard");
+}
+```
