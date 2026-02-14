@@ -115,7 +115,7 @@ const Auth = () => {
       }
       
       if (!profile.has_completed_culture_game) {
-        const destination = profile.user_type === "employer" ? "/employer-onboarding" : "/candidate-onboarding";
+        const destination = profile.user_type === "employer" ? "/employer-onboarding-v2" : "/candidate-onboarding-v2";
         navigate(destination, { replace: true });
         return;
       }

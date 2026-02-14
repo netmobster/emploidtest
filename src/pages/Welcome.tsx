@@ -62,11 +62,19 @@ const Welcome = () => {
     return null;
   }
 
-  // Always show the Day14 Interstitial for new users - this is THE welcome experience
+  const isReturningUser = profile?.has_completed_profile === true;
+
+  const handleSkip = () => {
+    const dashboard = profile?.user_type === "employer" ? "/employer-dashboard" : "/candidate-dashboard";
+    navigate(dashboard);
+  };
+
   return (
     <Day14Interstitial
       userType={profile.user_type as "candidate" | "employer"}
       onComplete={handleInterstitialComplete}
+      isReturningUser={isReturningUser}
+      onSkip={handleSkip}
     />
   );
 };
