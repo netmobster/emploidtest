@@ -39,6 +39,14 @@ export function useSmartRedirect() {
     const lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0;
     const hoursSinceActive = (Date.now() - lastActive) / (1000 * 60 * 60);
     
+    // Check if onboarding is incomplete — route back to onboarding instead of dashboard
+    const needsOnboarding = !profile.has_completed_culture_game || !profile.has_completed_synergy_quiz;
+    if (needsOnboarding) {
+      return profile.user_type === "employer"
+        ? "/employer-onboarding-v2"
+        : "/candidate-onboarding-v2";
+    }
+
     const dashboardRoute = profile.user_type === "employer" 
       ? "/employer-dashboard" 
       : "/candidate-dashboard";

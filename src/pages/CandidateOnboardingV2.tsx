@@ -37,7 +37,7 @@ const CandidateOnboardingV2 = () => {
     if (!isLoading && profile) {
       // If not a candidate, redirect to employer flow
       if (profile.user_type !== "candidate") {
-        navigate("/employer-onboarding");
+        navigate("/employer-onboarding-v2");
         return;
       }
 
