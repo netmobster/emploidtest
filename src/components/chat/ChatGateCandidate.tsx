@@ -1,14 +1,19 @@
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Clock, Lock, Bell, Brain } from "lucide-react";
+import { Clock, Lock, Bell, Brain, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatGateCandidateProps {
   employerName?: string;
   jobTitle?: string;
   companyName?: string;
   gateTrigger?: "role_incomplete" | "synergy_quiz";
+  jobId?: string;
+  onRoleCompleted?: () => void;
 }
 
 export function ChatGateCandidate({ 
@@ -16,11 +21,51 @@ export function ChatGateCandidate({
   jobTitle,
   companyName,
   gateTrigger = "role_incomplete",
+  jobId,
+  onRoleCompleted,
 }: ChatGateCandidateProps) {
   const navigate = useNavigate();
-  const handleNotifyMe = () => {
-    toast.success("We'll notify you when the role details are ready!");
-  };
+  const { user } = useAuth();
+  const [subscribed, setSubscribed] = useState(false);
+
+  // Real-time subscription: watch for job completion
+  useEffect(() => {
+    if (!jobId || gateTrigger !== "role_incomplete") return;
+
+    const channel = supabase
+      .channel(`job-gate-${jobId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "jobs",
+          filter: `id=eq.${jobId}`,
+        },
+        (payload) => {
+          const updated = payload.new as { is_complete?: boolean };
+          if (updated.is_complete) {
+            toast.success("Role details are ready! Chat is unlocking...");
+            onRoleCompleted?.();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [jobId, gateTrigger, onRoleCompleted]);
+
+  const handleNotifyMe = useCallback(() => {
+    if (!jobId) {
+      toast.success("We'll notify you when the role details are ready!");
+      return;
+    }
+    // Realtime subscription is already active — mark UI as subscribed
+    setSubscribed(true);
+    toast.success("You'll be notified as soon as the role details are ready!");
+  }, [jobId]);
 
   const isSynergyGate = gateTrigger === "synergy_quiz";
 
@@ -104,6 +149,11 @@ export function ChatGateCandidate({
           <Button onClick={() => navigate("/candidate-onboarding-v2")}>
             <Brain className="w-4 h-4 mr-2" />
             Take Synergy Quiz
+          </Button>
+        ) : subscribed ? (
+          <Button variant="outline" disabled>
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Watching for Updates
           </Button>
         ) : (
           <Button variant="outline" onClick={handleNotifyMe}>
