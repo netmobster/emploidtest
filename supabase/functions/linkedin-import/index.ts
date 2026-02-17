@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface ApifyPosition {
@@ -186,7 +186,41 @@ serve(async (req) => {
   }
 
   try {
+    // Authenticate the caller
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await authClient.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const authenticatedUserId = claimsData.claims.sub;
+
     const { linkedinUrl, userId, userType = "candidate", verificationMode = false } = await req.json();
+
+    // Ensure caller can only import for themselves
+    if (userId && userId !== authenticatedUserId) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: cannot import for another user" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!linkedinUrl) {
       return new Response(
@@ -222,7 +256,7 @@ serve(async (req) => {
 
     // Call Apify's LinkedIn Profile Scraper Actor (user-confirmed Actor ID)
     const actorId = "AgfKk0sQQxkpQJ1Dt";
-    const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${APIFY_TOKEN}`;
+    const apifyUrl = `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items`;
 
     // Build the request payload with correct Apify structure
     const normalizedUrl = linkedinUrl.trim().replace(/\/$/, ''); // Remove trailing slash
@@ -236,6 +270,7 @@ serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${APIFY_TOKEN}`,
       },
       body: JSON.stringify(payload),
     });
