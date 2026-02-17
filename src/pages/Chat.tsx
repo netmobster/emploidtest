@@ -87,7 +87,14 @@ interface JobInfo {
 const Chat = () => {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
+
+  // Auth guard - redirect if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
   const [match, setMatch] = useState<MatchDetails | null>(null);
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
   const [jobInfo, setJobInfo] = useState<JobInfo | null>(null);
@@ -296,6 +303,7 @@ const Chat = () => {
   // Determine if chat is gated
   const isEmployer = profile?.user_type === "employer";
   const isJobIncomplete = jobInfo && !jobInfo.isComplete;
+  const isCandidateSynergyIncomplete = !isEmployer && !profile?.has_completed_synergy_quiz;
 
   // Handler for when role is completed
   const handleRoleComplete = async () => {
@@ -464,19 +472,26 @@ const Chat = () => {
       </motion.header>
 
       {/* Chat Gate Logic */}
-      {isJobIncomplete ? (
-        isEmployer ? (
+      {isJobIncomplete || isCandidateSynergyIncomplete ? (
+        isJobIncomplete && isEmployer ? (
           <ChatGateEmployer
-            jobId={jobInfo.id}
-            jobTitle={jobInfo.title}
+            jobId={jobInfo!.id}
+            jobTitle={jobInfo!.title}
             candidateName={otherUser?.name}
             onRoleComplete={handleRoleComplete}
+          />
+        ) : isCandidateSynergyIncomplete ? (
+          <ChatGateCandidate
+            employerName={otherUser?.name}
+            jobTitle={jobInfo?.title}
+            companyName={jobInfo?.companyName}
+            gateTrigger="synergy_quiz"
           />
         ) : (
           <ChatGateCandidate
             employerName={otherUser?.name}
-            jobTitle={jobInfo.title}
-            companyName={jobInfo.companyName}
+            jobTitle={jobInfo!.title}
+            companyName={jobInfo!.companyName}
           />
         )
       ) : (

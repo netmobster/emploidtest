@@ -1,22 +1,28 @@
 import { motion } from "framer-motion";
-import { Clock, Lock, Bell } from "lucide-react";
+import { Clock, Lock, Bell, Brain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ChatGateCandidateProps {
   employerName?: string;
   jobTitle?: string;
   companyName?: string;
+  gateTrigger?: "role_incomplete" | "synergy_quiz";
 }
 
 export function ChatGateCandidate({ 
   employerName,
   jobTitle,
-  companyName 
+  companyName,
+  gateTrigger = "role_incomplete",
 }: ChatGateCandidateProps) {
+  const navigate = useNavigate();
   const handleNotifyMe = () => {
     toast.success("We'll notify you when the role details are ready!");
   };
+
+  const isSynergyGate = gateTrigger === "synergy_quiz";
 
   return (
     <motion.div
@@ -30,7 +36,11 @@ export function ChatGateCandidate({
         transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
         className="w-20 h-20 rounded-full bg-accent flex items-center justify-center mb-6"
       >
-        <Clock className="w-10 h-10 text-accent-foreground" />
+        {isSynergyGate ? (
+          <Brain className="w-10 h-10 text-accent-foreground" />
+        ) : (
+          <Clock className="w-10 h-10 text-accent-foreground" />
+        )}
       </motion.div>
 
       <motion.h2
@@ -39,7 +49,7 @@ export function ChatGateCandidate({
         transition={{ delay: 0.3 }}
         className="text-2xl font-semibold mb-2"
       >
-        Almost There!
+        {isSynergyGate ? "Complete Your Synergy Quiz" : "Almost There!"}
       </motion.h2>
 
       <motion.p
@@ -48,7 +58,13 @@ export function ChatGateCandidate({
         transition={{ delay: 0.4 }}
         className="text-muted-foreground max-w-md mb-6"
       >
-        {employerName ? (
+        {isSynergyGate ? (
+          <>
+            Complete the Synergy Questionnaire to unlock chat with{" "}
+            <span className="font-medium text-foreground">{employerName || "your match"}</span>.
+            This helps us create a meaningful first conversation.
+          </>
+        ) : employerName ? (
           <>
             <span className="font-medium text-foreground">{employerName}</span>
             {companyName && <span className="text-foreground"> from {companyName}</span>}
@@ -72,8 +88,9 @@ export function ChatGateCandidate({
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Lock className="w-5 h-5 shrink-0" />
           <span>
-            Chat will unlock automatically once they complete the role details, 
-            including pay range, work mode, and expectations.
+            {isSynergyGate
+              ? "Chat unlocks after you complete the Synergy Quiz. It only takes a few minutes!"
+              : "Chat will unlock automatically once they complete the role details, including pay range, work mode, and expectations."}
           </span>
         </div>
       </motion.div>
@@ -83,10 +100,17 @@ export function ChatGateCandidate({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <Button variant="outline" onClick={handleNotifyMe}>
-          <Bell className="w-4 h-4 mr-2" />
-          Notify Me When Ready
-        </Button>
+        {isSynergyGate ? (
+          <Button onClick={() => navigate("/candidate-onboarding-v2")}>
+            <Brain className="w-4 h-4 mr-2" />
+            Take Synergy Quiz
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={handleNotifyMe}>
+            <Bell className="w-4 h-4 mr-2" />
+            Notify Me When Ready
+          </Button>
+        )}
       </motion.div>
 
       {/* Animated waiting indicator */}
