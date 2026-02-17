@@ -408,8 +408,8 @@ const ChatInterface = ({
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Chat Event Timeline for employers (document requests, quizzes sent, interviews) */}
-            {isEmployer && matchId && (
+            {/* Chat Event Timeline (document requests, quizzes, interviews) */}
+            {matchId && (
               <ChatEventTimeline
                 matchId={matchId}
                 currentUserId={user?.id}
