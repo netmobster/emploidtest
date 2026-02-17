@@ -85,6 +85,13 @@ const EmployerSwipe = () => {
   );
   const { isMatched: checkIsMatched } = useBatchMatchStatus(candidateIds);
 
+  // Auth guard - redirect if not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth?type=employer", { replace: true });
+    }
+  }, [user, navigate]);
+
   // Fetch candidates with real match score calculations
   useEffect(() => {
     const fetchCandidates = async () => {

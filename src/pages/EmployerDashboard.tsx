@@ -50,8 +50,10 @@ export default function EmployerDashboard() {
   useEffect(() => {
     if (!authLoading && !user) {
       navigate("/auth?type=employer");
+    } else if (!authLoading && profile && profile.user_type !== "employer") {
+      navigate("/candidate-dashboard", { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, profile, authLoading, navigate]);
 
   if (authLoading || !user) {
     return (
