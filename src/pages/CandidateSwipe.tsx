@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageCircle, Loader2, FlaskConical, Bug } from "lucide-react";
@@ -11,6 +11,7 @@ import SwipeStack from "@/components/swipe/SwipeStack";
 import MatchCelebration from "@/components/match/MatchCelebration";
 import { MatchScoreDebugPanel } from "@/components/swipe/MatchScoreDebugPanel";
 import { useBatchMatchStatus } from "@/hooks/useBatchMatchStatus";
+import { useSwipe } from "@/hooks/useSwipe";
 import { ROLES, CITIES, TEST_EMPLOYER_ID } from "@/lib/gameData";
 import { calculateMatchScore, MatchScoreBreakdown } from "@/lib/matchScoreUtils";
 import { isJobLocationMatch } from "@/lib/locationMatchingUtils";
@@ -52,9 +53,17 @@ interface JobWithScore {
 const CandidateSwipe = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isLoading: authLoading } = useAuth();
   const role = searchParams.get("role");
   const city = searchParams.get("city");
+
+  // Auth guard: redirect unauthenticated users to /auth
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log("[CandidateSwipe] Not authenticated, redirecting to /auth");
+      navigate("/auth", { replace: true });
+    }
+  }, [authLoading, user, navigate]);
 
   // Guard: Redirect to preference flow if city or role is missing
   useEffect(() => {
@@ -68,12 +77,14 @@ const CandidateSwipe = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showMatch, setShowMatch] = useState(false);
   const [matchedJob, setMatchedJob] = useState<JobWithScore | null>(null);
-  const [matchId, setMatchId] = useState<string | null>(null);
   const [hideTestRoles, setHideTestRoles] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
-
+  const matchIdRef = useRef<string | null>(null);
   const roleInfo = ROLES.find((r) => r.id === role);
+
+  // Use the useSwipe hook for consistent match detection (retry polling + realtime)
+  const { recordSwipe, latestMatch, clearLatestMatch } = useSwipe();
 
   // Get employer IDs for batch match status checking
   const employerIds = useMemo(
@@ -289,6 +300,19 @@ const CandidateSwipe = () => {
     fetchJobs();
   }, [user, profile, role, city]);
 
+  // Handle match detection from useSwipe realtime subscription
+  useEffect(() => {
+    if (latestMatch) {
+      const matched = jobs.find((j) => j.employerId === latestMatch.matchedUserId);
+      if (matched) {
+        setMatchedJob(matched);
+        setShowMatch(true);
+        matchIdRef.current = latestMatch.matchId;
+      }
+      clearLatestMatch();
+    }
+  }, [latestMatch, jobs, clearLatestMatch]);
+
   const handleSwipe = async (
     job: JobWithScore,
     direction: "like" | "pass" | "super_like"
@@ -296,6 +320,7 @@ const CandidateSwipe = () => {
     if (!job.employerId || !user) return;
 
     // Record swipe with job_id for proper exclusion on refresh
+    // We insert directly (not via useSwipe) because each card has a different job_id
     const { error } = await supabase
       .from("swipes")
       .insert({
@@ -308,6 +333,7 @@ const CandidateSwipe = () => {
     if (error) {
       if (error.code === "23505") {
         console.warn("[CandidateSwipe] Duplicate swipe detected");
+        toast.error("You've already swiped on this profile");
       } else {
         console.error("[CandidateSwipe] Error recording swipe:", error);
         toast.error("Failed to record swipe");
@@ -317,38 +343,44 @@ const CandidateSwipe = () => {
 
     console.log(`[CandidateSwipe] Recorded ${direction} on job ${job.id}`);
 
-    // For likes/super_likes, show toast and check for a match
+    // Show appropriate toasts
+    if (direction === "super_like") {
+      toast.success("Super Like sent! ⭐", { duration: 2000 });
+    } else if (direction === "like") {
+      toast.success("Like sent! 💚", { duration: 1500 });
+    }
+
+    // For likes/super_likes, poll for match with retries (useSwipe's pollForMatch pattern)
     if (direction !== "pass") {
-      if (direction === "super_like") {
-        toast.success("Super Like sent! ⭐", { duration: 2000 });
-      } else {
-        toast.success("Like sent! 💚", { duration: 1500 });
-      }
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        const { data: match } = await supabase
+          .from("matches")
+          .select("id")
+          .or(
+            `and(employer_id.eq.${user.id},candidate_id.eq.${job.employerId}),and(employer_id.eq.${job.employerId},candidate_id.eq.${user.id})`
+          )
+          .order("matched_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      // Poll for match (the DB trigger may have created one)
-      const { data: match } = await supabase
-        .from("matches")
-        .select("id")
-        .or(
-          `and(employer_id.eq.${user.id},candidate_id.eq.${job.employerId}),and(employer_id.eq.${job.employerId},candidate_id.eq.${user.id})`
-        )
-        .order("matched_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (match) {
-        console.log("[CandidateSwipe] Match found:", match.id);
-        setMatchedJob(job);
-        setMatchId(match.id);
-        setShowMatch(true);
+        if (match) {
+          console.log("[CandidateSwipe] Match found on attempt", attempt, ":", match.id);
+          setMatchedJob(job);
+          setShowMatch(true);
+          // Store matchId for chat navigation
+          matchIdRef.current = match.id;
+          return;
+        }
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 300));
       }
     }
   };
 
   const handleStartChat = () => {
     setShowMatch(false);
-    if (matchId) {
-      navigate(`/chat/${matchId}`);
+    if (matchIdRef.current) {
+      navigate(`/chat/${matchIdRef.current}`);
+      matchIdRef.current = null;
     } else {
       navigate("/matches");
     }
