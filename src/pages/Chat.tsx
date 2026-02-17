@@ -303,9 +303,12 @@ const Chat = () => {
     );
   }
 
-  // Determine if chat is gated
+  // Chat Gate Policy:
+  // - No job_id → chat is OPEN (direct profile match, no role to gate on)
+  // - job_id exists but incomplete → gated for BOTH sides (employer must complete role, candidate waits)
+  // - Candidate without synergy quiz → always gated regardless of job status
   const isEmployer = profile?.user_type === "employer";
-  const isJobIncomplete = jobInfo && !jobInfo.isComplete;
+  const isJobIncomplete = !!jobInfo && !jobInfo.isComplete;
   const isCandidateSynergyIncomplete = !isEmployer && !profile?.has_completed_synergy_quiz;
 
   // Handler for when role is completed
