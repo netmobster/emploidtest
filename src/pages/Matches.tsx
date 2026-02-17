@@ -109,7 +109,7 @@ const Matches = () => {
                 Start swiping to find your perfect match!
               </p>
               <Button onClick={() => {
-                const swipePath = profile?.user_type === "employer" ? "/swipe/employer" : "/city?type=candidate";
+                const swipePath = profile?.user_type === "employer" ? "/swipe/employer" : "/swipe/candidate";
                 navigate(swipePath);
               }}>
                 Continue Swiping
