@@ -40,7 +40,38 @@ export const useQuizRequests = (matchId?: string) => {
 
   useEffect(() => {
     fetchRequests();
-  }, [fetchRequests]);
+
+    // Subscribe to realtime changes so both parties see updates immediately
+    if (!matchId || !user) return;
+
+    const channel = supabase
+      .channel(`quiz-requests-${matchId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "quiz_requests",
+          filter: `match_id=eq.${matchId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            setRequests((prev) => [payload.new as QuizRequest, ...prev]);
+          } else if (payload.eventType === "UPDATE") {
+            setRequests((prev) =>
+              prev.map((req) =>
+                req.id === payload.new.id ? (payload.new as QuizRequest) : req
+              )
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchRequests, matchId, user]);
 
   const sendQuiz = useCallback(
     async (
