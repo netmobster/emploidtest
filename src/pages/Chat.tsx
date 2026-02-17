@@ -66,6 +66,7 @@ interface MatchDetails {
   candidate_id: string;
   job_id: string | null;
   matched_at: string;
+  first_message_sent: boolean | null;
 }
 
 interface OtherUser {
@@ -74,6 +75,7 @@ interface OtherUser {
   avatar?: string;
   type: string;
   synergy_scores?: Record<string, number>;
+  skills?: string[] | null;
 }
 
 interface JobInfo {
@@ -156,7 +158,7 @@ const Chat = () => {
         // Get other user's profile with synergy scores
         const { data: otherProfile } = await supabase
           .from("profiles")
-          .select("user_id, full_name, avatar_url, user_type, synergy_scores")
+          .select("user_id, full_name, avatar_url, user_type, synergy_scores, skills")
           .eq("user_id", otherUserId)
           .single();
 
@@ -168,6 +170,7 @@ const Chat = () => {
             avatar: otherProfile.avatar_url || undefined,
             type: otherProfile.user_type,
             synergy_scores: otherSynergyScores || undefined,
+            skills: otherProfile.skills || null,
           });
 
           // Calculate synergy compatibility
@@ -492,6 +495,8 @@ const Chat = () => {
             employerName={otherUser?.name}
             jobTitle={jobInfo!.title}
             companyName={jobInfo!.companyName}
+            jobId={jobInfo!.id}
+            onRoleCompleted={handleRoleComplete}
           />
         )
       ) : (
@@ -556,6 +561,19 @@ const Chat = () => {
                 }}
                 candidateName={otherUser?.name}
                 employerName={profile?.full_name || "Employer"}
+                currentUserProfile={profile ? {
+                  skills: profile.skills,
+                  synergy_scores: profile.synergy_scores as Record<string, number> | null,
+                  culture_preferences: profile.culture_preferences as unknown as Record<string, number> | null,
+                } : undefined}
+                otherUserProfile={otherUser ? {
+                  skills: otherUser.skills || null,
+                  synergy_scores: otherUser.synergy_scores || null,
+                  culture_preferences: null,
+                  full_name: otherUser.name,
+                } : undefined}
+                firstMessageSent={match?.first_message_sent ?? false}
+                onSetInputValue={setChatInputValue}
               />
             ) : (
               <RoleDetailsTab jobId={jobInfo!.id} />
